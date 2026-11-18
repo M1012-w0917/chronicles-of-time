@@ -1,0 +1,149 @@
+/* 世界改写：全屏插画。程序生成，无外部素材。 */
+#world { position: fixed; inset: 0; z-index: 80; background: #070403; display: flex; align-items: center; justify-content: center; opacity: 1; transition: opacity .55s ease; }
+#world[hidden] { display: none; }
+#world.out { opacity: 0; }
+
+.w-plate {
+  position: relative; width: min(94vw, 168vh); height: min(88vh, 52.9vw); max-height: 94vh; overflow: hidden;
+  border: 14px solid #b8935a; border-image: none; border-radius: 3px;
+  box-shadow: 0 0 0 3px #2e1b0c, 0 0 0 9px #130b05, 0 30px 90px rgba(0, 0, 0, .8), inset 0 0 0 2px rgba(60, 30, 10, .7);
+  background: #1a120c; isolation: isolate;
+}
+.w-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.w-paper { position: absolute; inset: 0; pointer-events: none; z-index: 5;
+  background: radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(25, 10, 2, .55) 100%),
+    repeating-linear-gradient(0deg, rgba(90, 60, 30, .05) 0 2px, transparent 2px 5px);
+  box-shadow: inset 0 0 70px 18px rgba(30, 14, 4, .7); mix-blend-mode: multiply; }
+
+.w-cap { position: absolute; left: 0; right: 0; bottom: 0; z-index: 6; margin: 0; padding: 34px 5% 20px; text-align: center; font-size: clamp(16px, 2.3vw, 28px); letter-spacing: .12em;
+  font-family: var(--serif-zh, serif), serif; color: #f1e3c0; text-shadow: 0 2px 10px #000, 0 0 3px #000; opacity: 0;
+  background: linear-gradient(to top, rgba(5, 3, 2, .8), transparent); }
+html[lang="en"] .w-cap { letter-spacing: .03em; font-style: italic; }
+.w-cap.show { animation: wCap 2.6s ease forwards; }
+.sf .w-cap.show, .rm .w-cap.show { animation: none; opacity: 1; }
+@keyframes wCap { 0% { opacity: 0; transform: translateY(8px); } 15% { opacity: 1; transform: none; } 85% { opacity: 1; } 100% { opacity: .9; } }
+
+.w-skip { position: absolute; top: 3vh; right: 3vw; z-index: 10; padding: 8px 18px; cursor: pointer; letter-spacing: .15em;
+  background: rgba(15, 8, 4, .75); color: #e8d6ae; border: 1px solid #8a6a3a; border-radius: 2px; }
+.w-skip:hover { background: rgba(60, 30, 10, .85); }
+
+/* 画法 */
+.w-svg .dr { fill-opacity: 0; stroke: #120c08; stroke-width: 2.6; stroke-linejoin: round; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; }
+.w-svg .o-sky { stroke: none; }
+.w-svg .dashed { stroke-dasharray: 6 10; }
+.w-svg .dr.dashed { stroke-dasharray: 1; }
+.w-svg .cloud, .w-svg .course, .w-svg .tuft, .w-svg .hands { stroke: rgba(20, 10, 4, .55); }
+.w-svg .hands { stroke: #150e09; }
+.w-svg .o-sound { stroke: rgba(255, 224, 160, .6); stroke-width: 2; animation: wSound 2.4s linear infinite; }
+@keyframes wSound { to { stroke-dashoffset: -64; } }
+.w-svg .o-glow { animation: wGlow 2.2s ease-in-out infinite; transform-origin: 800px 414px; }
+@keyframes wGlow { 50% { opacity: .55; } }
+.w-svg .o-win { filter: drop-shadow(0 0 6px #ffcf70); }
+
+.w-new { opacity: 0; }
+.s4 .w-new { opacity: 1; }
+.s4 .dr { animation: wDraw 1.3s ease-out var(--d, 0s) forwards, wFill .9s ease-in calc(var(--d, 0s) + .95s) forwards; }
+@keyframes wDraw { to { stroke-dashoffset: 0; } }
+@keyframes wFill { to { fill-opacity: 1; } }
+.sf .w-new { opacity: 1; }
+.sf .dr { animation: none !important; stroke-dashoffset: 0; fill-opacity: 1; }
+.w-svg .dr.hands, .w-svg .dr.course, .w-svg .dr.tuft, .w-svg .dr.dashed { fill-opacity: 0 !important; }
+.w-svg .dr.patch { }
+
+/* 钟楼与钟 */
+.w-svg .bell { transform-box: view-box; }
+.w-svg .swing { animation: wSwing 1.6s ease-in-out infinite alternate; }
+@keyframes wSwing { from { transform: rotate(-16deg); } to { transform: rotate(16deg); } }
+.w-svg .pale-clock { filter: drop-shadow(0 0 8px rgba(228, 220, 174, .6)); }
+.w-svg .rise { transform: translateY(560px); }
+.s4 .rise { animation: wRise 3.2s cubic-bezier(.2, .7, .2, 1) 1.2s forwards; }
+.sf .rise { animation: none; transform: none; }
+@keyframes wRise { 0% { transform: translateY(560px); } 70% { transform: translateY(-14px); } 100% { transform: none; } }
+.w-svg .crawl { transform: translateX(0); }
+.s5 .crawl { animation: wCrawl 2.2s ease-in-out forwards; }
+.sf .crawl { animation: none; transform: translateX(-130px); }
+@keyframes wCrawl { to { transform: translateX(-130px); } }
+.w-svg .patch { animation: none; }
+
+/* 墨为眼：代价阶段浮现 */
+.w-svg .eyes { opacity: 0; }
+.s5 .eyes { animation: wEye 1.4s ease forwards var(--d, 0s); }
+.sf .eyes { animation: none; opacity: 1; }
+@keyframes wEye { 0% { opacity: 0; } 60% { opacity: 1; } 100% { opacity: 1; } }
+
+/* 代价：光变暗 */
+.w-dim { opacity: 0; pointer-events: none; transition: opacity 1.8s ease; }
+.s5 .w-dim { opacity: var(--dim, .4); }
+.sf .w-dim { transition: none; }
+
+/* 旧世界崩塌 */
+.w-oldwrap { transition: opacity 0s; }
+.s3 .w-oldwrap { opacity: 0; visibility: hidden; }
+.rm .w-oldwrap { transition: opacity .9s ease; }
+.rm.s3 .w-oldwrap { visibility: visible; }
+.w-svg .o-strip, .w-svg .o-invert, .w-svg .o-drop, .w-svg .w-rift-p { opacity: 0; }
+.w-svg .o-invert { mix-blend-mode: difference; pointer-events: none; }
+.w-ink { fill: none; stroke: #060302; stroke-width: 11; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; opacity: 0; }
+.s1 .w-ink { opacity: 1; animation: wInk .9s cubic-bezier(.6, 0, .2, 1) forwards; }
+.s3 .w-ink, .sf .w-ink { opacity: 0; animation: none; }
+@keyframes wInk { to { stroke-dashoffset: 0; } }
+.w-blot { fill: #060302; opacity: 0; transform-box: fill-box; transform-origin: center; }
+.s1 .w-blot { opacity: 1; animation: wBlot 1s ease-out forwards; }
+.s3 .w-blot, .sf .w-blot { opacity: 0; }
+@keyframes wBlot { 0% { transform: scale(.2); } 40% { transform: scale(1.8); } 100% { transform: scale(1.2); } }
+.s1 .w-svg { animation: wZoom 4.6s ease-in forwards; }
+@keyframes wZoom { to { transform: scale(1.06); } }
+
+.s2 .o-tower { animation: wTower 2.4s cubic-bezier(.5, 0, .8, .4) .2s forwards; }
+@keyframes wTower { 0% { transform: rotate(0); opacity: 1; filter: blur(0); } 35% { transform: rotate(-3deg); } 100% { transform: rotate(-26deg) translateY(160px); opacity: 0; filter: blur(8px); } }
+.s2 .o-house { animation: wHouse 2s ease-in calc(.3s + var(--i) * .15s) forwards; transform-box: fill-box; transform-origin: 50% 100%; }
+@keyframes wHouse { 100% { transform: translateY(70px) skewX(calc(14deg - var(--i) * 9deg)) scaleY(.5); opacity: 0; } }
+.s2 .o-face { animation: wFace .6s ease .3s forwards; }
+@keyframes wFace { to { opacity: 0; } }
+.s2 .o-folk { transform-box: fill-box; transform-origin: 50% 100%; animation: wFolk 1.8s ease-in calc(.7s + var(--i) * .08s) forwards; }
+@keyframes wFolk { 100% { transform: scale(.45, 2.6); opacity: 0; } }
+.s2 .o-sky { animation: wSky 2.6s steps(1, end) forwards; }
+@keyframes wSky { 40% { filter: hue-rotate(60deg); } 70% { filter: hue-rotate(180deg) invert(.5); } }
+.s2 .o-invert { animation: wInvert 2.4s steps(1, end) .4s forwards; }
+@keyframes wInvert { 0% { opacity: 0; } 15% { opacity: 1; } 22% { opacity: 0; } 50% { opacity: 1; } 56% { opacity: 0; } 75% { opacity: 1; } 100% { opacity: 1; } }
+.s2 .o-strip { animation: wStrip .5s steps(2, end) calc(.4s + var(--i) * .2s) 4 alternate; }
+@keyframes wStrip { 0% { opacity: 1; transform: translateX(0); } 50% { opacity: 1; transform: translateX(calc(30px + var(--i) * 14px)); } 100% { opacity: 1; transform: translateX(calc(-40px - var(--i) * 10px)); } }
+.s2 .o-drop { animation: wDrop 1.8s ease-in var(--d) forwards; fill: #060302; }
+@keyframes wDrop { 0% { opacity: 1; transform: translate(0, 0); } 100% { opacity: 0; transform: translate(var(--dx), var(--fy)); } }
+.s2 .w-rift-p { opacity: 1; transform-box: fill-box; transform-origin: center; transform: scaleY(.05); animation: wRift 1.7s cubic-bezier(.7, 0, .9, .5) .9s forwards; }
+@keyframes wRift { 0% { transform: scaleY(.05); } 100% { transform: scaleY(60); } }
+.s3 .w-rift-p, .s3 .w-rift { opacity: 0; }
+.sf .w-rift { display: none; }
+
+.w-burn { position: absolute; width: 38%; aspect-ratio: 1; pointer-events: none; z-index: 4; opacity: 0; transform: scale(.1); }
+.w-burn.b1 { left: 0; top: 0; transform-origin: 0 0; background: radial-gradient(circle at 0 0, #000 0 28%, #8a3a0c 36%, rgba(220, 120, 30, .5) 40%, transparent 55%); }
+.w-burn.b2 { right: 0; top: 0; transform-origin: 100% 0; background: radial-gradient(circle at 100% 0, #000 0 22%, #8a3a0c 30%, rgba(220, 120, 30, .5) 34%, transparent 48%); }
+.w-burn.b3 { left: 0; bottom: 0; transform-origin: 0 100%; background: radial-gradient(circle at 0 100%, #000 0 22%, #8a3a0c 30%, rgba(220, 120, 30, .5) 34%, transparent 48%); }
+.w-burn.b4 { right: 0; bottom: 0; transform-origin: 100% 100%; background: radial-gradient(circle at 100% 100%, #000 0 28%, #8a3a0c 36%, rgba(220, 120, 30, .5) 40%, transparent 55%); }
+.s2 .w-burn { animation: wBurn 2.6s ease-in forwards; }
+@keyframes wBurn { 0% { opacity: 0; transform: scale(.1); } 100% { opacity: 1; transform: scale(1.4); } }
+.s4 .w-burn { opacity: .85; transform: scale(.7); animation: none; transition: transform 3s ease, opacity 3s ease; }
+.sf .w-burn { opacity: .85; transform: scale(.7); animation: none; transition: none; }
+
+/* 黑场与心跳 */
+.w-black { position: absolute; inset: 0; z-index: 3; background: #000; opacity: 0; pointer-events: none; }
+.s3 .w-black { opacity: 1; }
+.s4 .w-black { opacity: 0; transition: opacity 1.8s ease 0s; }
+.sf .w-black { opacity: 0; transition: none; }
+.w-beat { position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, rgba(140, 10, 10, .75) 0, rgba(60, 0, 0, .4) 35%, transparent 65%); opacity: 0; }
+.s3 .w-beat { animation: wBeat 1.0s ease-out 1; }
+.s3.s4 .w-beat { animation: none; }
+@keyframes wBeat { 0% { opacity: 0; transform: scale(.6); } 10% { opacity: 1; transform: scale(1); } 22% { opacity: .1; } 32% { opacity: .85; transform: scale(1.1); } 50% { opacity: 0; } 70% { opacity: 1; transform: scale(1.05); } 82% { opacity: .1; } 90% { opacity: .7; } 100% { opacity: 0; } }
+
+/* 减少动态：静态前后淡入淡出 */
+.rm .w-svg, .rm .w-ink, .rm .w-blot { animation: none !important; }
+.rm.w-root *, .rm .w-root *, .rm.w-root { animation: none !important; }
+.rm.s1 .w-ink, .rm.s1 .w-blot { opacity: 0; }
+.rm .w-new { transition: opacity .9s ease; }
+.rm .w-black { display: none; }
+.rm .w-burn { display: none; }
+.rm .w-dim { transition: opacity .9s ease; }
+.rm .w-skip { transition: none; }
+@media (prefers-reduced-motion: reduce) {
+  #world { transition: opacity .3s linear; }
+}
