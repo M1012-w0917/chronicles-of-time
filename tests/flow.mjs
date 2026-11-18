@@ -1,0 +1,15 @@
+import { createRequire } from 'node:module'; import { execSync } from 'node:child_process';
+const root = execSync('npm root -g').toString().trim(); const require = createRequire(root + '/');
+const { chromium } = require(root + '/@playwright/mcp/node_modules/playwright-core');
+const b = await chromium.launch({ executablePath: execSync('ls -d /inner_container/opt/playwright/chromium_headless_shell-*/*/chrome-headless-shell').toString().trim(), args: ['--no-sandbox'] });
+const pg = await b.newPage({ viewport: { width: 1600, height: 900 } }); const errs = [];
+pg.on('pageerror', e => errs.push(e.message)); pg.on('console', m => m.type() === 'error' && errs.push(m.text()));
+await pg.goto('http://localhost:8000/rewrite/'); await pg.waitForTimeout(500);
+const st = () => pg.evaluate(() => window.__slice.getState().state);
+await pg.keyboard.down('Space'); await pg.waitForTimeout(500); console.log('hold', await st());
+await pg.keyboard.up('Space'); console.log('released', await st());
+await pg.keyboard.down('Space'); await pg.waitForTimeout(1600); await pg.keyboard.up('Space'); console.log('after hold', await st());
+await pg.waitForTimeout(2000); console.log('t', await pg.evaluate(() => window.__slice.getState().t));
+await pg.keyboard.press('z'); await pg.waitForTimeout(300); console.log('undo', await st());
+console.log('errors', errs);
+await b.close();
