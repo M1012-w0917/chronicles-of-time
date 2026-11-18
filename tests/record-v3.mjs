@@ -1,0 +1,21 @@
+// Records the V3 flow to docs/video/v3-flow.webm. Server on :8000 first. Env: CHROME, BASE
+process.env.PLAYWRIGHT_BROWSERS_PATH ||= '/inner_container/opt/playwright';
+import { createRequire } from 'node:module'; import { execSync } from 'node:child_process';
+import { renameSync, mkdirSync, rmSync, statSync } from 'node:fs';
+const root = execSync('npm root -g').toString().trim(); const require = createRequire(root + '/');
+const { chromium } = require(root + '/@playwright/mcp/node_modules/playwright-core');
+const exe = process.env.CHROME || execSync('ls -d /inner_container/opt/playwright/chromium_headless_shell-*/*/chrome-headless-shell').toString().trim();
+const BASE = process.env.BASE || 'http://localhost:8000/rewrite-v3/index.html?fresh=1';
+const tmp = 'docs/video/.tmp3'; rmSync(tmp, { recursive: true, force: true }); mkdirSync(tmp, { recursive: true });
+const b = await chromium.launch({ executablePath: exe, args: ['--no-sandbox'] });
+const ctx = await b.newContext({ viewport: { width: 1280, height: 720 }, recordVideo: { dir: tmp, size: { width: 1280, height: 720 } } });
+const pg = await ctx.newPage();
+await pg.goto(BASE); await pg.evaluate(() => localStorage.clear()); await pg.reload(); await pg.waitForTimeout(3000);
+await pg.keyboard.down('Space'); await pg.waitForTimeout(2200); await pg.keyboard.up('Space');
+await pg.waitForFunction(() => window.__slice.getState().state === 'NEW', null, { timeout: 90000 });
+await pg.mouse.move(300, 300); await pg.mouse.move(1000, 400, { steps: 20 }); await pg.waitForTimeout(1500);
+await pg.keyboard.down('c'); await pg.waitForTimeout(2000); await pg.keyboard.up('c'); await pg.waitForTimeout(2000);
+await pg.waitForFunction(() => window.__slice.getState().haunt > 0.95, null, { timeout: 60000 }); await pg.waitForTimeout(1500);
+const v = pg.video(); await ctx.close(); await b.close();
+const out = 'docs/video/v3-flow.webm'; renameSync(await v.path(), out); rmSync(tmp, { recursive: true, force: true });
+console.log(out, (statSync(out).size / 1e6).toFixed(2) + ' MB');

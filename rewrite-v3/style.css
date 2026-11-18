@@ -1,0 +1,57 @@
+/* V3: the painting is the whole page. Only chrome: two scroll rollers, a hanging slip with the written fact, a brush. */
+:root { --ink: #221f1c; --paper: #e9e0c8; --seal: #b3271d; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: #1c1916; color: var(--ink); touch-action: none; user-select: none; -webkit-user-select: none; }
+canvas#scene, canvas#ghost { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+canvas#ghost { pointer-events: none; opacity: 0; }
+canvas#ghost.on { opacity: var(--ga, 1); }
+#vignette { position: fixed; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 46%, transparent 55%, rgba(40,28,14,.28) 100%),
+              linear-gradient(90deg, rgba(40,28,14,.35), transparent 7%, transparent 93%, rgba(40,28,14,.35)); }
+
+/* scroll rollers: the volume edge */
+.roller { position: fixed; top: 0; bottom: 0; width: 30px; pointer-events: none; z-index: 3;
+  background: linear-gradient(90deg, #2a1f16, #5a4630 28%, #8a6e4c 45%, #4a3827 70%, #1e1610); box-shadow: 0 0 22px rgba(0,0,0,.55); }
+.roller.left { left: 0; } .roller.right { right: 0; }
+.roller i { position: absolute; left: -4px; right: -4px; top: -2px; height: 14px; background: #20170f; border-radius: 3px; box-shadow: 0 calc(100vh - 12px) 0 #20170f; }
+.roller.left::after, .roller.right::after { content: ""; position: absolute; top: 0; bottom: 0; width: 12px; background: linear-gradient(90deg, rgba(190,178,150,.9), rgba(160,150,125,.55)); }
+.roller.left::after { left: 30px; } .roller.right::after { right: 30px; transform: scaleX(-1); }
+
+/* the written fact */
+#slip { position: fixed; z-index: 2; width: 220px; transform: translate(-50%, 0); pointer-events: auto; --w: 0; --r: 0; --c: 0; --old: 1; }
+#slip .cord { position: absolute; left: 50%; top: -80px; width: 1px; height: 80px; background: rgba(34,31,28,.5); }
+#slip .card { position: relative; width: 130px; height: 346px; margin: 0 auto; padding: 14px 12px;
+  background: linear-gradient(rgba(240,232,208,.9), rgba(232,222,196,.9)); border: 1px solid rgba(34,31,28,.4); box-shadow: 0 6px 18px rgba(30,20,10,.32), inset 0 0 14px rgba(120,90,50,.18); cursor: pointer; }
+#slip .zh { margin: 0; height: 100%; writing-mode: vertical-rl; font-family: "Songti SC", "Noto Serif CJK SC", "Source Han Serif SC", "STSong", "SimSun", serif; font-size: 25px; line-height: 1.32; letter-spacing: .06em; color: var(--ink); }
+#slip .zh span { display: block; }
+#zhOld { opacity: var(--old); filter: blur(calc(var(--w) * .6px)); }
+#zhNew { opacity: var(--r); clip-path: inset(0 0 calc((1 - var(--r)) * 100%) 0); }
+#zhNote { opacity: 0; transition: opacity 1.8s; color: rgba(34,31,28,.62); }
+#slip[data-echo="true"] #zhNote { opacity: 1; }
+#strike { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; opacity: var(--sa, 0); }
+#slip .en { margin-top: 10px; text-align: center; font: italic 13px/1.35 Georgia, "Times New Roman", serif; color: rgba(34,31,28,.88); text-shadow: 0 0 6px rgba(236,228,204,.9), 0 0 2px rgba(236,228,204,.9); }
+#slip .en p { margin: 0 0 3px; }
+#enOld { opacity: var(--old); text-decoration: line-through; text-decoration-color: rgba(34,31,28, calc(var(--sa, 0) * .8)); }
+#enNew { opacity: var(--r); }
+#enNote { opacity: 0; transition: opacity 1.8s; }
+#slip[data-echo="true"] #enNote { opacity: .75; }
+
+/* the brush: a real object that moves, painted from the same elements as nothing else on the page */
+#brush { position: fixed; left: 0; top: 0; width: 16px; height: 270px; z-index: 4; pointer-events: none; transform-origin: 0 0; will-change: transform; filter: drop-shadow(3px 5px 4px rgba(30,20,10,.35)); }
+#brush i { position: absolute; left: 50%; transform: translateX(-50%); display: block; }
+#brush .hair { bottom: 0; width: 16px; height: 52px; background: linear-gradient(90deg, #0d0b0a, #3a342e 50%, #0d0b0a); clip-path: polygon(50% 100%, 6% 58%, 20% 0, 80% 0, 94% 58%); }
+#brush .ferrule { bottom: 50px; width: 13px; height: 18px; background: linear-gradient(90deg, #8a8478, #d8d2c0 45%, #6c675c); }
+#brush .shaft { bottom: 66px; width: 10px; height: 204px; background: linear-gradient(90deg, #2c241c, #6b5a42 45%, #2c241c); border-radius: 5px 5px 2px 2px; }
+
+/* dock */
+#dock { position: fixed; z-index: 5; left: 50%; bottom: 14px; transform: translateX(-50%); display: flex; gap: 8px; align-items: center; padding: 6px 12px;
+  background: rgba(233,224,200,.82); border: 1px solid rgba(34,31,28,.35); border-radius: 3px; font: 12px/1.2 Georgia, serif; backdrop-filter: blur(2px); }
+#dock button { font: inherit; color: var(--ink); background: transparent; border: 1px solid rgba(34,31,28,.5); border-radius: 2px; padding: 5px 9px; cursor: pointer; }
+#dock button:hover, #dock button:focus-visible, #dock button[aria-pressed="true"] { background: rgba(34,31,28,.88); color: var(--paper); outline: none; }
+#dock kbd { font: 10px/1 monospace; opacity: .6; margin-left: 4px; }
+#dock .scrub { display: flex; gap: 6px; align-items: center; }
+#dock input[type=range] { width: 120px; accent-color: #221f1c; }
+#status { min-width: 240px; font-style: italic; opacity: .85; }
+
+@media (max-width: 900px) { #status { display: none; } #dock { flex-wrap: wrap; justify-content: center; width: 92vw; } #slip .en { font-size: 11px; } }
+@media (prefers-reduced-motion: reduce) { #zhNote, #enNote { transition: none; } }
