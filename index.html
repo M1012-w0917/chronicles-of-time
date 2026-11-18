@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>岁月史书 · Chronicles of Time</title>
+<meta name="description" content="致敬《成龙历险记》的非官方静态演示。">
+<meta name="color-scheme" content="dark">
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="scene-entrance book-table">
+
+<!-- 共享 SVG 滤镜：砂岩、石台纹理（全部为程序生成的原创纹理） -->
+<svg class="defs" width="0" height="0" aria-hidden="true" focusable="false">
+  <defs>
+    <filter id="f-sandstone" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.0055 0.012" numOctaves="7" seed="11" result="n"/>
+      <feDiffuseLighting in="n" surfaceScale="4" diffuseConstant="1.05" lighting-color="#ffd0a0" result="lit">
+        <feDistantLight azimuth="225" elevation="36"/>
+      </feDiffuseLighting>
+      <feFlood flood-color="#9a3b1a" result="base"/>
+      <feBlend in="lit" in2="base" mode="multiply"/>
+    </filter>
+    <filter id="f-sandstone-night" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.0035 0.02" numOctaves="6" seed="4" result="n"/>
+      <feDiffuseLighting in="n" surfaceScale="6" diffuseConstant="0.9" lighting-color="#7d7290" result="lit">
+        <feDistantLight azimuth="270" elevation="42"/>
+      </feDiffuseLighting>
+      <feFlood flood-color="#5a2414" result="base"/>
+      <feBlend in="lit" in2="base" mode="multiply"/>
+    </filter>
+    <filter id="f-stone" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.035 0.07" numOctaves="5" seed="23" result="n"/>
+      <feDiffuseLighting in="n" surfaceScale="2.6" diffuseConstant="1" lighting-color="#eab894" result="lit">
+        <feDistantLight azimuth="235" elevation="48"/>
+      </feDiffuseLighting>
+      <feFlood flood-color="#7a3820" result="base"/>
+      <feBlend in="lit" in2="base" mode="multiply"/>
+    </filter>
+    <filter id="f-soft" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="16"/>
+    </filter>
+    <filter id="f-softer" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="40"/>
+    </filter>
+  </defs>
+</svg>
+
+<main id="app">
+
+  <!-- ===== 石室 ===== -->
+  <section id="chamber" class="scene" aria-label="乌鲁鲁岩腔石室" data-t-aria="chamberLabel">
+    <svg class="chamber-art" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+      <defs>
+        <radialGradient id="g-room-light" cx="48%" cy="58%" r="62%">
+          <stop offset="0" stop-color="#000" stop-opacity="0"/>
+          <stop offset="0.4" stop-color="#0a0201" stop-opacity="0.38"/>
+          <stop offset="0.78" stop-color="#050100" stop-opacity="0.9"/>
+          <stop offset="1" stop-color="#000" stop-opacity="0.96"/>
+        </radialGradient>
+        <linearGradient id="g-ceiling" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#050100" stop-opacity="0.97"/>
+          <stop offset="1" stop-color="#140402" stop-opacity="0.72"/>
+        </linearGradient>
+        <linearGradient id="g-floor" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#3a1206" stop-opacity="0.55"/>
+          <stop offset="1" stop-color="#050100" stop-opacity="0.96"/>
+        </linearGradient>
+        <linearGradient id="g-shaft" x1="0" y1="0" x2="0.35" y2="1">
+          <stop offset="0" stop-color="#ffcf98" stop-opacity="0.04"/>
+          <stop offset="0.14" stop-color="#ffcf98" stop-opacity="0.24"/>
+          <stop offset="0.55" stop-color="#ffb070" stop-opacity="0.16"/>
+          <stop offset="1" stop-color="#ff9a5a" stop-opacity="0.14"/>
+        </linearGradient>
+        <radialGradient id="g-pool" cx="50%" cy="50%" r="50%">
+          <stop offset="0" stop-color="#ffb070" stop-opacity="0.42"/>
+          <stop offset="1" stop-color="#ffb070" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="g-crack" cx="50%" cy="50%" r="50%">
+          <stop offset="0" stop-color="#fff1d6" stop-opacity="1"/>
+          <stop offset="0.5" stop-color="#ffc98a" stop-opacity="0.6"/>
+          <stop offset="1" stop-color="#ff9a50" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="g-hollow" cx="50%" cy="40%" r="60%">
+          <stop offset="0" stop-color="#0b0200" stop-opacity="0.9"/>
+          <stop offset="0.7" stop-color="#1a0602" stop-opacity="0.45"/>
+          <stop offset="1" stop-color="#1a0602" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <rect width="1600" height="1000" filter="url(#f-sandstone)"/>
+      <!-- 蜂窝状风蚀小洞 -->
+      <g class="tafoni">
+        <ellipse cx="200" cy="470" rx="80" ry="44" fill="url(#g-hollow)"/>
+        <ellipse cx="1330" cy="430" rx="96" ry="52" fill="url(#g-hollow)"/>
+        <ellipse cx="1240" cy="600" rx="52" ry="30" fill="url(#g-hollow)"/>
+        <ellipse cx="300" cy="650" rx="60" ry="34" fill="url(#g-hollow)"/>
+        <ellipse cx="1460" cy="700" rx="70" ry="40" fill="url(#g-hollow)"/>
+        <ellipse cx="1080" cy="330" rx="40" ry="22" fill="url(#g-hollow)"/>
+      </g>
+      <!-- 地面光斑 -->
+      <ellipse class="pool" cx="800" cy="800" rx="420" ry="110" fill="url(#g-pool)" filter="url(#f-soft)"/>
+      <path d="M0 1000 V800 C280 760 560 748 800 750 C1060 752 1330 770 1600 820 V1000 Z" fill="url(#g-floor)"/>
+      <rect width="1600" height="1000" fill="url(#g-room-light)"/>
+      <!-- 顶部的岩檐 -->
+      <path d="M0 0 H1600 V300 C1500 220 1380 168 1220 140 C1060 112 900 112 760 124 C640 134 560 120 500 136 C430 154 330 196 230 250 C140 298 70 350 0 400 Z" fill="url(#g-ceiling)"/>
+      <!-- 岩檐上的裂隙：光的来处 -->
+      <ellipse cx="462" cy="128" rx="70" ry="18" fill="url(#g-crack)" filter="url(#f-soft)" class="crack-glow" opacity="0.35"/>
+      <path d="M390 120 C420 112 448 116 470 122 C492 128 512 126 534 134 C510 140 488 138 466 136 C440 134 414 132 390 120 Z" fill="#e89a62" fill-opacity="0.18" class="crack"/>
+      <!-- 光柱 -->
+      <polygon class="shaft" points="400,128 526,134 990,790 610,790" fill="url(#g-shaft)" filter="url(#f-softer)"/>
+      <polygon class="shaft core" points="440,130 500,134 880,780 720,780" fill="url(#g-shaft)" filter="url(#f-soft)"/>
+    </svg>
+
+    <canvas id="dust" aria-hidden="true"></canvas>
+
+    <!-- 石台 -->
+    <div class="pedestal" aria-hidden="true">
+      <svg viewBox="0 0 600 420" preserveAspectRatio="none" focusable="false">
+        <defs>
+          <clipPath id="c-top"><path d="M64 122 C118 78 486 74 536 116 C566 140 552 172 522 182 C420 208 180 208 78 184 C46 174 38 142 64 122 Z"/></clipPath>
+          <clipPath id="c-front"><path d="M78 184 C180 208 420 208 522 182 C530 240 540 320 548 392 C430 420 170 420 52 392 C60 320 70 240 78 184 Z"/></clipPath>
+          <linearGradient id="g-front-shade" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#1a0602" stop-opacity="0.1"/>
+            <stop offset="1" stop-color="#050100" stop-opacity="0.8"/>
+          </linearGradient>
+          <linearGradient id="g-front-side" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#000" stop-opacity="0.65"/>
+            <stop offset="0.35" stop-color="#000" stop-opacity="0"/>
+            <stop offset="0.7" stop-color="#000" stop-opacity="0.15"/>
+            <stop offset="1" stop-color="#000" stop-opacity="0.75"/>
+          </linearGradient>
+          <radialGradient id="g-top-shade" cx="40%" cy="35%" r="70%">
+            <stop offset="0" stop-color="#ffcf9a" stop-opacity="0.12"/>
+            <stop offset="0.6" stop-color="#2a0c04" stop-opacity="0.25"/>
+            <stop offset="1" stop-color="#140402" stop-opacity="0.7"/>
+          </radialGradient>
+          <linearGradient id="g-ped-top" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3e170a"/><stop offset="1" stop-color="#6e3019"/></linearGradient>
+          <linearGradient id="g-ped-front" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5a2412"/><stop offset="1" stop-color="#1a0703"/></linearGradient>
+          <radialGradient id="g-ped-shadow" cx="50%" cy="50%" r="50%">
+            <stop offset="0" stop-color="#000" stop-opacity="0.9"/>
+            <stop offset="1" stop-color="#000" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <ellipse cx="300" cy="396" rx="300" ry="34" fill="url(#g-ped-shadow)"/>
+        <g clip-path="url(#c-front)">
+          <rect width="600" height="420" fill="url(#g-ped-front)"/>
+          <rect width="600" height="420" filter="url(#f-stone)" opacity="0.4"/>
+          <rect width="600" height="420" fill="url(#g-front-shade)"/>
+          <rect width="600" height="420" fill="url(#g-front-side)"/>
+          <path d="M60 300 C200 318 400 316 544 296" stroke="#000" stroke-opacity="0.25" stroke-width="3" fill="none"/>
+          <path d="M70 250 C220 262 380 262 534 246" stroke="#000" stroke-opacity="0.18" stroke-width="2" fill="none"/>
+        </g>
+        <g clip-path="url(#c-top)">
+          <rect width="600" height="420" fill="url(#g-ped-top)"/>
+          <rect width="600" height="420" filter="url(#f-stone)" opacity="0.5"/>
+          <rect width="600" height="420" fill="url(#g-top-shade)"/>
+        </g>
+        <path d="M78 184 C180 208 420 208 522 182" stroke="#ffc896" stroke-opacity="0.3" stroke-width="2" fill="none"/>
+        <path d="M64 122 C118 78 486 74 536 116" stroke="#ffe0b8" stroke-opacity="0.18" stroke-width="1.5" fill="none"/>
+      </svg>
+    </div>
+
+    <!-- 书 -->
+    <div class="stage" id="stage">
+      <div class="rig" id="rig">
+        <div class="book-shadow" aria-hidden="true"></div>
+        <div class="edge edge-front edge-front-r" aria-hidden="true"></div>
+        <div class="edge edge-front edge-front-l" aria-hidden="true"></div>
+        <div class="edge edge-side edge-side-r" aria-hidden="true"></div>
+        <div class="edge edge-side edge-side-l" aria-hidden="true"></div>
+
+        <div class="book" id="book" role="region" aria-label="岁月史书" data-t-aria="bookLabel">
+          <div class="leaves" id="leaves">
+            <div class="board-back" aria-hidden="true"></div>
+            <div class="stack stack-r" aria-hidden="true"></div>
+            <div class="stack stack-l" aria-hidden="true"></div>
+            <!-- 书页由 app.js 生成 -->
+            <div class="rot-veins" id="veins" aria-hidden="true"></div>
+            <div class="gutter" aria-hidden="true"></div>
+            <div class="cast" id="cast" aria-hidden="true"></div>
+          </div>
+          <div class="book-light book-light-r" aria-hidden="true"></div>
+          <div class="book-light book-light-l" aria-hidden="true"></div>
+
+          <button type="button" class="corner corner-prev" id="corner-prev" aria-label="翻回上一页" data-t-aria="cornerPrev"></button>
+          <button type="button" class="corner corner-next" id="corner-next" aria-label="翻到下一页" data-t-aria="cornerNext"></button>
+
+          <button type="button" class="ribbon" id="ribbon" aria-label="Switch to English" data-t-aria="ribbonLabel">
+            <span class="ribbon-silk"><span class="ribbon-text" data-t="ribbon">EN</span></span>
+          </button>
+
+          <button type="button" class="cover-hit" id="cover-hit" aria-label="翻开岁月史书" data-t-aria="coverLabel"></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="vignette" aria-hidden="true"></div>
+    <div class="dread" aria-hidden="true"></div>
+
+    <p class="hint chamber-hint" id="chamber-hint">
+      <span data-t="chamberHint1">石台上有一本书</span>
+      <span class="hint-key" data-t="chamberHint2">点击书，或按 Enter 翻开</span>
+    </p>
+
+    <div class="controls" id="controls" role="group" aria-label="翻阅" data-t-aria="navLabel">
+      <button type="button" class="ctl" id="btn-prev"><span aria-hidden="true">‹ </span><span data-t="prev">前页</span></button>
+      <span class="indicator" id="indicator">第 1 / 5 对页</span>
+      <button type="button" class="ctl" id="btn-next"><span data-t="next">后页</span><span aria-hidden="true"> ›</span></button>
+      <span class="ctl-sep" aria-hidden="true">·</span>
+      <button type="button" class="ctl" id="btn-close" data-t="close">合上书</button>
+    </div>
+    <p class="keys" id="keys" data-t="keys">← → 翻页　按住落笔　Esc 合上</p>
+  </section>
+
+  <!-- ===== 入洞 ===== -->
+  <section id="entrance" class="scene" aria-label="岩腔入口" data-t-aria="entranceLabel">
+    <button type="button" class="cave-btn" id="cave-btn" aria-label="进入岩腔" data-t-aria="caveLabel">
+      <svg class="entrance-art" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+        <defs>
+          <linearGradient id="g-sky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#06070e"/>
+            <stop offset="0.4" stop-color="#030305"/>
+            <stop offset="1" stop-color="#000"/>
+          </linearGradient>
+          <clipPath id="c-rock"><path d="M0 1000 V360 C170 280 420 214 700 198 C980 182 1270 222 1600 312 V1000 Z"/></clipPath>
+          <linearGradient id="g-rock-fade" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#000" stop-opacity="0.15"/>
+            <stop offset="0.5" stop-color="#000" stop-opacity="0.55"/>
+            <stop offset="1" stop-color="#000" stop-opacity="0.92"/>
+          </linearGradient>
+          <radialGradient id="g-rock-side" cx="50%" cy="62%" r="60%">
+            <stop offset="0" stop-color="#000" stop-opacity="0"/>
+            <stop offset="1" stop-color="#000" stop-opacity="0.9"/>
+          </radialGradient>
+          <radialGradient id="g-mouth" cx="53%" cy="92%" r="72%">
+            <stop offset="0" stop-color="#c8642c"/>
+            <stop offset="0.16" stop-color="#7e2e10"/>
+            <stop offset="0.4" stop-color="#2c0b04"/>
+            <stop offset="0.7" stop-color="#0b0201"/>
+            <stop offset="1" stop-color="#030100"/>
+          </radialGradient>
+          <radialGradient id="g-deep" cx="50%" cy="50%" r="50%">
+            <stop offset="0" stop-color="#ffc58a" stop-opacity="0.85"/>
+            <stop offset="0.5" stop-color="#e0703a" stop-opacity="0.35"/>
+            <stop offset="1" stop-color="#e0703a" stop-opacity="0"/>
+          </radialGradient>
+          <linearGradient id="g-lip" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#000" stop-opacity="0.95"/>
+            <stop offset="0.5" stop-color="#000" stop-opacity="0.35"/>
+            <stop offset="1" stop-color="#000" stop-opacity="0"/>
+          </linearGradient>
+          <radialGradient id="g-spill" cx="50%" cy="50%" r="50%">
+            <stop offset="0" stop-color="#ff9a52" stop-opacity="0.45"/>
+            <stop offset="1" stop-color="#ff9a52" stop-opacity="0"/>
+          </radialGradient>
+          <radialGradient id="g-pit" cx="50%" cy="38%" r="60%">
+            <stop offset="0" stop-color="#000" stop-opacity="0.95"/>
+            <stop offset="0.75" stop-color="#000" stop-opacity="0.5"/>
+            <stop offset="1" stop-color="#000" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <rect width="1600" height="1000" fill="url(#g-sky)"/>
+        <g id="stars"></g>
+        <g clip-path="url(#c-rock)">
+          <rect width="1600" height="1000" filter="url(#f-sandstone-night)"/>
+          <rect width="1600" height="1000" fill="url(#g-rock-fade)"/>
+          <rect width="1600" height="1000" fill="url(#g-rock-side)"/>
+          <ellipse cx="300" cy="560" rx="70" ry="38" fill="url(#g-pit)"/>
+          <ellipse cx="1240" cy="470" rx="54" ry="30" fill="url(#g-pit)"/>
+          <ellipse cx="1330" cy="650" rx="90" ry="44" fill="url(#g-pit)"/>
+          <ellipse cx="220" cy="760" rx="100" ry="52" fill="url(#g-pit)"/>
+          <ellipse cx="990" cy="380" rx="42" ry="22" fill="url(#g-pit)"/>
+          <ellipse cx="560" cy="400" rx="36" ry="18" fill="url(#g-pit)"/>
+          <ellipse class="mouth-spill" cx="800" cy="720" rx="460" ry="250" fill="url(#g-spill)" filter="url(#f-softer)"/>
+        </g>
+        <!-- 岩口 -->
+        <g class="mouth">
+          <path d="M470 790 C480 742 500 700 532 662 C556 634 548 606 590 580 C630 556 660 560 700 538 C748 512 800 526 846 516 C902 504 948 530 990 556 C1030 580 1046 602 1080 640 C1108 672 1120 716 1128 760 C1132 790 1110 806 1080 812 C1000 800 930 818 860 814 C780 810 700 822 620 816 C560 812 500 808 470 790 Z" fill="url(#g-mouth)"/>
+          <ellipse cx="826" cy="776" rx="150" ry="30" fill="url(#g-deep)" filter="url(#f-soft)" class="mouth-deep"/>
+          <path d="M470 790 C480 742 500 700 532 662 C556 634 548 606 590 580 C630 556 660 560 700 538 C748 512 800 526 846 516 C902 504 948 530 990 556 C1030 580 1046 602 1080 640 C1108 672 1120 716 1128 760 C1060 680 990 640 900 628 C800 616 700 630 620 676 C560 712 510 750 470 790 Z" fill="url(#g-lip)"/>
+          <path d="M482 798 C560 814 680 822 780 816 C880 810 980 806 1060 818 C1090 816 1110 808 1124 790" stroke="#ff9a5a" stroke-opacity="0.28" stroke-width="2.5" fill="none"/>
+          <path d="M532 662 C556 634 548 606 590 580 C630 556 660 560 700 538" stroke="#ffb27a" stroke-opacity="0.07" stroke-width="2" fill="none"/>
+        </g>
+        <ellipse class="mouth-glow" cx="812" cy="800" rx="300" ry="90" fill="url(#g-spill)" filter="url(#f-soft)"/>
+      </svg>
+    </button>
+    <p class="hint entrance-hint" aria-hidden="true">
+      <span data-t="enterHint1">岩腔深处有光</span>
+      <span class="hint-key" data-t="enterHint2">点击岩口，或按 Enter 进入</span>
+    </p>
+  </section>
+
+  <p class="portrait-note" data-t="portrait">横置屏幕或放宽窗口，书页更易读。</p>
+  <div id="live" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+</main>
+
+<noscript><p class="noscript">此演示需要启用 JavaScript。This demo needs JavaScript.</p></noscript>
+<script src="app.js"></script>
+</body>
+</html>
