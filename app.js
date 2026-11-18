@@ -1155,7 +1155,6 @@
 
   /* 撕下记录页：归还一切（书会记得） */
   function tearAll() {
-    if (window.ChroniclesWorld) window.ChroniclesWorld.cancel();
     if (state.busy || !rw().length) return;
     var face = faceOf.ledR;
     var hole = document.createElement('div'), piece = document.createElement('div');

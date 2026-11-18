@@ -137,6 +137,7 @@ html[lang="en"] .w-cap { letter-spacing: .03em; font-style: italic; }
 
 /* 减少动态：静态前后淡入淡出 */
 .rm .w-svg, .rm .w-ink, .rm .w-blot { animation: none !important; }
+.rm.w-root *, .rm .w-root *, .rm.w-root { animation: none !important; }
 .rm.s1 .w-ink, .rm.s1 .w-blot { opacity: 0; }
 .rm .w-new { transition: opacity .9s ease; }
 .rm .w-black { display: none; }

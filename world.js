@@ -113,7 +113,7 @@
 
   /* ---------- 旧世界（案例一：沙下之钟） ---------- */
   var P_OLD = { wall: '#6b4a30', roof: '#3a2218', tower: '#7a5638', tower2: '#5e3f29', clock: '#ffe0a0', win: '#ffcf70', cloth: '#1d130d', skin: '#c9a27a' };
-  function oldWorld(generic) {
+  function oldWorld() {
     DR = false; seed = 11;
     var s = '<rect class="o-sky" width="1600" height="632" fill="url(#gOldSky)"/>' +
       '<circle cx="1150" cy="590" r="300" fill="url(#gOldSun)"/>' +
@@ -131,8 +131,6 @@
   }
 
   /* ---------- 新世界 ---------- */
-  function wrapNew(inner) { return inner; }
-
   function newWorld(key, k) {
     DR = true; dn = 0; seed = 23;
     var s = '', wins = [], P, defs = '';
@@ -211,7 +209,7 @@
 
   function build(key, k, px, py) {
     var nw = newWorld(key, k);
-    var old = oldWorld(key.indexOf('c1') !== 0);
+    var old = oldWorld();
     px = Math.max(0.2, Math.min(0.8, px == null ? 0.5 : px)) * W;
     py = Math.max(0.2, Math.min(0.7, py == null ? 0.4 : py)) * H;
     var ang = -14, rad = ang * Math.PI / 180, ex = 1800;
@@ -269,7 +267,7 @@
     host.innerHTML = '<div class="w-plate">' + build(key, k, opts.x, opts.y) +
       '<div class="w-burn b1"></div><div class="w-burn b2"></div><div class="w-burn b3"></div><div class="w-burn b4"></div>' +
       '<div class="w-black"><div class="w-beat"></div></div><div class="w-paper"></div>' +
-      '<p class="w-cap" id="w-cap" role="status" aria-live="polite"></p></div>' +
+      '<p class="w-cap" id="w-cap"></p></div>' +
       '<button type="button" class="w-skip" id="w-skip"></button>';
     var capEl = host.querySelector('#w-cap'), skipBtn = host.querySelector('#w-skip');
     skipBtn.textContent = opts.skipLabel || 'Skip';
@@ -314,7 +312,7 @@
       // 减少动态：旧世界与新世界淡入淡出，不播放动画
       stage('s1');
       cap(0);
-      at(1800, function () { stage('s2', 's3', 's4', 'sf'); cap(1); });
+      at(1800, function () { stage('s3', 's4', 'sf'); cap(1); });
       at(3400, function () { stage('s5'); cap(2); });
       at(5400, function () { host.classList.add('out'); });
       at(5900, finish);
