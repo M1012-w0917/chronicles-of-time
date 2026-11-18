@@ -670,7 +670,7 @@
         var bg = ctx.createLinearGradient(0, -150, 0, -92); bg.addColorStop(0, rgb([96, 52, 36])); bg.addColorStop(1, rgb([66, 36, 28]));
         ctx.fillStyle = bg; ctx.fillRect(-64, -148, 128, 56);
         ctx.strokeStyle = 'rgb(212,170,96)'; ctx.lineWidth = 2; ctx.strokeRect(-60, -144, 120, 48);
-        ctx.fillStyle = 'rgb(236,206,138)'; ctx.textAlign = 'center'; ctx.font = 'bold 14px ' + FONT;
+        ctx.fillStyle = 'rgb(236,206,138)'; ctx.textAlign = 'center'; ctx.font = 'bold 11px ' + FONT;
         ctx.fillText('CITY OF ASHMERE', 0, -123); ctx.font = '13px ' + FONT; ctx.fillText('灰堡市', 0, -104);
         ctx.restore();
         if (e > 0.001 && e < 0.995) { ctx.save(); inkEdge(e, bd, info, 0.05); ctx.restore(); }
