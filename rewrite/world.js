@@ -7,7 +7,7 @@
   var W = 1600, H = 900, M = 80;               // logical size, cache side margin
   var PEN = { x: 260, y: 840 };                // where the pen touches the world
   var WATER_TOP = 598, WATER_BOT = 676, BANK_TOP = 462;
-  var FONT = '"Songti SC","Noto Serif CJK SC","STKaiti",Georgia,serif';
+  var FONT = '"Noto Serif CJK SC","Source Han Serif SC","Songti SC","SimSun","STKaiti","KaiTi",Georgia,serif';
 
   var smooth = C.smooth, clamp = C.clamp, lerp = C.lerp;
   function waveAt(x, y) { return Math.min(1, Math.hypot(x - PEN.x, (y - PEN.y) * 1.5) / 1500); }

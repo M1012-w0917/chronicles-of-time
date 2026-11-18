@@ -27,7 +27,7 @@
     machine.rewriteDuration = reduced ? 1.2 : 9;
     machine.undoDuration = reduced ? 1.2 : 5.5;
     motionBtn.setAttribute('aria-pressed', reduced ? 'true' : 'false');
-    motionBtn.textContent = reduced ? '已减弱动态' : '减弱动态';
+    motionBtn.textContent = reduced ? '已减弱动态 (motion reduced)' : '减弱动态 (reduce motion)';
     document.documentElement.classList.toggle('reduced', reduced);
     dirty = true;
   }
@@ -114,7 +114,7 @@
   function setOpen(open) {
     dock.setAttribute('data-open', open ? 'true' : 'false');
     bookToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-    bookToggle.firstChild.nodeValue = open ? '收起书 ' : '翻开书 ';
+    bookToggle.firstChild.nodeValue = open ? '收起书 (hide book) ' : '翻开书 (open book) ';
   }
   bookToggle.addEventListener('click', function () { setOpen(dock.getAttribute('data-open') !== 'true'); });
 
@@ -158,7 +158,7 @@
     soundOn = !soundOn;
     if (soundOn && !audio) audio = buildAudio();
     if (audio) soundOn ? audio.ctx.resume() : audio.ctx.suspend();
-    soundBtn.setAttribute('aria-pressed', soundOn ? 'true' : 'false'); soundBtn.textContent = soundOn ? '声音 开' : '声音 关';
+    soundBtn.setAttribute('aria-pressed', soundOn ? 'true' : 'false'); soundBtn.textContent = soundOn ? '声音 开 (sound on)' : '声音 关 (sound off)';
   });
   function updateAudio(t) {
     if (!audio || !soundOn) return;
@@ -211,7 +211,7 @@
     dirty = false;
   }
 
-  function captionFor(t) { return t < 0.5 ? '灰堡市 · 永昌四十二年立' : '灰堡草甸 · 无人定居的记录'; }
+  function captionFor(t) { return t < 0.5 ? '灰堡市 · 永昌四十二年立 / Ashmere, founded Yongchang 42' : '灰堡草甸 · 无人定居的记录 / Ashmere Meadow, no settlement on record'; }
   var capSide = -1;
   function updateCaption(t) {
     var side = t < 0.5 ? 0 : 1;
