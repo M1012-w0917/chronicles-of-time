@@ -98,8 +98,15 @@
     return Math.abs(d) <= s ? target : cur + Math.sign(d) * s;
   }
 
+  // Persistence rule: a settled machine (OLD or NEW) should be stored as done=false/true.
+  // Returns the value to save, or null when nothing changed or the machine is mid-transition.
+  function persistTarget(state, lastSaved) {
+    var done = state === 'NEW' ? true : state === 'OLD' ? false : null;
+    return done === null || done === lastSaved ? null : done;
+  }
+
   return {
-    clamp: clamp, lerp: lerp, smooth: smooth, mulberry32: mulberry32,
+    persistTarget: persistTarget, clamp: clamp, lerp: lerp, smooth: smooth, mulberry32: mulberry32,
     localProgress: localProgress, reducedStages: reducedStages, KEYFRAMES: KEYFRAMES,
     createMachine: createMachine, stepToward: stepToward
   };

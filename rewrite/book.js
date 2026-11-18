@@ -43,7 +43,7 @@
   var pending = false;                 // key phrase swapped to the new wording, not yet written
   var shown = 0, easing = false, comparing = false;
   var pointer = { x: 0, y: 0 }, pointerT = { x: 0, y: 0 };
-  var timeNow = 0, lastFrame = 0, blotCount = 0, lastState = 'OLD';
+  var timeNow = 0, lastFrame = 0, blotCount = 0, lastState = 'OLD', savedDone = false;
 
   /* ------------------------------------------------------------ book DOM from state */
   var oldPhrase = '建于永昌四十二年', newPhrase = '从未建立';
@@ -234,11 +234,12 @@
       if (!comparing && shown === machine.t) easing = false;
     } else shown = machine.t;
     if (lastState !== machine.state) {
-      if (machine.state === 'NEW' && lastState === 'REWRITING') save(true);
-      if (machine.state === 'OLD' && lastState === 'UNDOING') { save(false); clearBlots(); }
+      if (machine.state === 'OLD' && lastState === 'UNDOING') clearBlots();
       if (machine.state === 'REWRITING') { holdBtn.removeAttribute('data-held'); clearBlots(); }
       lastState = machine.state; dirty = true;
     }
+    var pt = C.persistTarget(machine.state, savedDone);
+    if (pt !== null) { savedDone = pt; save(pt); }
     var st = { t: machine.t, motion: reduced ? 0 : 1 };
     if (!reduced) world.update(dt, st); else if (machine.state !== 'OLD') dirty = true;
     render();
@@ -269,7 +270,7 @@
   if (Q.has('book') && Q.get('book') === '0') setOpen(false);
   if (Q.has('state') && Q.get('state') === 'new') { machine.jumpNew(); shown = 1; }
   else if (Q.has('t')) { machine.scrub(parseFloat(Q.get('t')) || 0); shown = machine.t; }
-  else if (!DEBUG) { var s = load(); if (s && s.done) { machine.scrub(1); shown = 1; } }
+  else if (!DEBUG) { var s = load(); if (s && s.done) { machine.scrub(1); shown = 1; savedDone = true; } }
   if (Q.get('autoplay') === '1') { setPending(true); machine.autoplay(); }
   if (Q.has('figure')) window.__forceFigure = Q.get('figure') !== '0';
   caption.textContent = ''; capSide = -1;

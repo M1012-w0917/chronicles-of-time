@@ -72,6 +72,18 @@ test('reduced-motion stages use three held keyframes', () => {
   assert.equal(s2.a, 0.5); assert.equal(s2.b, 1); assert.equal(C.reducedStages(1).mix, 1);
 });
 
+test('persistTarget saves on every settle, including scrub, and never mid-transition', () => {
+  assert.equal(C.persistTarget('OLD', false), null);
+  assert.equal(C.persistTarget('NEW', false), true);
+  assert.equal(C.persistTarget('NEW', true), null);
+  assert.equal(C.persistTarget('OLD', true), false);
+  for (const s of ['WRITING', 'REWRITING', 'UNDOING', 'SCRUB']) assert.equal(C.persistTarget(s, false), null);
+  const m = C.createMachine(); let saved = false; const log = [];
+  const tick = () => { const p = C.persistTarget(m.state, saved); if (p !== null) { saved = p; log.push(p); } };
+  m.scrub(1); tick(); m.scrub(0.5); tick(); m.scrub(0); tick(); m.scrub(0); tick();
+  assert.deepEqual(log, [true, false]);
+});
+
 function walk(d, out = []) {
   for (const f of readdirSync(d)) {
     if (f === '.git' || f === 'node_modules') continue;

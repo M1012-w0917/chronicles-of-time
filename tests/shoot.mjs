@@ -16,6 +16,6 @@ await pg.goto('http://localhost:8000/rewrite/?' + query);
 if (process.env.HOLD) { const bb = await pg.locator('#holdBtn').boundingBox(); await pg.mouse.move(bb.x + bb.width / 2, bb.y + bb.height / 2); await pg.mouse.down(); await pg.waitForTimeout(+process.env.HOLD); }
 if (process.env.MOVE) { const [mx, my] = process.env.MOVE.split(',').map(Number); await pg.mouse.move(mx, my); }
 await pg.waitForTimeout(+wait);
-await pg.screenshot({ path: `docs/screenshots/${name}.png` });
+await pg.screenshot({ path: `docs/screenshots/${name}.jpg` });
 console.log(name, errs.length ? errs.join('\n') : 'no console errors');
 await b.close();

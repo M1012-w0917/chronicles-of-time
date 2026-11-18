@@ -44,15 +44,15 @@ Captured from the running slice by `tests/shoot.mjs` in headless Chromium (chrom
 
 | File | Content |
 |---|---|
-| `a-old.png` | Old world, t=0 |
-| `b-t35.png` | Rewriting, t=0.35 |
-| `c-t65.png` | Rewriting, t=0.65 |
-| `d-new.png` | New world with the figure state |
-| `e-pen-down.png` | Hold in progress, book writing |
-| `f-rewriting.png` | Mid rewrite after real hold |
-| `g-haunt-gaze.png` | Lamplighter looking toward the pointer |
-| `h-reduced-new.png` | Reduced-motion path, new world |
-| `i-autoplay.png` | `?autoplay=1` run |
+| `a-old.jpg` | Old world, t=0 |
+| `b-t35.jpg` | Rewriting, t=0.35 |
+| `c-t65.jpg` | Rewriting, t=0.65 |
+| `d-new.jpg` | New world with the figure state |
+| `e-pen-down.jpg` | Hold in progress, book writing |
+| `f-rewriting.jpg` | Mid rewrite after real hold |
+| `g-haunt-gaze.jpg` | Lamplighter looking toward the pointer |
+| `h-reduced-new.jpg` | Reduced-motion path, new world |
+| `i-autoplay.jpg` | `?autoplay=1` run |
 
 ## Done / not done
 
@@ -61,14 +61,17 @@ Done:
 - Undo (reverse timeline), compare hold and scrub slider, persistence
 - Retroactive sign and map, haunting lamplighter with pointer gaze, book echo line
 - Reduced-motion path and toggle, optional muted-by-default sound
-- Debug query API, unit tests (`node tests/run.mjs`), screenshots
+- Debug query API, unit tests (`node tests/run.mjs`), browser checks with assertions (`node tests/flow.mjs`: DOM copy, hold/undo, scrub persistence, compare, haunting echo, `file://` load), screenshots (JPEG)
 
 Not done:
 - Only one rewritable fact. No second fact, costs, or prophecies from the cave demo
 - Clouds are blurry blobs, and the art is stylized rather than detailed
 - No mobile layout tuning, and not tested on real devices
-- Chinese text not visible in the screenshots (font limitation above)
+- Chinese text not visible in the screenshots (font limitation above). `tests/flow.mjs` asserts the copy is in the DOM instead
+- Haunt timing is slower than the first brief (3-5 s): the lamplighter turns from 5.8 s after the new world settles and the book echo appears at 7.5 s. Chosen so the new world is read first. Reduced motion shows both at once (echo after 1 s)
+- The canvas redraws every frame because water, boats, walkers and flicker always move, so there is no idle skip. Headless software rendering averaged about 25 ms per frame at 1600x900; real hardware is unmeasured
 - Frame rate target (30+ fps) was not measured on a physical desktop, only in headless software rendering
+- `tests/flow.mjs` needs a local server and the sandbox Chromium path (override with `CHROME`, `BASE`), so it is not part of `run.mjs`
 - Not merged or published. Nothing was pushed
 
 ## Relationship to other work
