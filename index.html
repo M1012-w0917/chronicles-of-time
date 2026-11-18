@@ -7,6 +7,7 @@
 <meta name="description" content="致敬《成龙历险记》的非官方静态演示。">
 <meta name="color-scheme" content="dark">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="world.css">
 </head>
 <body class="scene-entrance book-table">
 
@@ -290,11 +291,14 @@
     </p>
   </section>
 
+  <section id="world" class="w-root" hidden></section>
+
   <p class="portrait-note" data-t="portrait">横置屏幕或放宽窗口，书页更易读。</p>
   <div id="live" class="sr-only" aria-live="polite" aria-atomic="true"></div>
 </main>
 
 <noscript><p class="noscript">此演示需要启用 JavaScript。This demo needs JavaScript.</p></noscript>
+<script src="world.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

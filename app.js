@@ -203,6 +203,8 @@
       v_holdTap: '要按住。书不认轻轻一点。',
       v_refuse: '不。这件事不能没有。没有它，便没有这一页。',
       v_done: '已写下。便将如此。',
+      worldCap: ['一笔落下，旧世界裂开了。', '黑暗里，世界被重新写下。', '代价站在新世界里，望着你。'],
+      worldSkip: '跳过', worldReplay: '重看这一笔', worldLabel: '世界被改写',
       v_inkOut: '墨尽了。',
       v_locked: '此事已改，墨已干。',
       v_ledEmpty: '尚无改写。书页还是干净的。',
@@ -280,6 +282,8 @@
       v_holdTap: 'You must hold. The book ignores a light touch.',
       v_refuse: 'No. This cannot be unmade. Without it, there is no page.',
       v_done: 'It is written. So it shall be.',
+      worldCap: ['One stroke, and the old world splits open.', 'In the dark, the world is written again.', 'The cost stands in the new world, watching you.'],
+      worldSkip: 'Skip', worldReplay: 'Replay this stroke', worldLabel: 'The world is rewritten',
       v_inkOut: 'The ink is spent.',
       v_locked: 'This has been changed. The ink is dry.',
       v_ledEmpty: 'Nothing rewritten yet. The pages are still clean.',
@@ -588,7 +592,8 @@
           '<p class="rw-label">' + esc(t.chain) + '</p>' + chainList(alt.chain[L()]) +
           '<p class="rw-toll"><span class="lbl">' + esc(t.priceBook) + '</span>' + esc(tollText(r)) + '</p>' +
           '<div class="rw-foot" style="justify-content:flex-start"><button type="button" class="ink-btn" data-act="goto" data-e="' + r.e + '" data-v="orig" data-k="goto-orig">' + esc(t.seeOrig) + '</button>' +
-          '<button type="button" class="ink-btn" data-act="goto" data-e="' + r.e + '" data-v="now" data-k="goto-now">' + esc(t.seeNow) + '</button></div>';
+          '<button type="button" class="ink-btn" data-act="goto" data-e="' + r.e + '" data-v="now" data-k="goto-now">' + esc(t.seeNow) + '</button>' +
+          '<button type="button" class="ink-btn" data-act="replay" data-r="' + state.entry + '" data-k="replay">' + esc(t.worldReplay) + '</button></div>';
       }
       return '<div class="page-inner rwp has-tear"><h2 class="pg-title">' + esc(t.cmpTitle) + '</h2><div class="rw-body">' + html + '</div></div>' +
         '<button type="button" class="tear-btn" data-act="tear" data-k="tear"' + (rw().length ? '' : ' disabled') + '><span>' + esc(t.tear) + '</span></button>' + folio('八', 'viii');
@@ -1084,6 +1089,12 @@
 
     // 墨团从落笔处炸开
     var face = faceOf.evL, ne = nodeEl();
+    var wx = 0.5, wy = 0.4;
+    if (ne) {
+      var wr = ne.getBoundingClientRect();
+      wx = (wr.left + wr.width / 2) / (window.innerWidth || 1);
+      wy = (wr.top + wr.height / 2) / (window.innerHeight || 1);
+    }
     if (ne) {
       var fr = face.getBoundingClientRect(), nr = ne.getBoundingClientRect();
       var bloom = document.createElement('div');
@@ -1109,12 +1120,42 @@
       applyRot();
       focusKey('to-ledger');
     }, 380);
-    setTimeout(function () { setVoice('evR', 'toll', idx); }, 4200);
-    setTimeout(function () { state.busy = false; }, 2600);
+    // 世界改写：全屏播放，结束（或跳过）后才交还控制
+    var rec = led.rewrites[idx];
+    var played = playWorld(rec, wx, wy);
+    played.then(function () {
+      state.busy = false;
+      focusKey('to-ledger');
+      announce(EVENTS[e].nodes[n].alts[a].chain[L()][2]);
+      setTimeout(function () { setVoice('evR', 'toll', idx); }, 500);
+    });
+  }
+
+  /* 世界改写序列（world.js）。没有 world.js 或出错时退回短暂等待。 */
+  function playWorld(rec, x, y) {
+    var W = window.ChroniclesWorld;
+    if (!W) return wait(2600);
+    var t = T();
+    try {
+      return wait(700).then(function () {
+        return W.play({ e: rec.e, n: rec.n, a: rec.a, k: rec.toll.k, x: x, y: y, captions: t.worldCap, skipLabel: t.worldSkip, label: t.worldLabel, reduced: reduced() }).promise;
+      }).catch(function () { return null; });
+    } catch (err) { return wait(1000); }
+  }
+
+  function replayWorld(i) {
+    var rec = rw()[i];
+    if (!rec || state.busy || hold) return;
+    state.busy = true;
+    playWorld(rec, 0.5, 0.4).then(function () {
+      state.busy = false;
+      focusKey('replay');
+    });
   }
 
   /* 撕下记录页：归还一切（书会记得） */
   function tearAll() {
+    if (window.ChroniclesWorld) window.ChroniclesWorld.cancel();
     if (state.busy || !rw().length) return;
     var face = faceOf.ledR;
     var hole = document.createElement('div'), piece = document.createElement('div');
@@ -1262,6 +1303,7 @@
         renderFace('evL'); renderFace('evR');
         go(4, 'view-' + state.view);
         break;
+      case 'replay': replayWorld(+el.getAttribute('data-r')); break;
       case 'tear': tearAll(); break;
     }
   }
