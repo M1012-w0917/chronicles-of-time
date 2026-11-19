@@ -73,5 +73,5 @@ figure.map { grid-column: 1 / 4; transform: rotate(0.6deg); }
 
 body[data-compare="true"] #compareBtn { background: #5b4426; }
 body[data-state="HAUNT"] #desk { filter: saturate(calc(1 - var(--h) * 0.35)); }
-@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+/* reduced motion is handled in canvas code (app.js / paint.js), not CSS */
 @media (max-width: 900px) { body { overflow: auto; } #desk { height: auto; grid-template-columns: 1fr; } }

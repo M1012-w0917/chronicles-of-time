@@ -45,7 +45,7 @@
     const hv = { tape: haunt.tape * (1 - c), figure: haunt.figure, heading: haunt.heading, mismatch: haunt.mismatch };
     const moving = m.state === 'RECONSTRUCTING' || m.state === 'REVERTING';
     jitter = m.reduced ? 0 : m.state === 'WRITING' ? 0.25 + 0.75 * m.w : moving ? 0.25 + 0.2 * Math.sin(time * 9) * Math.sin(time * 9) : 0;
-    P.drawWorld(wg, td, time);
+    P.drawWorld(wg, td, m.reduced ? 0 : time); // reduced motion: no ambient water/reed/ripple animation
     P.drawCam(camG, { time, frame, jitter, haunt: hv, reduced: m.reduced, wc, compare: c });
     P.drawPhoto(ph1, wc, 190, 120, 260, 165);
     P.drawPhoto(ph2, wc, 400, 100, 240, 152);
@@ -81,12 +81,15 @@
 
   // ---- input ----
   window.addEventListener('keydown', (e) => {
-    if (e.code === 'Space') { e.preventDefault(); if (!e.repeat) m.press(); }
+    const onBtn = e.target && e.target.closest && e.target.closest('button');
+    if (onBtn) return; // let focused buttons handle Space/Enter natively
+    if (e.code === 'Space' || (e.key === 'Enter' && e.target === $('fact'))) { e.preventDefault(); if (!e.repeat) m.press(); }
     else if (e.key === 'c' || e.key === 'C') { if (!e.repeat) m.setCompare(true); }
     else if (e.key === 'z' || e.key === 'Z') m.revert();
   });
   window.addEventListener('keyup', (e) => {
-    if (e.code === 'Space') { e.preventDefault(); m.release(); }
+    if (e.target && e.target.closest && e.target.closest('button')) return;
+    if (e.code === 'Space' || e.key === 'Enter') { if (e.code === 'Space') e.preventDefault(); m.release(); }
     else if (e.key === 'c' || e.key === 'C') m.setCompare(false);
   });
   const fact = $('fact');
