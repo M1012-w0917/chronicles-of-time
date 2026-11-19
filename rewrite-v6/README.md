@@ -45,6 +45,9 @@ About 4 s after NEW settles, a hand is pressed outward from the inside of the gl
 - No CJK font in the build sandbox: Chinese glyphs in the DOM were not visually verified (the English captions and the stroke-drawn name were). The plaque and the haunt name use hand-set strokes, not a font.
 - Chromium (headless, software rendering) only. CJK glyph rendering (the sandbox has no CJK system font), Firefox, Safari and real-device performance 未验证.
 - The haunt hand is a union of ellipses, a stylised print, not a photographic one.
+- The book sentence swap (struck-through old line to new line) is a DOM opacity fade of text, driven by `t`. The world itself is never cross-faded: it is one canvas redrawn from `t`.
+- The handprint anchor is fixed from root 0 geometry at t=0 (`C.anchor`). It is not computed from live root state, which has already retracted by the time the hand appears.
+- The recording `docs/video/v6-flow.webm` duration was not measured with ffprobe (not installed). Reading the WebM header directly (Segment Info Duration, 1 ms timescale) gives 31.16 s, and the last cluster starts at 30.64 s.
 
 ## Assets and license
 Everything is procedural: Canvas 2D drawing and CSS. No images, fonts, audio, or third-party code. Same license as the repository.
