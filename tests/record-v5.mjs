@@ -1,13 +1,9 @@
 // Records the V5 flow to docs/video/v5-flow.webm (about 28 s, real run). Server on :8000 first. Env: CHROME, BASE
-process.env.PLAYWRIGHT_BROWSERS_PATH ||= '/inner_container/opt/playwright';
-import { createRequire } from 'node:module'; import { execSync } from 'node:child_process';
+import { launch } from './pw-v5.mjs';
 import { renameSync, mkdirSync, rmSync, statSync } from 'node:fs';
-const root = execSync('npm root -g').toString().trim(); const require = createRequire(root + '/');
-const { chromium } = require(root + '/@playwright/mcp/node_modules/playwright-core');
-const exe = process.env.CHROME || execSync('ls -d /inner_container/opt/playwright/chromium_headless_shell-*/*/chrome-headless-shell').toString().trim();
 const BASE = process.env.BASE || 'http://localhost:8000/rewrite-v5/index.html?fresh=1';
 const tmp = 'docs/video/.tmp5'; rmSync(tmp, { recursive: true, force: true }); mkdirSync(tmp, { recursive: true });
-const b = await chromium.launch({ executablePath: exe, args: ['--no-sandbox'] });
+const b = await launch();
 const ctx = await b.newContext({ viewport: { width: 1280, height: 720 }, recordVideo: { dir: tmp, size: { width: 1280, height: 720 } } });
 const pg = await ctx.newPage();
 const t0 = Date.now();

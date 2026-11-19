@@ -9,6 +9,7 @@
 
   const stage = $('stage'), g = stage.getContext('2d');
   const ink = $('ink'), inkG = ink.getContext('2d');
+  const xf = P.mk(P.W, P.H), xfG = xf.getContext('2d');
   const fpC = P.mk(32, 18), fpG = fpC.getContext('2d', { willReadFrequently: true });
   const body = document.body, root = document.documentElement;
 
@@ -40,13 +41,21 @@
   function render() {
     const v = m.view(), td = v.td, c = C.smooth(m.c);
     const h = C.hauntState(m.haunt);
-    hv = { shade: h.shade * (1 - c), lightMove: h.lightMove * (1 - c), arm: h.arm, tug: h.tug, mismatch: h.mismatch };
-    lightW = C.lightWriting(m.w, m.t);
-    const out = P.draw(g, { td, time: m.reduced ? 0 : time, lightW, haunt: hv, reduced: m.reduced });
+    // reduced motion: no travel. The old and new stages are cross-faded in place, the lamp does not swing, the shade does not tug the rod.
+    hv = { shade: h.shade * (1 - c), lightMove: h.lightMove * (1 - c), arm: h.arm * (1 - c), tug: m.reduced ? 0 : h.tug * (1 - c), mismatch: h.mismatch };
+    lightW = m.reduced ? 0 : C.lightWriting(m.w, m.t);
+    let out;
+    if (m.reduced && td > 0.002 && td < 0.998) {
+      P.draw(xfG, { td: 1, time: 0, lightW, haunt: hv, reduced: true });
+      out = P.draw(g, { td: 0, time: 0, lightW, haunt: hv, reduced: true });
+      g.save(); g.globalAlpha = C.smooth(td); g.drawImage(xf, 0, 0); g.restore();
+    } else out = P.draw(g, { td, time: m.reduced ? 0 : time, lightW, haunt: hv, reduced: m.reduced });
     lx = out.LX;
     const nTxt = C.span(td, 0.04, 0.34);
     drawInk(m.t > 0 ? 1 - 0.8 * nTxt : m.w);
-    root.style.setProperty('--n', nTxt.toFixed(4)); root.style.setProperty('--w', m.w.toFixed(4)); root.style.setProperty('--h', hv.shade.toFixed(3));
+    root.style.setProperty('--n', nTxt.toFixed(4)); // the pen and hold bar belong to the writing: they lift off as the rewrite starts and stay up in NEW and HAUNT
+    const wShow = m.state === 'WRITING' || m.state === 'OLD' ? m.w : Math.min(m.w, 1 - C.span(m.t, 0.1, 0.4));
+    root.style.setProperty('--w', wShow.toFixed(4)); root.style.setProperty('--h', hv.shade.toFixed(3));
     body.dataset.state = m.state; body.dataset.reduced = String(m.reduced); body.dataset.compare = String(m.compare);
     $('stateTag').textContent = m.state;
     $('compareBtn').setAttribute('aria-pressed', String(m.compare)); $('reduceBtn').setAttribute('aria-pressed', String(m.reduced));
@@ -55,9 +64,12 @@
     frame++;
   }
 
+  // write on state change only: the new world is stored when it settles and cleared the moment a revert starts
+  let persistedState = null;
   function persist() {
-    if (frozen) return;
-    if (m.state === 'NEW' || m.state === 'HAUNT') store.set(KEY, 'new'); else if (m.state === 'OLD') store.del(KEY);
+    if (frozen || m.state === persistedState) return;
+    persistedState = m.state;
+    if (m.state === 'NEW') store.set(KEY, 'new'); else if (m.state === 'REVERTING' || m.state === 'OLD') store.del(KEY);
   }
 
   function tick(now) {
@@ -72,13 +84,14 @@
   // ---- input ----
   window.addEventListener('keydown', (e) => {
     const onBtn = e.target && e.target.closest && e.target.closest('button');
-    if (onBtn) return; // let focused buttons handle Space/Enter natively
+    if (onBtn && (e.code === 'Space' || e.key === 'Enter')) return; // a focused button keeps native Space/Enter; Z and C still work
     if (e.code === 'Space' || (e.key === 'Enter' && e.target === $('fact'))) { e.preventDefault(); if (!e.repeat) m.press(); }
     else if (e.key === 'c' || e.key === 'C') { if (!e.repeat) m.setCompare(true); }
     else if (e.key === 'z' || e.key === 'Z') m.revert();
   });
   window.addEventListener('keyup', (e) => {
-    if (e.target && e.target.closest && e.target.closest('button')) return;
+    const onBtn = e.target && e.target.closest && e.target.closest('button');
+    if (onBtn && (e.code === 'Space' || e.key === 'Enter')) return;
     if (e.code === 'Space' || e.key === 'Enter') { if (e.code === 'Space') e.preventDefault(); m.release(); }
     else if (e.key === 'c' || e.key === 'C') m.setCompare(false);
   });
@@ -107,6 +120,10 @@
       fpG.drawImage(stage, 0, 0, 32, 18); const d = fpG.getImageData(0, 0, 32, 18).data, out = [];
       for (let i = 0; i < d.length; i += 4) out.push(0.3 * d[i] + 0.59 * d[i + 1] + 0.11 * d[i + 2]);
       return out;
+    },
+    // mean luminance of a stage-space rectangle of the live canvas
+    cropLum(x, y, w, h) {
+      const d = g.getImageData(x, y, w, h).data; let s = 0; for (let i = 0; i < d.length; i += 4) s += 0.3 * d[i] + 0.59 * d[i + 1] + 0.11 * d[i + 2]; return s / (d.length / 4);
     },
     resetFrameStats() { ftSum = 0; ftMax = 0; ftN = 0; },
     setProgress(v) { m.setProgress(v); },

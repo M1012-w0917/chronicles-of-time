@@ -1,12 +1,9 @@
 // Browser checks for V5. Usage (server on :8000 from repo root: python3 -m http.server 8000): node tests/flow-v5.mjs
-import { createRequire } from 'node:module'; import { execSync } from 'node:child_process';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
-const root = execSync('npm root -g').toString().trim(); const require = createRequire(root + '/');
-const { chromium } = require(root + '/@playwright/mcp/node_modules/playwright-core');
-const exe = process.env.CHROME || execSync('ls -d /inner_container/opt/playwright/chromium_headless_shell-*/*/chrome-headless-shell').toString().trim();
+import { launch } from './pw-v5.mjs';
 const BASE = process.env.BASE || 'http://localhost:8000/rewrite-v5/index.html';
-const b = await chromium.launch({ executablePath: exe, args: ['--no-sandbox'] });
+const b = await launch();
 let n = 0; const ok = (m) => { n++; console.log('ok -', m); };
 async function open(url, ctx) {
   const pg = await ctx.newPage(); const errs = [];
@@ -74,11 +71,13 @@ let s = await S(pg); assert.equal(s.state, 'NEW'); const fNew = await FP(pg);
 assert.equal(s.metrics.keeperAlive, false); assert.ok(s.metrics.bricksGone > 0.99 && s.metrics.treeGrow > 0.99 && s.metrics.roadOpen > 0.99);
 await pg.waitForTimeout(1500); s = await S(pg); assert.equal(s.state, 'NEW'); assert.equal(s.haunt, 0); assert.equal(s.shade, 0); ok('NEW world holds still for the dwell: no gate, keeper gone, trees and road, no shade yet');
 await pg.goto(BASE); await pg.waitForFunction(() => window.__slice && ['NEW', 'HAUNT'].includes(window.__slice.getState().state), null, { timeout: 30000 }); ok('new reality persists across reload');
-await pg.keyboard.down('c'); await until(pg, () => window.__slice.getState().c === 1);
+await pg.focus('#revertBtn'); await pg.evaluate(() => { window.__w = 0; const o = Storage.prototype.setItem; Storage.prototype.setItem = function (...a) { window.__w++; return o.apply(this, a); }; });
+await pg.waitForTimeout(800); assert.equal(await pg.evaluate(() => window.__w), 0, 'persistence is not rewritten every frame');
+await pg.keyboard.down('c'); await until(pg, () => window.__slice.getState().c === 1); ok('hotkeys work while a button has focus; persistence writes only on state change');
 { const fc = await FP(pg); assert.ok(dist(fOld, fc) < dist(fNew, fc) * 0.5, 'compare looks like the old stage'); const cs = await S(pg); assert.equal(cs.t, 1); assert.ok(cs.td < 0.05); }
 assert.equal(await pg.getAttribute('#compareBtn', 'aria-pressed'), 'true');
 await pg.keyboard.up('c'); await until(pg, () => window.__slice.getState().c === 0); ok('hold C compares (old stage returns), release returns to the new world');
-await pg.keyboard.press('z'); await pg.waitForTimeout(300); assert.equal((await S(pg)).state, 'REVERTING');
+await pg.keyboard.press('z'); await pg.waitForTimeout(300); assert.equal((await S(pg)).state, 'REVERTING'); assert.equal((await S(pg)).persisted, null, 'mid-revert reload would not restore the new world');
 const back2 = await sampleUntil(pg, () => window.__slice.getState().state === 'OLD', 20000, 300); assert.ok(back2.length >= 8);
 for (let i = 1; i < back2.length; i++) assert.ok(back2[i].t <= back2[i - 1].t + 1e-9);
 await pg.waitForTimeout(500); { const fr2 = await FP(pg), s2 = await S(pg); assert.ok(dist(fOld, fr2) < dist(fNew, fr2) * 0.7, 'old stage restored (ambient keeper differs): ' + dist(fOld, fr2).toFixed(1) + ' vs new ' + dist(fNew, fr2).toFixed(1)); assert.equal(s2.metrics.bricksGone, 0); assert.equal(s2.metrics.keeperAlive, true); } assert.equal((await S(pg)).persisted, null); ok('revert runs the stage backwards to the old gate and clears persistence');
@@ -92,6 +91,8 @@ await until(pg, () => window.__slice.getState().state === 'HAUNT', 15000);
 const h0 = await until(pg, () => window.__slice.getState().shade > 0.95, 15000).then(() => S(pg));
 assert.ok(h0.metrics.keeperAlive === false && h0.metrics.keeperPull > 0.99, 'no keeper puppet exists when the shade is on the scrim'); const lx0 = h0.lightX; assert.ok(lx0 < 700, 'lamp still near centre: ' + lx0);
 const rod0 = h0.keeperRod;
+const CROP = [520, 330, 160, 230]; // around the shade (stage space), where the near scrim carries it
+const cropShade0 = await pg.evaluate((c) => window.__slice.cropLum(...c), CROP);
 await until(pg, () => window.__slice.getState().haunt > 0.5, 30000);
 const h1 = await S(pg); assert.ok(h1.lightX > lx0 + 250, 'the lamp moved away: ' + lx0.toFixed(0) + ' to ' + h1.lightX.toFixed(0)); assert.ok(h1.shade > 0.95, 'shade stays on the scrim after the light moved');
 const rodSeen = []; for (let i = 0; i < 24; i++) { rodSeen.push((await S(pg)).keeperRod); await pg.waitForTimeout(200); }
@@ -99,6 +100,14 @@ const moved = Math.max(...rodSeen.map((r) => Math.hypot(r[0] - rod0[0], r[1] - r
 assert.ok(moved > 8, 'empty keeper rod is pulled, max travel ' + moved.toFixed(1) + ' px');
 await until(pg, () => window.__slice.getState().haunt > 0.97, 30000); const h = await S(pg);
 assert.ok(h.arm > 0.95 && h.noteVisible && h.shade > 0.95); const fH = await FP(pg); assert.ok(dist(fNew, fH) > 3, 'shade and lantern change the stage');
+const cropShade1 = await pg.evaluate((c) => window.__slice.cropLum(...c), CROP);
+// pixel check: same region, same place, with the shade vs. the plain new world (setProgress(1) in a fresh page has no shade yet)
+const clean = await open(BASE + '?state=new', await b.newContext({ viewport: { width: 1600, height: 900 } }));
+const cropClean = await clean.evaluate((c) => window.__slice.cropLum(...c), CROP);
+assert.ok(Math.abs(cropShade0 - cropClean) > 8, 'shade changes its region before the lamp moves: ' + cropShade0.toFixed(1) + ' vs ' + cropClean.toFixed(1));
+assert.ok(Math.abs(cropShade1 - cropClean) > 8, 'shade still changes the same region after the lamp moved: ' + cropShade1.toFixed(1) + ' vs ' + cropClean.toFixed(1));
+assert.ok(Math.abs(cropShade1 - cropShade0) < 25, 'shade stays put while the light moves: ' + cropShade0.toFixed(1) + ' to ' + cropShade1.toFixed(1));
+{ const hs = await S(pg); assert.ok(Math.abs(hs.w) <= 1); assert.equal(await pg.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--w').trim()), '0.0000', 'quill and hold bar reset in the haunt'); }
 ok('haunt: keeper is gone from every rod and puppet, the lamp moves away, the lantern shade stays and its arm pulls the front rod (travel ' + moved.toFixed(0) + ' px)');
 await pg.keyboard.down('c'); await until(pg, () => window.__slice.getState().c === 1); assert.ok((await S(pg)).shade < 0.01); await pg.keyboard.up('c'); ok('the haunt hides while comparing');
 
@@ -109,21 +118,28 @@ await kp.keyboard.down('Enter'); await until(kp, () => window.__slice.getState()
 await kp.keyboard.press('z'); await until(kp, () => window.__slice.getState().state === 'OLD', 20000);
 const box = await kp.locator('#fact').boundingBox(); await kp.mouse.move(box.x + 60, box.y + 20); await kp.mouse.down(); await kp.waitForTimeout(500); assert.equal((await S(kp)).state, 'WRITING');
 await kp.mouse.up(); assert.equal((await S(kp)).state, 'OLD'); await kp.mouse.down(); await until(kp, () => window.__slice.getState().state === 'RECONSTRUCTING'); await kp.mouse.up(); ok('pointer: press-hold on the line writes, early release cancels');
-await kp.click('#compareBtn'); assert.equal((await S(kp)).compare, true); await kp.click('#compareBtn'); await kp.click('#revertBtn'); await kp.waitForTimeout(300); assert.equal((await S(kp)).state, 'REVERTING'); ok('pointer: compare and revert buttons work');
+await kp.waitForTimeout(300); await kp.click('#compareBtn'); assert.equal((await S(kp)).compare, true); await kp.click('#compareBtn'); await kp.click('#revertBtn'); await kp.waitForTimeout(300); assert.equal((await S(kp)).state, 'REVERTING'); ok('pointer: compare and revert buttons work');
 
 // 7 reduced motion
 const rc = await b.newContext({ viewport: { width: 1600, height: 900 }, reducedMotion: 'reduce' });
 const rp = await open(BASE + '?fresh=1', rc); assert.equal((await S(rp)).reduced, true);
 const rf1 = await FP(rp); await rp.waitForTimeout(800); assert.ok(dist(rf1, await FP(rp)) < 0.01, 'reduced motion: no ambient animation on the old stage');
 await rp.keyboard.down('Space'); await until(rp, () => window.__slice.getState().state === 'RECONSTRUCTING'); await rp.keyboard.up('Space');
-const t0 = Date.now(); const rr = await sampleUntil(rp, () => window.__slice.getState().state === 'NEW', 20000, 200); const dur = Date.now() - t0;
-assert.ok(rr.length >= 8 && dur < 6000, 'shorter run ' + dur + ' ms with ' + rr.length + ' frames'); for (let i = 1; i < rr.length; i++) assert.ok(rr[i].t >= rr[i - 1].t);
-ok('reduced motion: still ambient-free, rewrite shortened to ' + dur + ' ms but still continuous');
-await rp.evaluate(() => window.__slice.forceHaunt(1)); await rp.waitForTimeout(300); assert.ok((await S(rp)).shade > 0.95); ok('reduced motion reaches the same haunt');
+const t0 = Date.now(); const rr = await sampleUntil(rp, () => window.__slice.getState().state === 'NEW', 30000, 200); const dur = Date.now() - t0;
+assert.ok(dur > 7000, 'reduced motion does not shorten the rewrite: ' + dur + ' ms'); for (let i = 1; i < rr.length; i++) assert.ok(rr[i].t >= rr[i - 1].t);
+{ const mid = rr.find((r) => r.t > 0.4 && r.t < 0.6); const lo = rr.find((r) => r.t > 0.05), hi = rr[rr.length - 1];
+  assert.ok(mid && mid.s.lightX === 640 && lo.s.lightX === 640, 'reduced: the backlight does not swing');
+  // cross-fade, not travel: the mid frame is (almost) a luminance blend of the first and last frame
+  const fo = rr[0].fp, fn = hi.fp, fm = mid.fp; let e = 0, e0 = 0; for (let i = 0; i < fm.length; i++) { const bl = fo[i] + (fn[i] - fo[i]) * mid.t; e += Math.abs(fm[i] - bl); e0 += Math.abs(fm[i] - fo[i]); }
+  assert.ok(e / fm.length < 6, 'mid frame is a blend of old and new stage: err ' + (e / fm.length).toFixed(1)); }
+ok('reduced motion: rewrite is a ' + dur + ' ms in-place cross-fade (no backlight swing, no board or brick travel)');
+await rp.keyboard.press('z'); await rp.waitForTimeout(300); assert.equal((await S(rp)).state, 'REVERTING'); await until(rp, () => window.__slice.getState().state === 'OLD', 30000);
+await rp.keyboard.down('Space'); await rp.waitForTimeout(500); assert.equal((await S(rp)).lightX, 640); await rp.keyboard.up('Space'); assert.equal((await S(rp)).state, 'OLD'); ok('reduced motion: cancel and revert work, pen-down does not swing the lamp');
+await rp.evaluate(() => window.__slice.forceHaunt(1)); await rp.waitForTimeout(300); { const hs = await S(rp); assert.ok(hs.shade > 0.95 && hs.tug === 0, 'shade present, rod not tugged under reduced motion'); } ok('reduced motion reaches the same haunt');
 const tp = await open(BASE + '?reduced=0&fresh=1', await b.newContext({ viewport: { width: 1600, height: 900 } })); assert.equal((await S(tp)).reduced, false);
 await tp.click('#reduceBtn'); assert.equal((await S(tp)).reduced, true); ok('reduced-motion toggle works');
 
-assert.deepEqual(pg.errs, []); assert.deepEqual(kp.errs, []); assert.deepEqual(rp.errs, []); assert.deepEqual(tp.errs, []); ok('no console errors over http');
+assert.deepEqual(clean.errs, []); assert.deepEqual(pg.errs, []); assert.deepEqual(kp.errs, []); assert.deepEqual(rp.errs, []); assert.deepEqual(tp.errs, []); ok('no console errors over http');
 const fpg = await open(pathToFileURL(fileURLToPath(new URL('../rewrite-v5/index.html', import.meta.url))).href + '?t=1', await b.newContext({ viewport: { width: 1200, height: 800 } }));
 assert.equal((await S(fpg)).state, 'NEW'); assert.deepEqual(fpg.errs, []); ok('works from file://');
 await b.close(); console.log(n + ' passed');

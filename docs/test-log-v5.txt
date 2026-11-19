@@ -1,33 +1,38 @@
-# V5 test log, captured 2026-11-19T03:36:05Z, node v22.23.4, chromium_headless_shell-1232
-$ node --check rewrite-v5/*.js
+# V5 test log, captured 2026-11-19T03:47:31Z, node v22.23.4, browser: /inner_container/opt/playwright/chromium_headless_shell-1232/chrome-headless-shell-linux64/chrome-headless-shell
+$ node --check rewrite-v5/*.js tests/*-v5.mjs
 ok rewrite-v5/app.js
 ok rewrite-v5/core.js
 ok rewrite-v5/paint.js
+ok tests/flow-v5.mjs
+ok tests/pw-v5.mjs
+ok tests/record-v5.mjs
+ok tests/shoot-v5.mjs
 $ python3 -m http.server 8000 & node tests/flow-v5.mjs
 ok - Chinese copy, English captions and CJK font stack present in the DOM (glyph rendering 未验证: this sandbox has no CJK system font)
 ok - initial: one stage canvas, gate intact, three lamps lit, keeper alive, no haunt note
 ok - pen down swings the backlight (shadows move first, pieces unchanged); early release cancels
 ok - cancel returns the lamp and leaves the old world
-ok - same stage canvas changes continuously over 28 sampled frames: biggest step 14.3 of 144.5 accumulated change, no black frame
+ok - same stage canvas changes continuously over 28 sampled frames: biggest step 13.7 of 142.6 accumulated change, no black frame
 ok - gate boards, bricks, trees, road, lantern cone and keeper path are all mid-way at one t
-ok - frame cost: render avg 2.4 ms, max 5.7 ms over 313 frames (headless software canvas)
+ok - frame cost: render avg 2.4 ms, max 5.9 ms over 311 frames (headless software canvas)
 ok - NEW world holds still for the dwell: no gate, keeper gone, trees and road, no shade yet
 ok - new reality persists across reload
+ok - hotkeys work while a button has focus; persistence writes only on state change
 ok - hold C compares (old stage returns), release returns to the new world
 ok - revert runs the stage backwards to the old gate and clears persistence
-ok - browser frame rate sample: 31.4 fps (headless, software raster)
-ok - haunt: keeper is gone from every rod and puppet, the lamp moves away, the lantern shade stays and its arm pulls the front rod (travel 47 px)
+ok - browser frame rate sample: 32.2 fps (headless, software raster)
+ok - haunt: keeper is gone from every rod and puppet, the lamp moves away, the lantern shade stays and its arm pulls the front rod (travel 48 px)
 ok - the haunt hides while comparing
 ok - keyboard: Enter on the focused line writes, early release cancels
 ok - pointer: press-hold on the line writes, early release cancels
 ok - pointer: compare and revert buttons work
-ok - reduced motion: still ambient-free, rewrite shortened to 3679 ms but still continuous
+ok - reduced motion: rewrite is a 9929 ms in-place cross-fade (no backlight swing, no board or brick travel)
+ok - reduced motion: cancel and revert work, pen-down does not swing the lamp
 ok - reduced motion reaches the same haunt
 ok - reduced-motion toggle works
 ok - no console errors over http
 ok - works from file://
-22 passed
-exit 0
+24 passed
 $ node tests/shoot-v5.mjs
 v5-01-initial
 v5-02-penDown
@@ -36,4 +41,6 @@ v5-04-new
 v5-05-haunt
 v5-06-compare
 v5-07-reduced-mid
--rw-r--r--. 1 root root 3546843 Nov 19 03:35 docs/video/v5-flow.webm
+$ node tests/record-v5.mjs
+docs/video/v5-flow.webm 3.54 MB 30.1 s wall
+-rw-r--r--. 1 root root 3536037 Nov 19 03:49 docs/video/v5-flow.webm

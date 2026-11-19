@@ -13,7 +13,7 @@
     old: { zh: '城门每日黄昏关闭,守门人点亮三盏灯。', en: 'The city gate closes every dusk, and the gatekeeper lights three lamps.' },
     neu: { zh: '这座城从来没有城门,黄昏也没有守门人。', en: 'This city never had a gate, and dusk never had a gatekeeper.' },
   };
-  const TIMING = { holdMs: 1200, cancelMs: 400, rewriteMs: 9000, revertMs: 4000, compareMs: 500, hauntDelayMs: 4000, hauntMs: 10000, reducedScale: 0.4 };
+  const TIMING = { holdMs: 1200, cancelMs: 400, rewriteMs: 9000, revertMs: 4000, compareMs: 500, hauntDelayMs: 4000, hauntMs: 10000, reducedScale: 1 };
   const COUNTS = { boards: 6, bricks: 60, slabs: 10, trees: 5, roadSegs: 8, lamps: 3 };
 
   const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));

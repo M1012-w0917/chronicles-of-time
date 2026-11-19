@@ -17,7 +17,9 @@ From the repo root: `python3 -m http.server 8000`, then open `http://localhost:8
 | Revert | Z | Revert button |
 | Reduced motion | OS setting, or the button | button |
 
-Query parameters for stills: `t` (0..1 world progress), `w` (ink 0..1), `state=new`, `haunt` (0..1), `compare=1`, `reduced=0|1`, `fresh=1` (clear saved state). The new world persists in `localStorage` (`v5.world`) across reloads.
+Reduced motion keeps the same 9 s rewrite but replaces travel with an in-place cross-fade of the old and new stage. The backlight does not swing on pen-down, there is no ambient sway, and the shade does not tug the rod. In the haunt the shade still fades in and the lamp still drifts away (a lighting change, not moving pieces). Z and C work while a button has focus.
+
+Query parameters for stills: `t` (0..1 world progress), `w` (ink 0..1), `state=new`, `haunt` (0..1), `compare=1`, `reduced=0|1`, `fresh=1` (clear saved state). The new world persists in `localStorage` (`v5.world`) across reloads. It is written once when the world settles and cleared when a revert starts. The haunt is part of the new world and replays on each load (by design: the state after refresh is the settled new world, then the shade arrives again).
 
 ## What it is
 - `core.js` pure state machine and piece functions. Every piece reads the single number `t` through its own staggered window.
@@ -27,15 +29,15 @@ Query parameters for stills: `t` (0..1 world progress), `w` (ink 0..1), `state=n
 - Haunt (about 4 s after the new world settles): all rods are parked and no puppet is left, yet a lantern-bearing shade appears on the near scrim in screen space (no parallax). The lamp is dragged away to the right, the shade stays, lifts its arm and pulls the empty keeper rod at the front.
 
 ## Tests and evidence
-`node tests/flow-v5.mjs` (server on :8000), `node tests/shoot-v5.mjs`, `node tests/record-v5.mjs`. Output of the last run: `docs/test-log-v5.txt`. Screenshots: `docs/screenshots/v5-*.jpg`. Video: `docs/video/v5-flow.webm`.
+Start `python3 -m http.server 8000` from the repo root, then `node tests/flow-v5.mjs`, `node tests/shoot-v5.mjs`, `node tests/record-v5.mjs`. The scripts need `playwright-core` and a Chromium binary (no install is done by the scripts). `tests/pw-v5.mjs` resolves `playwright-core` from env `PLAYWRIGHT_CORE` (package dir), local `node_modules`, or the global npm root, and the browser from env `CHROME` or the first `chrome-headless-shell`/`chrome` under `PLAYWRIGHT_BROWSERS_PATH`, `~/.cache/ms-playwright` or `/inner_container/opt/playwright`. Recording also needs Playwright's ffmpeg in the same cache. Output of the last run: `docs/test-log-v5.txt`. Screenshots: `docs/screenshots/v5-*.jpg`. Video: `docs/video/v5-flow.webm`.
 
 ## Known limitations
 - The sandbox has no CJK system font, so Chinese glyphs render as gaps in the screenshots and video. The tests assert the DOM text and the CJK font-family stack only. CJK glyph rendering is 未验证. Every Chinese line has an English caption.
 - Performance numbers come from headless software rendering (about 30 fps, JS render time about 2.4 ms per frame). A GPU browser is unmeasured.
 - Layer shadows use a low-resolution buffer instead of true blur, and light physics is an approximation (per-layer parallax and offset), not ray casting.
-- The continuity test uses a 32x18 luminance fingerprint sampled about every 300 ms, and ambient keeper walking adds a little noise to it.
+- The continuity test uses a 32x18 luminance fingerprint sampled about every 300 ms, and ambient keeper walking adds a little noise to it. The haunt test also compares mean luminance of a crop around the shade before and after the lamp moves against a shade-free new world. The rod tug is scripted by the haunt parameter, not simulated from the shade.
 - Desktop layout only. Narrow screens get a stacked desk but are untested.
-- Only reduced-motion via the OS media query, the query parameter and the button is tested. Safari and Firefox are unverified.
+- Reduced-motion cancel, revert, cross-fade and haunt are tested. Only reduced-motion via the OS media query, the query parameter and the button is tested. Safari and Firefox are unverified.
 
 ## Assets and license
 Everything is procedural code and system font names. No third-party images, fonts, audio or code.
