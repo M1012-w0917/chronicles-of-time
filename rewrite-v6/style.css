@@ -1,0 +1,45 @@
+:root { --n: 0; --w: 0; --cjk: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", "STSong", "SimSun", "Noto Sans CJK SC", "PingFang SC", "Microsoft YaHei", serif; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: #0b0f0d; color: #2a1a0c; font-family: var(--cjk); overflow: hidden; }
+#room { display: flex; flex-direction: column; height: 100vh; }
+#cabinet { position: relative; flex: 1 1 auto; min-height: 0; display: flex; justify-content: center; background: #0b0f0d; }
+#stage { height: 100%; max-width: 100%; aspect-ratio: 1280 / 680; object-fit: contain; display: block; touch-action: pan-y; }
+#cmpTag { position: absolute; top: 3%; left: 50%; transform: translateX(-50%); padding: 4px 14px; background: rgba(20, 24, 10, .78); color: #f0d890; border: 1px solid #a58236; font-size: 13px; opacity: 0; transition: opacity .3s; pointer-events: none; }
+#cmpTag i, button i, #hint i, .cap, .meta i, h3 small, #note i { font-style: normal; font-family: Georgia, "Times New Roman", serif; }
+body[data-compare="true"] #cmpTag { opacity: 1; }
+#note { position: absolute; bottom: 16%; left: 50%; transform: translateX(-50%); margin: 0; padding: 6px 12px; font-size: 13px; color: #e4f4f6; background: rgba(6, 22, 26, .8); border-left: 3px solid #6fd0dc; pointer-events: none; white-space: nowrap; }
+#note i { display: block; font-size: 10px; color: #a8d4da; } #note[hidden] { display: none; }
+
+#bench { flex: 0 0 auto; height: min(24vh, 214px); display: flex; align-items: flex-start; justify-content: center; gap: 28px; padding: 0 24px; position: relative;
+  background: linear-gradient(#b08a38 0, #8a6a26 6px, #3a2a10 10px, #2a1e0c 40%, #1a1206); border-top: 3px solid #e2c36a; box-shadow: inset 0 14px 22px rgba(0, 0, 0, .55); }
+#bench::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 100%; pointer-events: none; opacity: .25; background: repeating-linear-gradient(90deg, transparent 0 46px, rgba(255, 230, 150, .5) 46px 47px); }
+#bookWrap { position: relative; width: min(760px, 62vw); margin-top: 10px; perspective: 900px; }
+#book { position: relative; display: grid; grid-template-columns: 1fr 1.35fr; height: min(20vh, 184px); transform: rotateX(14deg); transform-origin: 50% 100%;
+  background: #2f4a3a; border-radius: 3px 3px 6px 6px; padding: 5px 6px 9px; box-shadow: 0 10px 18px rgba(0, 0, 0, .7), 0 3px 0 #1b2c22, 0 6px 0 #e3d7b4, 0 7px 0 #9b8a5a, 0 9px 0 #e3d7b4, 0 10px 0 #20332a; }
+.page { position: relative; padding: 9px 14px; background: linear-gradient(90deg, #e4dcc0, #f1ead0 30%, #e8e0c2); overflow: hidden; }
+.page.left { border-radius: 3px 0 0 3px; box-shadow: inset -22px 0 24px -12px rgba(50, 40, 10, .55); }
+.page.right { border-radius: 0 3px 3px 0; box-shadow: inset 22px 0 24px -12px rgba(50, 40, 10, .55); }
+.page::after { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .5; background: repeating-linear-gradient(0deg, rgba(100, 90, 40, .05) 0 1px, transparent 1px 3px); }
+h3 { margin: 0 0 4px; font-size: 18px; color: #1f3a2a; letter-spacing: .12em; } h3 small { font-size: 11px; letter-spacing: 0; color: #5a6a48; display: block; }
+.meta { margin: 4px 0; font-size: 12px; line-height: 1.45; color: #3a3a1c; } .meta i { font-size: 11px; color: #5a6a48; }
+#fact { position: relative; height: 40px; margin-top: 8px; font-size: 17px; line-height: 40px; color: #1a2a1a; cursor: pointer; outline-offset: 3px; user-select: none; touch-action: none; white-space: nowrap; }
+#fact:focus-visible { outline: 2px solid #a8281a; }
+#fact span { position: absolute; left: 0; top: 0; }
+#fact .old { opacity: calc(1 - var(--n)); text-decoration: line-through; text-decoration-color: rgba(20, 40, 60, calc(var(--n) * .9)); text-decoration-thickness: 2px; }
+#fact .neu { opacity: var(--n); color: #10284a; text-shadow: 0 0 3px rgba(20, 40, 80, .25); }
+#ink { position: absolute; left: 0; top: -14px; width: 520px; height: 80px; pointer-events: none; mix-blend-mode: multiply; }
+.cap { position: relative; height: 40px; margin: 2px 0 0; font-size: 10.5px; line-height: 1.25; color: #4a5a30; }
+.cap span { position: absolute; left: 0; top: 0; right: 0; } #capOld { opacity: calc(1 - var(--n)); } #capNew { opacity: var(--n); }
+.hold { height: 5px; background: rgba(40, 60, 30, .25); border-radius: 3px; margin-top: 3px; } #holdBar { height: 100%; width: calc(var(--w) * 100%); background: #7a1a10; border-radius: 3px; }
+#hint { margin: 4px 0 0; font-size: 11px; color: #3a4a28; } #hint i { font-size: 10px; color: #5a6a48; }
+#ribbon { position: absolute; right: 42px; bottom: -6px; width: 9px; height: 26px; background: #8a1e1e; clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%); box-shadow: 0 2px 2px rgba(0, 0, 0, .5); }
+#quill { position: absolute; right: 18px; top: -30px; width: 12px; height: 120px; transform-origin: 50% 100%; transform: translate(calc(var(--w) * -150px), calc(var(--w) * 14px + 18px)) rotate(calc(24deg - var(--w) * 8deg)); pointer-events: none; filter: drop-shadow(5px 8px 5px rgba(0, 0, 0, .5));
+  background: linear-gradient(90deg, #f0e6d2, #cdbf9f); clip-path: polygon(50% 100%, 28% 70%, 0 40%, 24% 0, 62% 6%, 100% 36%, 72% 74%); }
+#side { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; max-width: 260px; }
+#controls { display: flex; flex-direction: column; gap: 6px; }
+button { font: 13px var(--cjk); padding: 6px 12px; background: #3a2c10; color: #f2dc9a; border: 1px solid #c5a24a; border-radius: 3px; cursor: pointer; text-align: left; }
+button:hover, button:focus-visible { background: #5a4418; outline: 2px solid #f0d070; } button[aria-pressed="true"] { background: #2a5a46; } button i { font-size: 11px; color: #e0c878; margin-left: 4px; }
+.tag { margin: 0; font-size: 11px; color: #c8b070; } .tag b { font-family: monospace; color: #f4e0a0; }
+@media (max-width: 760px) { #bench { flex-direction: column; align-items: center; height: auto; max-height: 46vh; overflow: auto; } #bookWrap { width: 94vw; } #side { max-width: none; } #controls { flex-direction: row; flex-wrap: wrap; } }
+@media (prefers-reduced-motion: reduce) { #cmpTag { transition: none; } }
+body[data-reduced="true"] #cmpTag { transition: none; }
