@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>V9 星象仪 / The Orrery That Lost a Star</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-state="OLD" data-reduced="false" data-compare="false">
+<main id="table">
+  <section id="obs" aria-label="观测台 The observatory">
+    <canvas id="stage" width="960" height="540" role="img" aria-label="古代观测台:铜制星象仪的四层环围着一盏灯,灯光穿过玻璃透镜,在圆顶幕上投出港城、灯塔、七座码头和雾海航路。 An observatory: four brass rings around a lamp, light passing through a glass lens and projecting a harbor city, a lighthouse, seven piers and a route through the fog sea onto a dome."></canvas>
+    <div id="cmpTag">对照旧星象 <i>Comparing with the old orrery</i></div>
+    <div id="loading" role="status">点灯中 <i>Lighting the lamp…</i></div>
+  </section>
+  <section id="deskrow" aria-label="书与控制 Book and controls">
+    <div id="book">
+      <div class="page left">
+        <h3>星象志 <small>Orrery Annals</small></h3>
+        <p class="reg"><span class="rl">引航籍 <i>Pilot register</i></span>
+          <span class="keeper">引航者:<b id="keeper">沈归舟</b> <i id="keeperEn">Pilot: Shen Guizhou</i></span></p>
+        <p class="meta">本册只记一条事实。落笔即成真,环转镜移,港城随光重排。<br><i>One fact is kept here. Writing it makes it true: the rings turn, the lens shifts and the harbor is re-projected.</i></p>
+      </div>
+      <div class="page right">
+        <div id="fact" tabindex="0" role="button" aria-label="按住空格或按住这一行以改写 Hold Space or press and hold this line to rewrite">
+          <div class="stack zh"><span class="old" id="factOld">北辰七星引航,归港者循第七星的方位穿越迷雾海。</span><span class="neu" id="factNew">北辰从来只有六星,第七颗星从未存在。</span></div>
+          <div class="stack cap"><span class="old" id="capOld">Seven stars of the North Star guide the ships, and every captain coming home crosses the fog sea by the bearing of the seventh star.</span><span class="neu" id="capNew">The North Star has only ever had six stars. The seventh star never existed.</span></div>
+          <i id="pen" aria-hidden="true"></i>
+          <canvas id="scorch" width="72" height="84" aria-hidden="true"></canvas>
+        </div>
+        <div class="hold" aria-hidden="true"><div id="holdBar"></div></div>
+        <p id="hint">按住空格,或按住这一行,约 1.2 秒 <i>Hold Space or press the line for about 1.2 s. Release early to cancel.</i></p>
+      </div>
+      <div id="gutterShade" aria-hidden="true"></div>
+    </div>
+    <div id="side">
+      <div id="controls">
+        <button id="compareBtn" type="button" aria-pressed="false">对照旧星象 <i>Compare (hold C)</i></button>
+        <button id="revertBtn" type="button">撤回 <i>Undo (Z)</i></button>
+        <button id="reduceBtn" type="button" aria-pressed="false">减少动效 <i>Reduced motion (R)</i></button>
+      </div>
+      <p class="tag">状态 <b id="stateTag">OLD</b></p>
+    </div>
+  </section>
+</main>
+<script src="core.js"></script>
+<script src="paint.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

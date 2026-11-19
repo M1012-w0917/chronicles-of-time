@@ -1,0 +1,53 @@
+# V9 test log (raw output)
+date: 2026-11-19T07:32:11Z
+node: v22.23.4
+git base: 2737753
+
+$ node tests/run-v9.mjs
+ok - node --check passes for every rewrite-v9/*.js
+ok - stateAt, anchorsAt and layout are deterministic (no randomness in the world)
+ok - 91 unique anchor ids, identical list at all 101 sampled t, required ids present
+ok - per 0.01 step max screen displacement of any anchor is 7.41 px (lighthouse@0.34), bound 12 px
+ok - 90 of 91 anchors end more than 8 px from their start
+ok - ring angles continuous (max step 0.98 deg per 0.01); changes 38.0/27.0/23.0/14.0 deg; R3 tilt 23 -> 0
+ok - rings are staggered: at t=0.3 R1 e=0.42 vs R4 e=0.00
+ok - lens magnification M equals the thin-lens value f/(f-do) at five t
+ok - anchor lens point and dome pixel match the closed-form lens mapping (s/(1+k r^2), decenter, dome scale)
+ok - every anchor has a 5-point rotation chain (rotations preserve length, unit length inside the disc) ending at its ring point
+ok - ring R3 alone moves pier VII (by more than 10 px) and leaves pier II untouched: anchors are bound to rings
+ok - t=0.5: 74/74 travelling anchors sit between their endpoints, 73 are off the straight midpoint (one world on a curved path, not a blend)
+ok - t runs forward and back: same t gives identical layout, undo returns exactly to t=0 (OLD)
+ok - pier VII sink7 0 -> 1 and star7 1 -> 0; lighthouse moves 204 px west; pier VII travels 62 px vs pier II 34
+ok - haunt: chart is the left-right mirror of the stars, the hand path ends exactly on star VII, name struck, then glow, beam, scorch in that order
+ok - machine: release at 0.5 s cancels to OLD t=0; hold 1.2 s reaches REWRITING; compare shows t=0 while real t keeps running; reduced motion is 1.8x slower and still continuous
+16 passed
+exit: 0
+
+$ python3 -m http.server 8000 & node tests/flow-v9.mjs
+chromium: /inner_container/opt/playwright/chromium_headless_shell-1232/chrome-headless-shell-linux64/chrome-headless-shell | 151.0.7922.10
+ok - Chinese copy (old and new line, 沈归舟, 引航者, button labels) and English captions present in the DOM
+ok - CJK font stack asserted ("Noto Serif CJK SC", "Songti SC", SimSun...); installed CJK fonts: 0; Chinese glyph rendering is 未验证 here (glyphs draw blank), only DOM text was verified
+ok - initial: OLD, t=0, one world drawn per frame (drawnWorlds=1, 3 colour passes of the same geometry)
+ok - Space cancel: released at w=0.43, back to OLD, t=0, ring angles unchanged [72,52,23,0], fingerprint drift 0.39
+ok - pointer press-hold 1.2 s on the line starts the rewrite; early pointer release cancels
+ok - Enter on the focused line also writes
+ok - 55 live samples during the 9 s rewrite: t monotone, 91 anchors every sample, 1 world drawn each frame, no jump above 60 px for the lighthouse, ring angle changes 38/27/23/14 deg, lighthouse travelled 271 px
+ok - NEW settled and persisted {"v":1,"t":1}; ring angles [34,25,0,14], pier VII sunk (sink7=1), star VII aperture closed
+ok - rewritten sentence fully revealed (wipe 1.00, clip-path inset(0px 0% 0px 0px))
+ok - pixel fingerprints (32x18 luma, |t0-t1|=11.42) at mid are not a 50% mix: t=0.25: |frame-mix|=7.28; t=0.5: |frame-mix|=6.80; t=0.75: |frame-mix|=6.06; early/mid/late pairwise 8.32, 6.99, 10.19; ring angles differ at each of 5 stops
+ok - hold C shows the old orrery (shown t 0, fingerprint change 11.6) while real t stays 1; release returns to the new one
+ok - haunt: hand travelled 215 px over 43 samples, ended on the mirrored star VII position, beam end (781,720) lands on the rewritten line (x 548..1013, top y 751), register name struck (erased=true), scorch 1.00; hidden while comparing
+ok - strike-through under 沈归舟 is 36.6094px wide
+ok - no haunt at t=0.6 (the anomaly appears only after the new world has settled)
+ok - Z reverses: haunt removed, t back to 0, ring angles back to [72,52,23,0], storage cleared
+ok - reload keeps the new world (t=1) and replays the haunt
+ok - reduced motion: idle drift 0.0000 vs 0.413 in normal mode; the rewrite still runs continuously (t monotone, ring step < 3 deg per 250 ms) at about 0.062 t/s (normal 0.111, x1.8 slower is 0.062)
+ok - ?t=0.5 draw cost avg 2.6 ms, max 3.4 ms over 133 frames (headless software rendering, budget 40 ms; GPU and real devices 未验证)
+ok - mobile 390x844: no horizontal overflow (scrollWidth 390 <= 390)
+ok - opens from file://, rewrite starts after a 1.4 s hold, 0 console errors
+ok - file:// ?state=new renders with no console errors
+21 passed, 0 console errors
+exit: 0
+
+$ ffmpeg -i docs/video/v9-flow.webm (Playwright ffmpeg)
+  Duration: 00:00:28.68, start: 0.000000, bitrate: 859 kb/s
