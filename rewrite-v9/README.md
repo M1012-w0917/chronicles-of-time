@@ -37,6 +37,9 @@ Test hook `window.__slice`: `getState()` (state, t, ring angles `rings.theta/del
 ## Haunt
 Only in NEW, from about 4 s after settling for 12 s. A hand outline appears on the inside of the lens and draws a left-right mirrored star chart. The six other stars are dark rings; the seventh position keeps glowing (with a reversed "VII"). A beam then runs from it to the rewritten line in the book, the pilot's name in the register is struck out, and a scorch of the same hand appears under the line. Compare hides the haunt and Undo retracts it first.
 
+## Tests and evidence
+`node tests/run-v9.mjs` (unit), `node tests/flow-v9.mjs` (Chromium, server on :8000), `tests/shoot-v9.mjs`, `tests/record-v9.mjs`. Output in `docs/` (screenshots, `video/v9-flow.webm`, `test-log-v9.txt`, `pr-body-v9.md`).
+
 ## Matrix against V1 to V8
 | | Medium | Material | Change mechanism | Scare |
 | --- | --- | --- | --- | --- |
