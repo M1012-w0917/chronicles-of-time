@@ -1,0 +1,42 @@
+V6 test log, raw output
+date: 2026-11-19T04:47:37Z
+node: v22.23.4
+chromium: /inner_container/opt/playwright/chromium_headless_shell-1232/chrome-headless-shell-linux64/chrome-headless-shell
+
+$ node tests/run-v6.mjs
+ok - node --check passes for every rewrite-v6 script
+ok - fact lines exist in Chinese with English captions
+ok - tree, roots, leaves, soil, vein flow, moss, ferns and relics all follow one t monotonically (8 nodes and 14 roots at 0, none at 1; flow reverses)
+ok - no metric jumps more than 15% of its range between t steps of 0.01
+ok - retraction order: twig tips and deep roots leave first, trunk and main root last
+ok - haunt anchor lies on root 0 and the handprint is centred on it; the name sits on the old vein
+ok - haunt order: hand, then condensation gathers, then a bead runs, then the name, then the note
+ok - hold to write: early release cancels and drains back to old, t stays 0
+ok - hold 1.2 s starts a 9 s reconstruction, then NEW dwell (4 s), then HAUNT progress 0..1 over 10 s
+ok - undo plays t in reverse to old and clears the haunt
+ok - compare pulls the shown t to old without touching real t; undo is a no-op before anything is written
+ok - reduced motion stretches the rewrite instead of cutting it
+12 passed
+
+$ node tests/flow-v6.mjs
+ok - Chinese copy, English captions and CJK font stack present in the DOM (CJK glyph rendering 未验证: this sandbox has no CJK system font)
+ok - initial: one stage canvas, 8 tree nodes and 14 roots, no haunt note
+ok - hold fills the bar; early release cancels, bar drains, world stays old
+ok - same stage canvas changes continuously over 34 samples: biggest step 2.3 of 32.6 total, t monotonic, mean distance from old grows
+ok - frame cost: render avg 1.2 ms, max 2.0 ms over 626 frames (headless software canvas)
+ok - NEW ecology holds still for the dwell: no tree, no roots, moss and ferns, water flowing the other way, no haunt yet
+ok - haunt exists only in NEW, painted around the root 0 anchor (479,400), condensation spells the name, note appears
+ok - hold C compares (old cabinet returns, haunt hidden), release returns; hotkeys work with a button focused; persistence writes only on state change
+ok - new ecology persists across reload
+ok - undo plays t backwards over 13 samples to the old cabinet, removes the haunt, clears persistence
+ok - browser frame rate sample: 61.8 fps (headless, software raster; real-device perf 未验证)
+ok - keyboard: Enter on the focused line writes, early release cancels
+ok - pointer: press-hold on the line writes, early release cancels
+ok - pointer: compare and undo buttons work, dragging over the glass wipes the condensation
+ok - ?reduced=1: no ambient animation, rewrite stretched to 16209 ms and reaches NEW
+ok - reduced motion: undo works
+ok - reduced-motion button and R key toggle
+ok - prefers-reduced-motion media query honoured
+ok - no console or page errors over http
+19 passed
+exit: 0

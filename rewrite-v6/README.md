@@ -43,7 +43,7 @@ About 4 s after NEW settles, a hand is pressed outward from the inside of the gl
 
 ## Limits
 - No CJK font in the build sandbox: Chinese glyphs in the DOM were not visually verified (the English captions and the stroke-drawn name were). The plaque and the haunt name use hand-set strokes, not a font.
-- Chromium (headless, software rendering) only. Firefox, Safari and real-device performance 未验证.
+- Chromium (headless, software rendering) only. CJK glyph rendering (the sandbox has no CJK system font), Firefox, Safari and real-device performance 未验证.
 - The haunt hand is a union of ellipses, a stylised print, not a photographic one.
 
 ## Assets and license
