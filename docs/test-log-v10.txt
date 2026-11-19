@@ -1,0 +1,62 @@
+date: 2026-11-19T08:50:01Z
+node: v22.23.4
+commands:
+  node tests/run-v10.mjs
+  python3 -m http.server 8000 &   (clean server from repo root)
+  node tests/flow-v10.mjs
+
+$ node tests/run-v10.mjs
+ok - node --check passes for every rewrite-v10/*.js
+  feasibility: N=4096 grains, 2.38 ms/step (gate 3 ms), bonds 8733
+ok - feasibility gate: 4096 grains at 2.38 ms/step (<= 3 ms), N not reduced
+ok - old world after 120 pre-roll steps is at rest (max speed 0.0000 u/step); roles bed/dam/deck/bld/keeper/reserve = 2728/72/202/438/96/560, seven dams
+  precompute: 5.93 s for 1740 steps (3.41 ms/step incl. snapshots), frames 871, snapshots 13.6 MB
+ok - precompute 5.93 s (<= 8 s), snapshots 13.6 MB (<= 40 MB)
+ok - determinism: two independent runs give bit-identical Int16 snapshots (fingerprint at frame 510 = eba86eaf)
+ok - id continuity: all 871 stored frames hold 4096 fixed-id grains (id = index), no NaN, all in the glass bounds; the role list is fixed
+ok - mass/count conserved: 4096 grains of mass 1 at all times; centroid height drops by 17.5 units from old to new world
+ok - per-step max displacement of any grain over all 1860 steps is 5.50 units, bound 12
+ok - old world at frame 0: seven dams standing (equivalent height ratio 0.78 of the tallest), nothing has moved
+  new world metrics at frame 510: {"canyonDepth":108.9232956735711,"buildingsOnBanksRatio":0.9817351598173516,"damDisplacedRatio":0.9305555555555556,"damNearOriginRatio":0.06944444444444445,"maxDamColumnHeightRatio":0.1119496253672567,"maxSpeed":0.34270986914634705,"restFraction":0.99755859375,"fingerprint":"eba86eaf"}
+ok - canyon depth 108.9 units (>= 40): mean bank surface minus central surface
+ok - 98.2 % of building grains end on the banks (|x - centre| > 70), >= 70 %
+ok - 93.1 % of dam grains moved more than 60 units, 6.9 % are within 60 of their origin (< 20 %)
+ok - no dam column left standing: tallest remnant is 11.2 % of the tallest original dam (<= 25 %)
+ok - new world is at rest: 99.76 % of grains slower than 0.1 u/step at the end of settling, max speed 0.343
+ok - settle phase rest fraction 87.23%@420 88.60%@450 95.36%@480 99.76%@510
+ok - mid-rewrite frames are not a blend: mean path straightness 0.454 (< 0.9), 98.4 % of moving grains are more than 5 units off the straight start-end line at 25/50/75 %
+ok - stored-frame to stored-frame max displacement is 11.04 units (< 12)
+ok - haunt: 400 grains (96 keeper + 304 sampled pile grains) rise against gravity, mean net displacement -167.7 units along the gravity axis (negative = up), 97.5 % rise more than 20 units
+ok - haunt targets reached: hand print mean error 10.2 units (72 % within 14), mirrored name 陆徊 mean error 10.4 (72 % within 14)
+ok - haunt event list: three knocks at frames 606, 624, 642, name at 654, release at 762, end 870
+ok - after release the haunt grains fall back under normal gravity: 97.5 % below y = 150; rest fraction at the end 99.98 %, conservation holds (checked at every frame above)
+ok - reversibility: 2352 playhead positions replayed backwards give the forward frames exactly; linear interpolation is exact at half frames; t=0 is the old world, t=1 the settled new world
+ok - targets exist only inside the haunt block (if (h && !h.released)); the rewrite phase uses gravity, contacts, bonds and the two machines only
+23 passed
+exit: 0
+
+$ node tests/flow-v10.mjs
+chromium: /inner_container/opt/playwright/chromium_headless_shell-1232/chrome-headless-shell-linux64/chrome-headless-shell | 151.0.7922.10
+ok - Chinese copy (old and new line, 陆徊, 守沙人, button labels) and English captions present in the DOM
+ok - CJK font stack asserted ("Noto Serif CJK SC", "Noto Sans CJK SC", "PingFang SC", "Microsoft YaHei"...); line widths 465/465/465/465 px; installed CJK fonts: 0; Chinese glyph rendering is 未验证 here (glyphs draw blank), only DOM text and layout were verified
+ok - initial: OLD, t=0, 4096 grains with 4096 unique ids, core fingerprint 2b05fc1a
+ok - Space cancel: released at w=0.43, back to OLD, t=0, grains unchanged (fingerprint 2b05fc1a)
+ok - pointer press-hold on the line starts the rewrite; early pointer release cancels
+ok - stored frames 0..510: max per-frame displacement 11.03 < 12; frame 255 is 54.2 units from the 50% blend of frames 0 and 510 (and 49 / 96 from the two ends); centroid shift (21.9, 17.5); no NaN, none out of bounds at frames 0,150,255,360,510
+ok - new world metrics: canyonDepth 108.9, buildings on banks 98.2%, dam grains moved > 60 units 93.1% (near origin 6.9%), max dam column 11.2%, rest fraction 99.76%
+ok - Enter on the focused line also writes
+ok - 104 live samples: playhead monotone, 4096 grains each sample, gate opened, keel lowered, tilt up to 18.0 deg; id set identical (4096 unique) at early, mid and late
+ok - NEW settled at frame 510, persisted {"v":1,"t":1}, live fingerprint equals the stored frame eba86eaf; new line fully revealed
+ok - reload restores the settled frame directly (states seen: OLD,NEW), fingerprint eba86eaf identical, no rewrite replay
+ok - hold C shows the old grains (core fingerprint equals the old one) while the kept t stays 1; release returns to the new world
+ok - haunt: 493 grains rose more than 60 units by the hand frame; book scorch is 0 until the first knock (frame 606) and starts at frame 648, the name is rewritten from frame 717; hidden while C is held (hauntShown 0, scorch 0)
+ok - Z (from NEW): playhead runs monotonically back from frame 868 (haunt retracted before the world), grains equal the old fingerprint, localStorage cleared
+ok - reduced motion: idle canvas identical across 600 ms, glass tremor amplitude 0 while writing (normal mode shows > 0), rewrite plays at 16.7 frames/s (normal 30, so about x1.8 slower)
+ok - ?t=0.5 draw cost avg 11.4 ms, max 13.7 ms over 150 frames (headless software rendering, budget 30 ms avg; GPU and real devices 未验证)
+ok - during precompute (idle, old city shown): fps 37.4, progress 31%, frame draw avg 10.8 ms
+ok - mobile 390x844: no horizontal overflow (scrollWidth 390 <= 390), canvas 390 px wide
+ok - blind=1 hides the book, texts and status (stage canvas only)
+ok - opens from file://, rewrite starts after a 1.5 s hold, 0 console errors
+ok - file:// ?state=new renders with no console errors
+21 passed, 0 console errors
+exit: 0
