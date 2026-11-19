@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>V4 档案证据室 / Archive Evidence Room</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-state="OLD" data-reduced="false" data-compare="false">
+<main id="desk">
+  <section id="bookWrap" aria-label="档案册 Archive ledger">
+    <div id="book">
+      <div class="page left">
+        <h3>灰堡市档案馆 <small>Ashmere City Archive</small></h3>
+        <p class="meta">渡口东岸监控 CAM-07 调阅单<br><i>Request slip: ferry quay camera CAM-07</i></p>
+        <p class="meta">本册只记一条事实。落笔即成真,旧证据会同步改写。<br><i>This ledger holds one fact. Writing it makes it true, and every record is rewritten to match.</i></p>
+        <p class="meta small">照片 · 地图 · 人员卡 · 值班日志 都在右侧桌面。<br><i>Photos, map, index card and log lie on the desk to the right.</i></p>
+      </div>
+      <div class="page right">
+        <h3>渡口登记 <small>Ferry quay register</small></h3>
+        <div id="fact" tabindex="0" role="button" aria-label="按住空格或按住这一行以改写 Hold Space or press and hold this line to rewrite">
+          <span class="old" id="factOld">陈守拙是灰堡市渡口的守闸人。</span>
+          <span class="neu" id="factNew">渡口从未设闸,陈守拙从未存在。</span>
+          <canvas id="ink" width="520" height="96"></canvas>
+        </div>
+        <p class="cap"><span id="capOld">Chen Shouzhuo is the lock keeper at the Ashmere ferry quay.</span><br><span id="capNew">The ferry never had a lock. Chen Shouzhuo never existed.</span></p>
+        <div class="hold" aria-hidden="true"><div id="holdBar"></div></div>
+        <p id="hint">按住空格,或按住这一行,约 1.2 秒 <i>Hold Space or press the line for about 1.2 s. Release early to cancel.</i></p>
+      </div>
+    </div>
+    <div id="controls">
+      <button id="compareBtn" type="button" aria-pressed="false">对照旧世界 <i>Compare (C)</i></button>
+      <button id="revertBtn" type="button">还原 <i>Revert (Z)</i></button>
+      <button id="reduceBtn" type="button" aria-pressed="false">减少动效 <i>Reduced motion</i></button>
+    </div>
+  </section>
+
+  <section id="monitor" aria-label="CAM-07 live feed">
+    <div class="crt"><canvas id="cam" width="640" height="400"></canvas><div class="glass"></div></div>
+    <div class="plate">CAM-07 · 渡口东岸 <i>Ferry quay east, fixed camera</i> <b id="stateTag">OLD</b></div>
+  </section>
+
+  <aside id="evidence" aria-label="证据 Evidence">
+    <figure class="photo p1"><canvas id="ph1" width="170" height="108"></canvas><figcaption>闸门,旧照 <i>The gate, print</i></figcaption></figure>
+    <figure class="photo p2"><canvas id="ph2" width="170" height="108"></canvas><figcaption>货栈,旧照 <i>Warehouse, print</i></figcaption></figure>
+    <figure class="photo p3"><canvas id="ph3" width="84" height="108"></canvas><figcaption>证件照 <i>ID photo</i></figcaption></figure>
+    <figure class="map"><canvas id="map" width="240" height="150"></canvas><figcaption>渡口地图 <i>Ferry map</i></figcaption></figure>
+    <div id="card" aria-label="人员卡 Index card">
+      <div class="ln" id="cName"><span>陈守拙</span> <i>Chen Shouzhuo</i></div>
+      <div class="ln" id="cRole"><span>灰堡市渡口守闸人</span> <i>Lock keeper, Ashmere ferry</i></div>
+      <div class="ln" id="cYear"><span>1961 生 / 1987 起任</span> <i>b. 1961 / in post since 1987</i></div>
+      <div id="cNone"><span>查无此人</span> <i>NO RECORD</i></div>
+    </div>
+    <ul id="log" aria-label="值班日志 Duty log"></ul>
+  </aside>
+</main>
+<script src="core.js"></script>
+<script src="paint.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
