@@ -1,0 +1,54 @@
+V7 test log, raw output
+date: 2026-11-19T05:22:18Z
+node: v22.23.4
+chromium: /inner_container/opt/playwright/chromium_headless_shell-1232/chrome-headless-shell-linux64/chrome-headless-shell
+
+$ node tests/run-v7.mjs
+ok - node --check passes for every rewrite-v7 script
+ok - both sentences exist verbatim in Chinese with English captions
+ok - 223 tracked threads in 3 layers, 7 bridge bundles of 10 to 14 threads, unique stable ids
+ok - the same ids exist at t=0 and t=1: bridge threads change role (bridge:i to river, road, house, person) and position
+ok - mid-rewrite extracted count > 0, nothing extracted at 0 or 1, all movers rerouted at 1
+ok - pull and reroute progress are monotone in t; max node step per dt=0.005 (45 ms of rewrite) is 37.9 px (continuous)
+ok - staggered windows: bridge 0 is pulled out before bridge 6
+ok - hold to write: early release cancels and drains back to old, t stays 0
+ok - hold 1.2 s starts a 9 s rewrite, NEW settles once, haunt starts after 4 s and runs 12 s
+ok - haunt order: camera swings behind and the red thread leaves the gutter, then stitches, then the hand forms, then reaches
+ok - the red thread starts at the book gutter and every stitch point lies on the old bridge outline (outer ribs of bridge 6 to 0)
+ok - compare pulls the shown t and the haunt to old without touching real t, and releases back
+ok - undo removes the haunt first and plays t in reverse to old in about 4 s
+ok - undo is a no-op before anything is written and fires the clear hook once otherwise
+ok - reduced motion stretches the same continuous t (1.8x) instead of cutting it
+15 passed
+
+$ node tests/flow-v7.mjs
+ok - Chinese copy and English captions present in the DOM (CJK glyph rendering 未验证: no CJK system font in this sandbox)
+ok - initial: OLD, t=0, 223 threads
+ok - early release cancels: back to OLD with t=0 and the same cloth
+ok - pointer press-hold 1.2 s on the line starts the rewrite, early pointer release cancels
+ok - Enter on the focused line also writes
+ok - mid-rewrite: 123 threads are lifted out of the cloth, same ids as at t=0
+ok - NEW: all 82 bridge thread ids survive with new roles
+ok - hold C shows the old cloth (shown t 0) while real t stays 1, release returns to the new one
+ok - haunt exists in NEW: camera behind, red thread from the gutter, name leaving the register; hidden while comparing
+ok - Z reverses: haunt removed, t back to 0, storage cleared
+ok - reload keeps the new world and replays the haunt
+ok - reduced motion: static when idle, t still advances continuously (slower); normal mode has ambient sway
+ok - ?t=0.5 still renders, average draw 7.1 ms (headless software rendering)
+ok - opens from file:// with no console errors
+14 passed
+
+$ node tests/shoot-v7.mjs
+v7-01-old
+v7-02-write
+v7-03-rewrite
+v7-03b-rewrite-early
+v7-03c-rewrite-late
+v7-04-new
+v7-05-haunt
+v7-05b-haunt-stitch
+v7-06-compare
+v7-07-reduced
+
+$ node tests/record-v7.mjs
+docs/video/v7-flow.webm 5.39 MB 30.8 s wall
