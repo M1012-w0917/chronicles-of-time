@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>V7 命运织机 / Fate Loom</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-state="OLD" data-reduced="false" data-compare="false">
+<main id="table">
+  <section id="loom" aria-label="织机 The loom">
+    <canvas id="stage" width="1280" height="680" role="img" aria-label="木织机上的织城挂毯:白河上有七座石拱桥,守桥人的灯是一根金线。 A tapestry of a weave city on a wooden loom: seven stone arch bridges over the White River, and the keeper's lamp is a single golden thread."></canvas>
+    <div id="cmpTag">对照旧织城 <i>Comparing with the old weave</i></div>
+  </section>
+  <div id="gutterThread" aria-hidden="true"></div>
+  <section id="deskrow" aria-label="书与控制 Book and controls">
+    <div id="book">
+      <div class="page left">
+        <h3>织城志 <small>Annals of the Weave City</small></h3>
+        <p class="reg"><span class="rl">桥籍 <i>Bridge register</i></span>
+          <span class="keeper">守桥人:<b id="keeper">顾衡</b> <i id="keeperEn">Keeper: Gu Heng</i></span></p>
+        <p class="meta">本册只记一条事实。落笔即成真,织机上的线随之抽出、改道、重新穿过。<br><i>One fact is kept here. Writing it makes it true, and the threads on the loom are pulled out, rerouted and threaded again.</i></p>
+      </div>
+      <div class="page right">
+        <div id="fact" tabindex="0" role="button" aria-label="按住空格或按住这一行以改写 Hold Space or press and hold this line to rewrite">
+          <div class="stack zh"><span class="old" id="factOld">长桥织城以七座石拱桥跨越白河,桥上守桥人顾衡夜夜点灯。</span><span class="neu" id="factNew">白河从未建桥,织城沿河两岸分隔百年。</span></div>
+          <div class="stack cap"><span class="old" id="capOld">The long-bridged weave city crosses the White River on seven stone arch bridges, and on the bridges the keeper Gu Heng lights his lamp every night.</span><span class="neu" id="capNew">No bridge was ever built over the White River, and the weave city has stood divided along its two banks for a hundred years.</span></div>
+          <i id="pen" aria-hidden="true"></i>
+        </div>
+        <div class="hold" aria-hidden="true"><div id="holdBar"></div></div>
+        <p id="hint">按住空格,或按住这一行,约 1.2 秒 <i>Hold Space or press the line for about 1.2 s. Release early to cancel.</i></p>
+      </div>
+      <div id="gutterShade" aria-hidden="true"></div>
+    </div>
+    <div id="side">
+      <div id="controls">
+        <button id="compareBtn" type="button" aria-pressed="false">对照旧织城 <i>Compare (hold C)</i></button>
+        <button id="revertBtn" type="button">撤回 <i>Undo (Z)</i></button>
+        <button id="reduceBtn" type="button" aria-pressed="false">减少动效 <i>Reduced motion (R)</i></button>
+      </div>
+      <p class="tag">状态 <b id="stateTag">OLD</b></p>
+    </div>
+  </section>
+</main>
+<script src="core.js"></script>
+<script src="paint.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
