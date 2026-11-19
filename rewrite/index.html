@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>改写现实 · 灰堡市 | Chronicles of Time</title>
+  <meta name="description" content="改写一本厚重史书里的一行记载，眼前的整座城市随之重写。A vertical slice: rewrite one line of a heavy history book and watch the same place become a city that was never built.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Procedural paper and leather. Recipes follow the #f-sandstone / #f-stone filters in ../index.html. -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+      <filter id="f-paper" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.035 0.05" numOctaves="5" seed="23" result="n"/>
+        <feDiffuseLighting in="n" surfaceScale="1.6" diffuseConstant="1.05" lighting-color="#fff0cf" result="lit">
+          <feDistantLight azimuth="235" elevation="52"/>
+        </feDiffuseLighting>
+        <feFlood flood-color="#d9bd8a" result="base"/>
+        <feBlend in="lit" in2="base" mode="multiply"/>
+      </filter>
+      <filter id="f-leather" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.09 0.11" numOctaves="4" seed="7" result="n"/>
+        <feDiffuseLighting in="n" surfaceScale="3" diffuseConstant="1" lighting-color="#d9a070" result="lit">
+          <feDistantLight azimuth="225" elevation="44"/>
+        </feDiffuseLighting>
+        <feFlood flood-color="#3a1c12" result="base"/>
+        <feBlend in="lit" in2="base" mode="multiply"/>
+      </filter>
+      <filter id="f-deckle" x="-3%" y="-3%" width="106%" height="106%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.06" numOctaves="3" seed="3" result="d"/>
+        <feDisplacementMap in="SourceGraphic" in2="d" scale="7" xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+    </defs>
+  </svg>
+
+  <canvas id="world" aria-label="灰堡市的黄昏景象，一座会随史书改写而变化的城市" role="img"></canvas>
+
+  <header class="mast">
+    <p class="mast-title">改写现实 <span>Rewrite Reality · vertical slice</span></p>
+    <p class="mast-note"><a href="../index.html">返回洞穴中的书 / back to the cave demo</a></p>
+  </header>
+
+  <p class="caption" id="caption" aria-live="polite"></p>
+
+  <section class="dock" id="dock" data-open="true" data-echo="false" aria-label="史书">
+    <div class="book" id="book">
+      <div class="book-shadow"></div>
+      <div class="cover"></div>
+      <div class="stack stack-l"></div>
+      <div class="stack stack-r"></div>
+      <div class="page page-l">
+        <div class="paper"></div>
+        <div class="page-body" aria-hidden="true">
+          <p class="folio">永昌志 · 卷三<small class="gloss">Annals of Yongchang, vol. 3</small></p>
+          <p class="initial">城邑<small class="gloss">Cities</small></p>
+          <div class="scribble"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <p class="foot">按住 Space / Enter 落笔 · B 收放 · Z 撤回 · C 对照<small class="gloss">Hold Space/Enter to write · B book · Z undo · C compare</small></p>
+        </div>
+      </div>
+      <div class="page page-r">
+        <div class="paper"></div>
+        <div class="page-body">
+          <p class="folio">卷三 · 城邑志<small class="gloss">Vol. 3, Gazetteer of Cities</small></p>
+          <div class="fact" id="fact">
+            <p class="line old" id="lineOld">灰堡市<button type="button" class="key" id="keyBtn" aria-label="可改写的记载：建于永昌四十二年。点击切换改写内容">建于永昌四十二年</button>。</p>
+            <p class="gloss gloss-old" id="glossOld">Ashmere was founded in the 42nd year of Yongchang.</p>
+            <p class="line new" id="lineNew" aria-live="polite">灰堡市从未建立。</p>
+            <p class="gloss gloss-new" id="glossNew">Ashmere was never built.</p>
+          </div>
+          <p class="echo" id="echo">只有他记得。<small class="gloss">Only he remembers.</small></p>
+          <div class="write">
+            <button type="button" class="hold" id="holdBtn" aria-label="按住落笔，改写这条记载（也可按住空格或回车）"><span class="hold-fill"></span><span class="hold-label">按住落笔<small class="gloss">hold to write</small></span></button>
+            <button type="button" class="ghost" id="cancelBtn">取消<small class="gloss">cancel</small></button>
+          </div>
+          <div class="quill" id="quill" aria-hidden="true"></div>
+          <div class="blots" id="blots" aria-hidden="true"></div>
+        </div>
+      </div>
+      <div class="gutter"></div>
+      <div class="ribbon"></div>
+    </div>
+    <button type="button" class="dock-handle" id="bookToggle" aria-expanded="true" aria-controls="book">收起书 <kbd>B</kbd></button>
+  </section>
+
+  <nav class="hud" aria-label="控制">
+    <button type="button" id="undoBtn" disabled><span>撤回</span> <small class="gloss">undo</small> <kbd>Z</kbd></button>
+    <button type="button" id="compareBtn" aria-pressed="false"><span>对照</span> <small class="gloss">compare</small> <kbd>C</kbd></button>
+    <label class="scrub"><span>原载 <small class="gloss">original</small></span>
+      <input type="range" id="scrub" min="0" max="1000" value="0" step="1" aria-label="在两种历史之间拖动">
+      <span>改写 <small class="gloss">rewritten</small></span></label>
+    <button type="button" id="motionBtn" aria-pressed="false">减弱动态</button>
+    <button type="button" id="soundBtn" aria-pressed="false">声音 关</button>
+  </nav>
+
+  <noscript><p class="noscript">需要启用 JavaScript 才能观看这个场景。</p></noscript>
+  <script src="core.js"></script>
+  <script src="world.js"></script>
+  <script src="book.js"></script>
+</body>
+</html>

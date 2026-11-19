@@ -62,3 +62,6 @@
 - `chronicles-of-time.lang.v1`：语言（zh / en）
 
 数据只保存在当前浏览器，不会上传。
+
+## 改写现实 · 垂直切片
+新增独立预览：[`rewrite/`](rewrite/README.md)（城市先行的改写现实切片，设计说明见 [`docs/DESIGN.md`](docs/DESIGN.md)）。上文内容不受影响。
