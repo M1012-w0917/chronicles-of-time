@@ -33,7 +33,7 @@
   })();
 
   // ---- colour helpers ----
-  const GLZ = [[0, 0.96, 0.94, 0.88], [0.5, 0.74, 0.86, 0.80], [1.0, 0.36, 0.60, 0.56], [1.6, 0.11, 0.36, 0.37], [2.3, 0.03, 0.2, 0.25]];
+  const GLZ = [[0, 1.0, 0.97, 0.90], [0.5, 0.80, 0.95, 0.84], [1.0, 0.42, 0.80, 0.66], [1.6, 0.12, 0.55, 0.50], [2.3, 0.03, 0.30, 0.34]];
   function glazeColor(th, o) {
     if (th >= GLZ[4][0]) { o[0] = GLZ[4][1]; o[1] = GLZ[4][2]; o[2] = GLZ[4][3]; return; }
     let q = 0; while (th > GLZ[q + 1][0]) q++;
@@ -56,23 +56,23 @@
     const gl = [0, 0, 0], cool = smooth((td - 0.55) / 0.4);
     let tg = 0; for (let k = 0; k < NC; k += 37) tg += T[k]; tg /= Math.ceil(NC / 37);
     const flick = reduced ? 1 : 1 + 0.05 * Math.sin(time * 6.1) + 0.03 * Math.sin(time * 11.7 + 1);
-    const key = (0.85 + 0.3 * clamp(tg * 2.2) + 0.2 * w) * flick;
+    const key = (1.0 + 0.3 * clamp(tg * 2.2) + 0.2 * w) * flick;
     for (let j = 0; j < NY; j++) {
       const jm = j > 0 ? j - 1 : j, jp = j < NY - 1 ? j + 1 : j;
       for (let i = 0; i < NX; i++) {
         const k = j * NX + i, im = i > 0 ? i - 1 : i, ip = i < NX - 1 ? i + 1 : i;
         const dsx = (SS[j * NX + ip] - SS[j * NX + im]) / (ip - im) * NY, dsy = (SS[jp * NX + i] - SS[jm * NX + i]) / (jp - jm) * NY;
         const nl = 1 / Math.sqrt(dsx * dsx + dsy * dsy + 1), nx = -dsx * nl, ny = -dsy * nl, nz = nl;
-        const g = G[k], th = g / C.G0, cov = 1 - Math.exp(-g / 0.0035);
+        const g = G[k], th = g / C.G0, cov = 1 - Math.exp(-g / 0.0012);
         const tv = clamp(T[k] + w * 0.5 * RAD[k], 0, 1.3);
         glazeColor(th, gl);
-        const gr = GRAIN[k], bR = 0.04 * gr, bG = 0.03 * gr, bB = 0.028 * gr;
+        const gr = GRAIN[k], bR = 0.02 * gr, bG = 0.016 * gr, bB = 0.016 * gr;
         let r = bR + (gl[0] - bR) * cov, gg = bG + (gl[1] - bG) * cov, b = bB + (gl[2] - bB) * cov;
         const diff = Math.max(0, nx * lx + ny * ly + nz * lz);
-        const lr = key * (1.2 * diff) + 0.07 * nz + 0.04, lg = key * (0.92 * diff) + 0.09 * nz + 0.035, lb = key * (0.66 * diff) + 0.12 * nz + 0.04;
+        const lr = key * (1.25 * diff) + 0.16 * nz + 0.06, lg = key * (0.88 * diff) + 0.12 * nz + 0.04, lb = key * (0.6 * diff) + 0.12 * nz + 0.04;
         r *= lr; gg *= lg; b *= lb;
         // glaze specular: sharper when hot and molten, softer once cooled
-        const gloss = (0.38 + 0.62 * smooth(tv * 2.2)) * (1 - 0.35 * cool);
+        const gloss = (0.75 + 0.25 * smooth(tv * 2.2)) * (1 - 0.35 * cool);
         const nh = Math.max(0, nx * hx + ny * hy + nz * hz), sp = (Math.pow(nh, 70) * 1.5 + Math.pow(nh, 9) * 0.12) * cov * gloss * key;
         r += sp * 1.0; gg += sp * 0.78; b += sp * 0.55;
         // incandescence
@@ -172,12 +172,15 @@
     // the keeper's lamp: a small flame on the crown of the fourth arch, only while that crown stands
     {
       const j = C.BR_ROWS[3], i = Math.round(C.XC[j]), k = j * NX + i, ht = base.H[k] - C.BANK;
-      const lit = smooth((ht - 0.03) / 0.05);
+      const lit = smooth((ht - 0.012) / 0.022);
       if (lit > 0.02) {
         const p = project(i / (NX - 1), j / (NY - 1), base.H[k] + base.G[k] + 0.012), fl = o.reduced ? 1 : 0.85 + 0.15 * Math.sin(time * 9);
+        const dk = g.createRadialGradient(p[0], p[1], 2, p[0], p[1], 26); dk.addColorStop(0, 'rgba(25,6,0,' + (0.7 * lit).toFixed(3) + ')'); dk.addColorStop(1, 'rgba(25,6,0,0)'); g.fillStyle = dk; g.fillRect(p[0] - 27, p[1] - 27, 54, 54);
+        g.fillStyle = 'rgba(30,10,0,' + lit.toFixed(3) + ')'; g.fillRect(p[0] - 1.2, p[1] - 2, 2.4, 9);
         g.globalCompositeOperation = 'lighter';
-        const gr = g.createRadialGradient(p[0], p[1], 0.5, p[0], p[1], 15); gr.addColorStop(0, 'rgba(255,220,140,' + (0.9 * lit * fl).toFixed(3) + ')'); gr.addColorStop(0.3, 'rgba(255,140,50,' + (0.4 * lit * fl).toFixed(3) + ')'); gr.addColorStop(1, 'rgba(255,90,20,0)');
-        g.fillStyle = gr; g.fillRect(p[0] - 16, p[1] - 16, 32, 32); g.globalCompositeOperation = 'source-over';
+        const gr = g.createRadialGradient(p[0], p[1], 1, p[0], p[1], 38); gr.addColorStop(0, 'rgba(255,240,180,' + (1 * lit * fl).toFixed(3) + ')'); gr.addColorStop(0.15, 'rgba(255,180,70,' + (0.8 * lit * fl).toFixed(3) + ')'); gr.addColorStop(0.5, 'rgba(255,110,30,' + (0.28 * lit * fl).toFixed(3) + ')'); gr.addColorStop(1, 'rgba(255,90,20,0)');
+        g.fillStyle = gr; g.fillRect(p[0] - 40, p[1] - 40, 80, 80);
+        g.fillStyle = 'rgba(255,248,210,' + (lit * fl).toFixed(3) + ')'; g.beginPath(); g.ellipse(p[0], p[1] - 3, 2.4, 4.2, 0, 0, 6.283); g.fill(); g.globalCompositeOperation = 'source-over';
       }
     }
     if (!o.reduced) {

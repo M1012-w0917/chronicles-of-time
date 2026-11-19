@@ -1,0 +1,40 @@
+ok - node --check passes for every rewrite-v8 script
+ok - both sentences exist verbatim in Chinese with English captions
+ok - deterministic precompute of 61 snapshots on a 240x96 grid took 1027 ms in node
+ok - all four fields are finite and the glaze thickness stays non-negative in every snapshot
+ok - volume conservation: max |V - V0 - added| / V0 over 61 samples is 8.43e-9 (tolerance 1e-6)
+ok - max bridge height is monotone non-increasing (largest rise 0.0e+0): 0.1016 at t=0 to 0.0008 at t=1
+ok - fjord width is non-decreasing within a 0.5 cell tolerance (largest narrowing 0.023 cells, late settling): 0.0 to 53.2 cells of 240
+ok - each of the seven arches stands at t=0 and has sagged below 20% of its height at t=0.6
+ok - max per-cell step between adjacent samples: H 0.0322 (bound 0.05, arch height 0.102), G 0.0555 (bound 0.08, G0 0.012)
+ok - H at t=0.5 differs from the 50% mix of t=0 and t=1 by 25.7% of the total t=0 to t=1 change (not a cross-fade)
+ok - glaze flow vs thermal gradient: Pearson r = -0.855 over t=0.10..0.67 (negative: glaze runs from hot toward cold, peak centroid speed -6.30 cells per unit t)
+ok - hold to write: early release cancels and drains back to old, t stays 0
+ok - hold 1.2 s starts a continuous 9 s rewrite (t strictly increasing), NEW settles once, haunt starts after 4 s and runs 12 s
+ok - hauntAt path: 14 waypoints on the old deck lines of the seven bridges (far to near), endpoint at the book line x=172.1, scorch and name complete at h=1
+ok - palm is a real height bump: H raised by up to 0.054, glaze thinned by up to 0.0251
+ok - compare pulls the shown t and the haunt to old without touching real t, and releases back
+ok - undo removes the haunt first and plays t in reverse to old in about 4 s
+ok - undo is a no-op before anything is written and fires the clear hook once otherwise
+ok - reduced motion stretches the same continuous t (x1.8) instead of cutting it
+19 passed
+ok - Chinese copy and English captions present in the DOM
+ok - CJK font stack asserted: "Noto Serif CJK SC", "Songti SC", SimSun, "Microsoft YaHei"...; installed CJK fonts: 0 so Chinese glyph rendering is 未验证 in this sandbox (glyphs draw blank)
+ok - initial: OLD, t=0, ready after precompute (914 ms in the page)
+ok - Space cancel: released at w=0.43, back to OLD with t=0, fingerprint drift 0.67
+ok - pointer press-hold 1.2 s on the line starts the rewrite, early pointer release cancels
+ok - Enter on the focused line also writes
+ok - live rewrite at t=0.30: arches sagging (max bridge 0.0333 of 0.1016), volume error 2.8e-9
+ok - live rewrite at t=0.60: fjord width 47.2 cells
+ok - NEW settled once and persisted {"v":1,"t":1}; centre fjord H=-0.186 (floor -0.2)
+ok - mid-rewrite fingerprints (32x12 luma, |t0-t1|=26.77) are not a 50% mix: t=0.25: |frame-mix|=35.76 |frame-t0|=25.56 |frame-t1|=47.55; t=0.5: |frame-mix|=35.42 |frame-t0|=33.12 |frame-t1|=41.52; t=0.75: |frame-mix|=17.13 |frame-t0|=25.90 |frame-t1|=14.82; early/mid/late pairwise 21.03, 29.39, 37.64
+ok - hold C shows the old porcelain (shown t 0, fingerprint change 27.2) while real t stays 1, release returns to the new one
+ok - haunt: palm moved 1147 px over 27 samples with monotone path progress, ends at x=779 (line centre 781), scorch 1.00, keeper name erased; hidden while comparing
+ok - Z reverses: haunt removed, t back to 0, storage cleared
+ok - reload keeps the new world (t=1) and replays the haunt
+ok - reduced motion: idle drift 0.0000 vs 3.157 in normal mode; t advances continuously at about 0.063 per s (normal 0.111, x1.8 slower is 0.062)
+ok - ?t=0.5 still renders, average draw 13.7 ms, max 38.9 ms over 57 frames (headless software rendering; GPU 未验证)
+ok - opens from file:// with no console errors
+17 passed, 0 console errors
+
+video: docs/video/v8-flow.webm duration 28.12 s (ffmpeg -i), 1280x900 VP8 25 fps

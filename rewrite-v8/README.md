@@ -54,8 +54,8 @@ Only in NEW, starting about 4 s after settling and lasting 12 s. `applyPalm` add
 - No CJK font in the build sandbox: Chinese glyphs were not visually verified (they render blank there). English captions are always shown. 未验证 on machines with CJK fonts.
 - Only Chromium headless (software rendering) was run. Firefox, Safari, GPU and real-device performance 未验证. Average draw about 13 to 16 ms per frame there.
 - Arches are ridges in a single-valued height field, so there is no void under them. The "unsupported" sag is a rule on excess height over water.
-- The fjord is wide (about 53 of 240 cells) and the banks gain stretched lips; both are tuned by eye. The lamp flame is drawn as a small glow on the fourth crown, driven by that crown's height, and is hard to see at this scale.
-- Old world is dim and greyish by design (ember light only); the look was tuned from screenshots, not from a reference.
+- The fjord is wide (about 53 of 240 cells) and the banks gain stretched lips; both are tuned by eye. The lamp flame is a small lantern glow on the fourth crown with a dark halo behind it so it reads on the pale glaze; it fades as that crown sags.
+- The old world is lit by warm ember light on cream and celadon glaze over a black body; the look was tuned from screenshots, not from a reference. Arch faces still read as beige rather than glossy white.
 
 ## Assets and license
 Everything is procedural: simulation, Canvas 2D drawing, CSS, generated noise. No images, fonts, audio or third-party code. Same license as the repository.
