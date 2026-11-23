@@ -1,0 +1,58 @@
+--- 1 before
+PASS before: OLD, world dark
+PASS DOM old text exact
+PASS DOM new text exact
+PASS old text visible, new hidden
+PASS CJK font stack and lang zh-CN
+--- 2 hold to write, early release cancels
+PASS holding 0.5 s: WRITING partway
+PASS candle brightens while writing
+PASS early release cancels back to OLD
+PASS text unchanged after cancel
+--- 3 full hold, continuous reconstruction in the same camera
+PASS progress t never goes backwards during reconstruction
+PASS many intermediate frames sampled
+PASS continuity: no cut between consecutive frames (mean luma delta)
+PASS start and end fingerprints differ
+PASS reaches new world
+PASS text swapped to new fact in the same place
+PASS new world persisted
+--- 4 dwell in the new world
+PASS stays in new world, no auto revert
+PASS dwell: image is stable (only candle flicker)
+PASS English caption for new fact visible
+--- 5 haunt on the back of the paper
+PASS HAUNT with roll note visible
+PASS note text: roll 0, shade 1
+PASS shade casts toward the candle on both sides (anomalous: real shadows fall away)
+PASS cast offset follows light direction
+PASS shade leans toward the light
+PASS shade stays pinned on the paper while light moves
+PASS turn page enabled in HAUNT
+PASS page turn: leaf lifts and shade raises its lantern
+PASS shade does not move with the turning leaf
+PASS page turn completes (turns=1)
+--- 6 compare (hold C) and revert (Z)
+PASS C shows the old world in the same camera
+PASS old text shown while comparing
+PASS compare image differs from new world
+PASS release C returns to new world
+PASS Z reverts to OLD, haunt cleared, persistence cleared
+PASS reverted image matches the original first screen
+--- 7 keyboard path
+PASS keyboard Space early release cancels
+PASS keyboard Enter hold writes
+PASS arrow keys move the candle
+PASS keyboard Z reverts
+PASS buttons are focusable
+--- 8 reduced motion
+PASS reduced=1 honoured
+PASS reduced: frozen mid-state has no sway or flicker
+PASS reduced: shade does not lean
+PASS prefers-reduced-motion media query turns reduced on
+PASS reduced reconstruction completes quickly (crossfade)
+--- 9 runtime
+PASS average render time per frame under 40 ms
+PASS no console or page errors
+
+RESULT 47 passed, 0 failed
