@@ -46,18 +46,36 @@ Debug query params for deterministic screenshots: `?t=0..1`, `?state=new`, `?w=0
 
 The sandbox has no CJK fonts, so the Chinese glyphs render blank in the screenshots. Each Chinese string has an English caption beside it, on the page and in the dock. The Chinese text is verified through the DOM in `tests/flow-v2.mjs`. The font stacks list common CJK serif families.
 
+## Antique book (issue #23 deepening)
+
+All of this is CSS gradients and DOM boxes built in `app.js`; no images.
+
+- Book body: a leather back board (`.bx.cover`) with a tooled leather lip (`.bx.lip`), a raised spine on the near left edge with brass-ruled bands (`.bx.spine`), brass corner caps, and a thick page block per side: a 21 px page box plus two lower, wider steps (`.bx.pg.step`) so the fore-edge fans out toward the outer edges. Page sides use a fine 1 px stripe so the edges read as stacked leaves.
+- Page surface: darker aged paper that shades down toward the gutter, a deeper gutter crease with a dark fold line and a thin highlight (`.gut`), the red ribbon (`.rib`), and a stain layer per page (`.pfx`): foxing spots, an ink blot with a splash dot, a fingerprint (repeating radial ridges), smudges. Three plate marks (`.dent`) are pressed rectangles with inset shadow and highlight, around each page block and the text area.
+- Light: the broad lamp wash and the table radial are much weaker and the vignette is stronger. A local candle pool (`.pool`) lies over the lower left page where the text line is, with a gentle opacity flicker (off in reduced motion). The printed line is larger (27 px, weight 600) and darker for contrast on the lit paper.
+- Sinking: a sunk building keeps its contact-shadow leaf (`.bx.b .sh`) as a pressed footprint. As `--k` falls the leaf darkens and gains an inset shadow plus a light lower-right lip, so blocks read as pressed into the paper. When fully sunk the box stays in the DOM with its faces hidden and only the footprint drawn.
+- Folds and paper terrain in the same shot: `core.buildWorld` adds 12 `ridge` items (low paper ridges along the old streets, boxes growing from `k = 0`) and 9 `crease` items (fold lines with a dark valley and a light edge). They start from `t` about 0.14, so at `t = 0.45` the default camera shows sunk footprints, creases, ridges and standing buildings together.
+- Folded figures: every non-hero person has a folded-paper silhouette (`.imp`, a clip-path human split by a fold line) at its spot on the page. It appears as the token folds flat, so the new world keeps the marks of the 32 vanished people. The hero never folds and stays standing.
+- Performance: tuft blades are now SVG polygon backgrounds instead of `clip-path`. In software-GL headless Chromium the time from `setProgress(1)` to a finished haunting dropped from about 27 s (before) to about 9 s, even with the extra book layers. Faces that point away from the default camera on the new book parts and ridges are not drawn.
+
+`window.__slice.getState().counts` now also reports `ridges`, `creases`, `folds` (people fully folded) and `footprints` (buildings fully sunk).
+
+Same-composition evidence: `node tests/evidence-v2.mjs before|after` writes `rewrite-v2/evidence/before/` and `rewrite-v2/evidence/after/` (1600x900, `?yaw=-12&pitch=54&zoom=1`, stages `t=0`, `w=0.55`, `t=0.45`, `state=new`, `state=new&haunt=1`). Raw test logs are in `rewrite-v2/evidence/logs/`.
+
+Unverified: Chinese glyph rendering on screen (no CJK font on the capture machine; checked in the DOM only); frame rate on a GPU browser; how the candle flicker looks on a real display.
+
 ## How it works
 
-- `core.js` is pure logic with no DOM (browser global `V2Core`, CommonJS for node). `buildWorld(seed)` lays out one deterministic model: ink streets and block outlines, about 60 buildings, 33 people tokens, 9 standing stones and 68 grass tufts. `itemValue(item, t)` gives each item's state at world progress `t` (0 = old city, 1 = never founded). Every item has a delay that grows with its distance from the printed line, so the rewrite spreads out across the spread from where the pen wrote. `createMachine()` is the state machine: OLD, WRITING, REWRITING, NEW, UNDOING, SCRUB.
-- `app.js` builds the scene once as DOM and writes CSS variables each frame. A building is a `preserve-3d` box with five faces whose height is `--h * --k`, so sinking is the same box shrinking into the paper with its roof and windows going down with it. The street lines are `clip-path` wipes. People are two-sided cut-outs on brass bases that rotate flat (`rotateX`) and fade. Stones are boxes growing from `k = 0`. Tufts are two crossed zigzag paper cut-outs scaled up from the page.
-- Lighting is per face (lit west face, dark east face), a soft contact shadow per box, a lamp gradient blended with `screen`, a vignette, and tilt-shift bands made with `backdrop-filter: blur` on the top and bottom of the frame.
+- `core.js` is pure logic with no DOM (browser global `V2Core`, CommonJS for node). `buildWorld(seed)` lays out one deterministic model: ink streets and block outlines, about 60 buildings, 33 people tokens, 9 standing stones, 68 grass tufts, 12 paper ridges and 9 creases. `itemValue(item, t)` gives each item's state at world progress `t` (0 = old city, 1 = never founded). Every item has a delay that grows with its distance from the printed line, so the rewrite spreads out across the spread from where the pen wrote. `createMachine()` is the state machine: OLD, WRITING, REWRITING, NEW, UNDOING, SCRUB.
+- `app.js` builds the scene once as DOM and writes CSS variables each frame. A building is a `preserve-3d` box with five faces whose height is `--h * --k`, so sinking is the same box shrinking into the paper with its roof and windows going down with it. The street lines are `clip-path` wipes. People are two-sided cut-outs on brass bases that rotate flat (`rotateX`) and fade. Stones are boxes growing from `k = 0`. Tufts are two crossed zigzag paper cut-outs scaled up from the page (SVG polygon backgrounds).
+- Lighting is per face (lit west face, dark east face), a soft contact shadow per box, a weak lamp gradient blended with `screen`, a local candle pool on the page, a strong vignette, and tilt-shift bands made with `backdrop-filter: blur` on the top and bottom of the frame.
 - Consequence: the rewrite cannot unwrite the scribe token who set the line down (`hero`, its fold value is always 0). About 1.8 s after the new world settles, it turns from facing away to facing the camera, a warm ring opens under it, and a handwritten margin note writes itself on the right page. Undo or compare removes it. It never appears without the rewrite.
 - Persistence: the settled world (`old` / `new`) is saved to localStorage and restored on reload.
 - Reduced motion: the same model is shown only at held keyframes `t = 0`, `0.5` and `1`, each held for 1.5 s. Each change crossfades through a cloned ghost of the previous frame over 0.7 s. The camera drift is off.
 
 Code reuse from V1: the mulberry32 seeded RNG (a few lines) and the general shape of the hold / cancel / undo state machine. No V1 art, layout or rendering code is used.
 
-Art source: everything is original and procedural (CSS gradients, clip-paths and DOM boxes generated from the seed). No images, fonts or third-party assets.
+Art source: everything is original and procedural (CSS gradients, clip-paths, inline SVG data URIs and DOM boxes generated from the seed). No images, fonts or third-party assets.
 
 ## Done / not done
 

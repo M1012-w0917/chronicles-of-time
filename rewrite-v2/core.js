@@ -111,6 +111,22 @@
       add({ kind: 'tuft', x, y, blades: 4 + Math.floor(r() * 3), size: 9 + r() * 12, hue: 78 + r() * 30, rot: r() * 360,
         delay: 0.5 + 0.3 * distN(x, y) + r() * 0.05, dur: 0.16 });
     }
+    // paper terrain: low ridges that rise along the old streets, and crease lines across the page (appended last so earlier layout is unchanged)
+    for (let i = 0; i < 12; i++) {
+      const horiz = i % 2 === 0, side = r() < 0.5 ? -1 : 1, len = 100 + r() * 110;
+      const a0 = side < 0 ? -430 : 40, a1 = side < 0 ? -40 : 430;
+      if (horiz) {
+        const x = a0 + r() * (a1 - a0 - len), y = HSTREETS[Math.floor(r() * 3)] - 6;
+        add({ kind: 'ridge', x, y, w: len, d: 12, h: 9 + r() * 11, delay: 0.14 + 0.34 * distN(x + len / 2, y) + r() * 0.04, dur: 0.26 });
+      } else {
+        const vs = [VSTREETS[0], VSTREETS[1], VSTREETS[3], VSTREETS[4]], x = vs[Math.floor(r() * 4)] - 6, y = CITY.y0 + r() * (480 - len);
+        add({ kind: 'ridge', x, y, w: 12, d: len, h: 9 + r() * 11, delay: 0.14 + 0.34 * distN(x, y + len / 2) + r() * 0.04, dur: 0.26 });
+      }
+    }
+    for (let i = 0; i < 9; i++) {
+      const x = -380 + r() * 760, y = -240 + r() * 330, len = 110 + r() * 170, ang = (r() - 0.5) * 80 + (i % 2 ? 90 : 0);
+      add({ kind: 'crease', x, y, len, ang, delay: 0.1 + 0.36 * distN(x, y) + r() * 0.04, dur: 0.24 });
+    }
     return { items, seed: seed == null ? 1842 : seed };
   }
 
@@ -121,7 +137,7 @@
     switch (it.kind) {
       case 'building': return 1 - p;
       case 'person': return it.hero ? 0 : p;
-      case 'stone': case 'tuft': return p;
+      case 'stone': case 'tuft': case 'ridge': case 'crease': return p;
       case 'ink': return p;
       default: return 0;
     }

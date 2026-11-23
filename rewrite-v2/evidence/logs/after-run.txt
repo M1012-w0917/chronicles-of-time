@@ -1,0 +1,21 @@
+ok - node --check rewrite-v2/core.js
+ok - node --check rewrite-v2/app.js
+ok - node --check tests/run-v2.mjs
+ok - node --check tests/flow-v2.mjs
+ok - node --check tests/record-v2.mjs
+ok - node --check tests/shoot-v2.mjs
+ok - seeded rng is deterministic
+ok - world is deterministic and has all kinds
+ok - buildings stay on the city grid and off the text zone
+ok - old city at t=0, new world at t=1 (same items)
+ok - transition is monotonic and spreads outward from the printed line
+ok - paper terrain and creases start before the last buildings sink (visible together at t=0.45)
+ok - the hero never folds
+ok - hold to write, early release cancels
+ok - full hold rewrites over several seconds and persists as NEW
+ok - undo returns to the old world
+ok - compare shows the old world without changing the stored one
+ok - haunting is caused by the rewrite: only after NEW, reversed by undo
+ok - reduced motion uses held keyframes only
+ok - text copy is complete
+20 passed

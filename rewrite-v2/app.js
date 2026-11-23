@@ -29,10 +29,21 @@
   // ---------- static scene: table, lamp-lit book ----------
   el('div', 'tbl', world);
   el('div', 'tblshadow', world);
-  box(world, { cls: 'cover', x: -550, y: -350, z: -26, w: 1100, d: 700, h: 12 });
-  box(world, { cls: 'pg pgL', x: -503, y: -320, z: -14, w: 500, d: 640, h: 14 });
-  box(world, { cls: 'pg pgR', x: 3, y: -320, z: -14, w: 500, d: 640, h: 14 });
-  [[-550, -350], [504, -350], [-550, 304], [504, 304]].forEach((p) => box(world, { cls: 'brass', x: p[0], y: p[1], z: -26, w: 46, d: 46, h: 14 }));
+  // thick book: back board, leather lip, stacked page block with a stepped (fanned) fore-edge, raised spine
+  box(world, { cls: 'cover', x: -550, y: -350, z: -40, w: 1100, d: 700, h: 14 });
+  box(world, { cls: 'lip', x: -538, y: -338, z: -26, w: 1076, d: 676, h: 5 });
+  box(world, { cls: 'spine', x: -572, y: -350, z: -40, w: 30, d: 700, h: 30 });
+  [[-503, 500], [3, 500]].forEach((p, i) => {
+    const side = i ? 'pgR' : 'pgL', lo = i ? 0 : -8; // fan: two lower, wider steps toward the outer edge
+    box(world, { cls: 'pg ' + side, x: p[0], y: -320, z: -21, w: p[1], d: 640, h: 21 });
+    box(world, { cls: 'pg step ' + side, x: p[0] + lo, y: -326, z: -21, w: p[1] + 8, d: 652, h: 15 });
+    box(world, { cls: 'pg step ' + side, x: p[0] + (i ? 0 : -16), y: -332, z: -21, w: p[1] + 16, d: 664, h: 9 });
+  });
+  [[-550, -350], [504, -350], [-550, 304], [504, 304]].forEach((p) => box(world, { cls: 'brass', x: p[0], y: p[1], z: -40, w: 46, d: 46, h: 20 }));
+  // page surface: curvature to the gutter, foxing, blots, smudges, fingerprints, pressed plate marks
+  el('div', 'pfx pfxL', world); el('div', 'pfx pfxR', world);
+  el('div', 'dent dentL', world); el('div', 'dent dentR', world); el('div', 'dent dentT', world);
+  el('div', 'pool', world);
   const meadow = el('div', 'meadow', world); meadow.style.setProperty('--o', 0);
   el('div', 'gut', world);
   el('div', 'rib', world);
@@ -52,6 +63,14 @@
     } else if (it.kind === 'stone') {
       it.el = box(world, { cls: 'stone', x: it.x, y: it.y, w: it.w, d: it.d, h: it.h, k: 0, shadow: true,
         c: { t: hsl(120, 6, 60), s: hsl(110, 7, 48), n: hsl(110, 7, 40), w: hsl(115, 7, 56), e: hsl(110, 8, 33) } });
+    } else if (it.kind === 'ridge') {
+      it.el = box(world, { cls: 'ridge', x: it.x, y: it.y, w: it.w, d: it.d, h: it.h, k: 0,
+        c: { t: '#cdb98a', s: '#8f7b52', n: '#a89367', w: '#b8a375', e: '#76643f' } });
+    } else if (it.kind === 'crease') {
+      const e = el('div', 'crease', world);
+      e.style.width = it.len + 'px';
+      e.style.transform = 'translate3d(' + it.x + 'px,' + it.y + 'px,2px) rotateZ(' + it.ang.toFixed(1) + 'deg)';
+      e.style.setProperty('--o', 0); e.style.display = 'none'; it.el = e;
     } else if (it.kind === 'tuft') {
       const t = el('div', 'tuft', world);
       t.style.transform = 'translate3d(' + it.x + 'px,' + it.y + 'px,2px)';
@@ -59,17 +78,24 @@
       // two crossed paper cut-outs per tuft, each a zigzag of blades (cheap: 2 layers per tuft)
       const pts = []; const nb = it.blades + 2;
       for (let i = 0; i <= nb; i++) { pts.push((i / nb * 100).toFixed(1) + '% 100%'); if (i < nb) pts.push(((i + 0.5) / nb * 100).toFixed(1) + '% ' + (i % 2 ? 0 : 22 + (i % 3) * 12) + '%'); }
-      const cp = 'polygon(' + pts.join(',') + ')';
+      // blades are an SVG polygon background: rasterised once and cached (a clip-path repaints on every frame in software GL)
+      const poly = pts.map((p) => p.replace(/%/g, '').replace(' ', ',')).join(' ');
       for (let i = 0; i < 2; i++) {
         const b = el('i', 'bl', t);
         b.style.width = it.size * 1.3 + 'px'; b.style.height = it.size + 'px';
         b.style.left = -it.size * 0.65 + 'px'; b.style.top = -it.size + 'px';
-        b.style.clipPath = cp;
-        b.style.setProperty('--g', 'linear-gradient(' + hsl(it.hue + i * 6, 40, 58 - i * 8) + ',' + hsl(it.hue + 10, 36, 34) + ')');
+        const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><linearGradient id="g" x2="0" y2="1"><stop offset="0" stop-color="' +
+          hsl(it.hue + i * 6, 40, 58 - i * 8) + '"/><stop offset="1" stop-color="' + hsl(it.hue + 10, 36, 34) + '"/></linearGradient><polygon fill="url(#g)" points="' + poly + '"/></svg>';
+        b.style.setProperty('--g', 'url("data:image/svg+xml,' + encodeURIComponent(svg) + '") 0 0 / 100% 100% no-repeat');
         b.style.transform = 'rotateZ(' + (it.rot + i * 90) + 'deg) rotateX(-90deg) scaleY(var(--k))';
       }
       it.el = t; it.vis = true;
     } else if (it.kind === 'person') {
+      if (!it.hero) { // the folded-paper impression this person leaves when they fold flat
+        const imp = el('div', 'imp', world);
+        imp.style.transform = 'translate3d(' + (it.x - 10) + 'px,' + (it.y - 18) + 'px,2px) rotateZ(' + Math.round(it.face * 90) + 'deg)';
+        it.imp = imp;
+      }
       const t = el('div', 'tok', world);
       t.style.setProperty('--cl', hsl(it.color[0], it.color[1], it.color[2]));
       if (it.hero) el('div', 'ring', t);
@@ -153,10 +179,17 @@
     W.items.forEach((it) => {
       const val = C.itemValue(it, td);
       if (it.kind === 'building' || it.kind === 'stone') {
-        const k = it.kind === 'building' ? val : val;
+        const k = val;
         const gone = k < 0.004;
         if (it.gone !== gone) { it.el.classList.toggle('gone', gone); it.gone = gone; }
         if (!gone && it.k !== k) { setV(it.el, '--k', k.toFixed(4)); it.k = k; }
+        if (gone && it.k !== 0) { setV(it.el, '--k', 0); it.k = 0; }
+      } else if (it.kind === 'ridge') {
+        const gone = val < 0.004;
+        if (it.gone !== gone) { it.el.classList.toggle('gone', gone); it.gone = gone; }
+        if (!gone && it.k !== val) { setV(it.el, '--k', val.toFixed(4)); it.k = val; }
+      } else if (it.kind === 'crease') {
+        if (it.k !== val) { setV(it.el, '--o', val.toFixed(3)); it.el.style.display = val < 0.004 ? 'none' : ''; it.k = val; }
       } else if (it.kind === 'ink') {
         if (it.k !== val) { setV(it.el, '--p', val.toFixed(4)); it.el.style.display = val > 0.999 ? 'none' : ''; it.k = val; }
       } else if (it.kind === 'tuft') {
@@ -165,6 +198,7 @@
         const o = 1 - C.smooth(C.progress(val, 0.7, 0.3));
         it.up.style.transform = 'rotateX(' + (-90 * (1 - val)).toFixed(2) + 'deg)';
         setV(it.el, '--o', o.toFixed(3));
+        if (it.imp) { const io = C.smooth(C.progress(val, 0.55, 0.4)); setV(it.imp, '--o', io.toFixed(3)); it.imp.style.display = io < 0.01 ? 'none' : ''; }
         it.el.style.display = o < 0.01 ? 'none' : '';
         const heading = it.hero ? hs.heading : it.face * 40;
         const s = it.hero ? hs.scale : 1;
@@ -263,7 +297,7 @@
     setProgress(t) { machine.scrub(t); persist(); render(true); },
     getState() {
       const v = machine.view();
-      const n = { buildings: 0, people: 0, stones: 0, tufts: 0, ink: 0 };
+      const n = { buildings: 0, people: 0, stones: 0, tufts: 0, ink: 0, ridges: 0, creases: 0, folds: 0, footprints: 0 };
       W.items.forEach((it) => {
         const val = C.itemValue(it, v.td);
         if (it.kind === 'building' && val > 0.5) n.buildings++;
@@ -271,6 +305,10 @@
         if (it.kind === 'stone' && val > 0.5) n.stones++;
         if (it.kind === 'tuft' && val > 0.5) n.tufts++;
         if (it.kind === 'ink' && val < 0.5) n.ink++;
+        if (it.kind === 'ridge' && val > 0.5) n.ridges++;
+        if (it.kind === 'crease' && val > 0.5) n.creases++;
+        if (it.kind === 'person' && !it.hero && val > 0.95) n.folds++;
+        if (it.kind === 'building' && val < 0.004) n.footprints++;
       });
       const hero = W.items.find((i) => i.hero);
       return { state: machine.state, t: machine.t, td: v.td, w: machine.w, c: machine.c, haunt: machine.haunt, reduced: machine.reduced,

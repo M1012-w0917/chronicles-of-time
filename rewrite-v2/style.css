@@ -15,25 +15,25 @@ html, body { margin: 0; height: 100%; background: #120b06; color: var(--cream); 
 .ghost { pointer-events: none; }
 
 /* leaves take their opacity from variables so that 3D context is never flattened by an opacity on a container */
-.f, .ink, .txt, .note, .base, .fc, .bl, .meadow, .ring, .tbl, .sh, .rib, .gut {
+.f, .ink, .txt, .note, .base, .fc, .bl, .meadow, .ring, .tbl, .sh, .rib, .gut, .imp, .crease, .pfx, .dent {
   opacity: calc(var(--fade, 1) * var(--o, 1));
 }
 
 /* ---------- table, lamp, tilt-shift ---------- */
-.tbl { position: absolute; left: -2000px; top: -1500px; width: 4000px; height: 3000px; transform: translateZ(-27px);
+.tbl { position: absolute; left: -2000px; top: -1500px; width: 4000px; height: 3000px; transform: translateZ(-41px);
   background:
-    radial-gradient(ellipse 28% 24% at 44% 40%, rgba(255, 200, 120, .20), transparent 70%),
+    radial-gradient(ellipse 18% 16% at 40% 46%, rgba(255, 190, 110, .13), transparent 70%),
     repeating-linear-gradient(90deg, rgba(0, 0, 0, .34) 0 1px, transparent 1px 9px),
     repeating-linear-gradient(90deg, rgba(255, 190, 120, .06) 0 3px, transparent 3px 31px),
     repeating-linear-gradient(0deg, rgba(0, 0, 0, .7) 0 3px, transparent 3px 330px),
     linear-gradient(100deg, #4a2c16, #5b381d 30%, #44281300 31%), #3d2412; }
-.tblshadow { position: absolute; left: -565px; top: -355px; width: 1130px; height: 730px; transform: translate3d(14px, 18px, -26px);
+.tblshadow { position: absolute; left: -565px; top: -355px; width: 1130px; height: 730px; transform: translate3d(14px, 18px, -41px);
   background: #000; box-shadow: 0 0 46px 28px #000; opacity: calc(.7 * var(--fade, 1)); }
 
 .lamp { position: absolute; inset: 0; pointer-events: none;
-  background: radial-gradient(ellipse 52% 60% at 36% 30%, rgba(255, 214, 140, .30), rgba(255, 190, 110, .10) 45%, transparent 72%); mix-blend-mode: screen; }
+  background: radial-gradient(ellipse 30% 30% at 27% 66%, rgba(255, 200, 120, .10), transparent 72%); mix-blend-mode: screen; }
 .vig { position: absolute; inset: 0; pointer-events: none;
-  background: radial-gradient(ellipse 80% 78% at 42% 42%, transparent 38%, rgba(12, 5, 1, .62) 78%, rgba(6, 2, 0, .92)); }
+  background: radial-gradient(ellipse 62% 66% at 36% 56%, transparent 18%, rgba(10, 4, 0, .5) 62%, rgba(4, 1, 0, .93)); }
 .tilt { position: absolute; left: 0; right: 0; pointer-events: none; }
 .tilt.top { top: 0; height: 38%; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
   -webkit-mask-image: linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, .55) 50%, transparent 100%); mask-image: linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, .55) 50%, transparent 100%); }
@@ -43,6 +43,8 @@ html, body { margin: 0; height: 100%; background: #120b06; color: var(--cream); 
 /* ---------- extruded box ---------- */
 .bx { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-style: preserve-3d; }
 .bx.gone { display: none; }
+.bx.b.gone { display: block; }
+.bx.b.gone > .f { display: none; }
 .bx .f { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
 .bx .t { width: calc(var(--w) * 1px); height: calc(var(--d) * 1px); transform: translateZ(calc(var(--h) * var(--k) * 1px)); background: var(--ct); }
 .bx .s, .bx .n { width: calc(var(--w) * 1px); height: calc(var(--h) * var(--k) * 1px); transform: rotateX(90deg); }
@@ -54,6 +56,11 @@ html, body { margin: 0; height: 100%; background: #120b06; color: var(--cream); 
 .bx .sh { position: absolute; left: 0; top: 0; width: calc(var(--w) * 1px); height: calc(var(--d) * 1px); transform: translateZ(1px);
   background: rgba(20, 8, 0, .5);
   box-shadow: calc(var(--h) * var(--k) * .42px) calc(var(--h) * var(--k) * .34px) calc(var(--h) * var(--k) * .3px + 2px) rgba(25, 10, 0, .5); }
+/* a building sinks into the page: its shadow turns into a pressed footprint that deepens as k falls */
+.bx.b .sh { background: rgba(24, 10, 0, calc(.42 + .3 * (1 - var(--k))));
+  box-shadow: inset 2px 2px 5px rgba(10, 3, 0, calc(.75 * (1 - var(--k)))), inset -1px -1px 0 rgba(255, 238, 195, calc(.55 * (1 - var(--k)))),
+    calc(var(--h) * var(--k) * .42px) calc(var(--h) * var(--k) * .34px) calc(var(--h) * var(--k) * .3px + 2px) rgba(25, 10, 0, .5); }
+.bx.b.gone .sh { background: rgba(40, 20, 4, .5); }
 /* windows: horizontal lit bands cut by vertical mullions, anchored to the roof so they sink with it */
 .bx.b .s, .bx.b .n, .bx.b .w, .bx.b .e {
   background-image:
@@ -64,19 +71,58 @@ html, body { margin: 0; height: 100%; background: #120b06; color: var(--cream); 
 .bx.stone .t { background-image: radial-gradient(circle at 30% 30%, rgba(255,255,255,.18), transparent 60%); }
 .bx.stone .s, .bx.stone .n, .bx.stone .w, .bx.stone .e { background-image: linear-gradient(0deg, rgba(40,50,30,.35), transparent 40%), repeating-linear-gradient(83deg, rgba(0,0,0,.08) 0 1px, transparent 1px 6px); }
 
-/* book: leather cover, page blocks with visible edges, brass corners */
-.bx.cover .t { background: radial-gradient(ellipse at 40% 30%, #6b3d22, #3d2010 70%); box-shadow: inset 0 0 0 5px #2a1409, inset 0 0 0 7px rgba(210, 165, 80, .55); }
-.bx.cover .s, .bx.cover .n, .bx.cover .w, .bx.cover .e { background: linear-gradient(0deg, #2a1409, #4a2a16); }
-.bx.pg .s, .bx.pg .n, .bx.pg .w, .bx.pg .e { background: repeating-linear-gradient(0deg, #f1e6c8 0 1px, #c9b68c 1px 2px); }
-.bx.pgL .t { background: linear-gradient(90deg, #ecdfbe 0%, #f3e8cb 55%, #e4d3aa 88%, #b9a574 100%); }
-.bx.pgR .t { background: linear-gradient(270deg, #ecdfbe 0%, #f3e8cb 55%, #e4d3aa 88%, #b9a574 100%); }
-.bx.pg .t { box-shadow: inset 0 0 60px rgba(120, 85, 40, .22); }
+/* book: leather boards, stacked page block with fanned fore-edge, raised spine, brass corners */
+.bx.cover .t { background: radial-gradient(ellipse at 40% 30%, #5a3220, #2e170b 75%); }
+.bx.cover .s, .bx.cover .n, .bx.cover .w, .bx.cover .e { background: linear-gradient(0deg, #1f0e05, #43241255 60%, #2a1409); }
+.bx.lip .t { background: linear-gradient(135deg, #6b3d22, #3d2010 70%); box-shadow: inset 0 0 0 3px #2a1409, inset 0 0 0 5px rgba(210, 165, 80, .5), inset 0 0 0 11px rgba(0, 0, 0, .12); }
+.bx.lip .s, .bx.lip .n, .bx.lip .w, .bx.lip .e { background: linear-gradient(0deg, #1f0e05, #5a3220); }
+.bx.spine .t { background:
+    repeating-linear-gradient(0deg, transparent 0 96px, rgba(0, 0, 0, .5) 96px 98px, rgba(214, 170, 90, .85) 98px 101px, rgba(0, 0, 0, .5) 101px 103px, transparent 103px 116px),
+    linear-gradient(90deg, #2a1409, #6b3d22 45%, #3a1d0e); }
+.bx.spine .s, .bx.spine .n, .bx.spine .w, .bx.spine .e { background: linear-gradient(0deg, #1f0e05, #5a3220); }
+.bx.pg .s, .bx.pg .n, .bx.pg .w, .bx.pg .e { background: repeating-linear-gradient(0deg, #e3d4ac 0 1px, #a8946a 1px 2px); }
+.bx.pg .s { background: repeating-linear-gradient(0deg, #e3d4ac 0 1px, #a8946a 1px 2px), linear-gradient(90deg, rgba(0,0,0,.25), transparent 25%, transparent 75%, rgba(0,0,0,.2)); background-blend-mode: multiply; }
+.bx.pgL .t { background: linear-gradient(90deg, #c4b184 0%, #d3c194 40%, #cdb98a 80%, #6f5a34 100%); }
+.bx.pgR .t { background: linear-gradient(270deg, #c4b184 0%, #d3c194 40%, #cdb98a 80%, #6f5a34 100%); }
+.bx.pg .t { box-shadow: inset 0 0 70px rgba(90, 60, 25, .35); }
+.bx.pg.step .t { background: #b8a478; }
 .bx.brass .t { background: linear-gradient(135deg, #f0d584, #b8903f 55%, #8a6a28); }
 .bx.brass .s, .bx.brass .n, .bx.brass .w, .bx.brass .e { background: linear-gradient(0deg, #7d5e22, #d4aa55); }
+/* layer budget: faces that face away from the default camera are not drawn */
+.bx.ridge .n, .bx.ridge .e, .bx.pg.step .n, .bx.lip .n, .bx.spine .n, .bx.spine .e, .bx.cover .n { display: none; }
+.bx.ridge .t { background-image: linear-gradient(100deg, rgba(255, 255, 255, .35), transparent 45%, rgba(60, 40, 10, .22)); }
+.pfx { position: absolute; width: 500px; height: 640px; top: -320px; transform: translateZ(1px); }
+.pfxL { left: -503px; background:
+    radial-gradient(circle at 30px 26px, rgba(110, 70, 20, .2) 0 2px, transparent 3px), radial-gradient(circle at 400px 120px, rgba(130, 80, 25, .24) 0 3px, transparent 12px),
+    radial-gradient(ellipse 14px 9px at 120px 300px, rgba(40, 24, 10, .5), rgba(40, 24, 10, .15) 60%, transparent 100%), radial-gradient(circle at 128px 304px, rgba(40, 24, 10, .6) 0 1.5px, transparent 2px),
+    repeating-radial-gradient(ellipse 22px 28px at 440px 440px, rgba(60, 35, 12, .22) 0 1px, transparent 1px 3px),
+    radial-gradient(ellipse 80px 40px at 360px 560px, rgba(90, 55, 20, .24), transparent 75%), radial-gradient(ellipse 60px 90px at 60px 360px, rgba(90, 55, 20, .2), transparent 75%),
+    linear-gradient(90deg, transparent 78%, rgba(40, 20, 5, .3) 100%); }
+.pfxR { left: 3px; background:
+    radial-gradient(circle at 420px 40px, rgba(110, 70, 20, .24) 0 2px, transparent 3px), radial-gradient(circle at 90px 520px, rgba(130, 80, 25, .24) 0 3px, transparent 14px),
+    radial-gradient(ellipse 20px 12px at 380px 590px, rgba(40, 24, 10, .45), rgba(40, 24, 10, .12) 60%, transparent 100%),
+    repeating-radial-gradient(ellipse 20px 26px at 60px 120px, rgba(60, 35, 12, .22) 0 1px, transparent 1px 3px),
+    radial-gradient(ellipse 90px 40px at 250px 610px, rgba(90, 55, 20, .22), transparent 75%),
+    linear-gradient(270deg, transparent 78%, rgba(40, 20, 5, .3) 100%), linear-gradient(90deg, rgba(20, 8, 0, .35), transparent 10%); }
+.dent { position: absolute; transform: translateZ(1px); border-radius: 3px; box-shadow: inset 1px 1px 3px rgba(40, 20, 0, .55), inset -1px -1px 0 rgba(255, 245, 215, .5), 1px 1px 0 rgba(255, 245, 215, .35), -1px -1px 2px rgba(40, 20, 0, .3); }
+.dentL { left: -480px; top: -312px; width: 460px; height: 528px; }
+.dentR { left: 20px; top: -312px; width: 460px; height: 528px; }
+.dentT { left: -480px; top: 226px; width: 440px; height: 68px; }
+.pool { position: absolute; left: -640px; top: -170px; width: 860px; height: 700px; transform: translateZ(2px); pointer-events: none;
+  background: radial-gradient(ellipse 46% 44% at 50% 56%, rgba(255, 214, 140, .55), rgba(255, 190, 110, .22) 45%, transparent 75%);
+  opacity: var(--fade, 1); animation: flick 3.1s ease-in-out infinite; }
+/* candle flicker animates plain opacity on a leaf so it stays on the compositor (a custom-property animation repaints every frame) */
+@keyframes flick { 0%, 100% { opacity: .94; } 22% { opacity: 1; } 41% { opacity: .9; } 63% { opacity: .99; } 80% { opacity: .92; } }
+.imp { position: absolute; left: 0; top: 0; width: 20px; height: 36px; clip-path: polygon(50% 0, 70% 6%, 70% 20%, 90% 30%, 80% 62%, 66% 52%, 70% 100%, 30% 100%, 34% 52%, 20% 62%, 10% 30%, 30% 20%, 30% 6%);
+  background: linear-gradient(100deg, rgba(40, 22, 8, .62) 0 47%, rgba(255, 246, 222, .85) 49%, rgba(60, 35, 12, .4) 53%), linear-gradient(0deg, transparent 40%, rgba(255, 255, 255, .0) 41%);
+  background-color: #cbb78a; }
+.crease { position: absolute; left: 0; top: 0; height: 6px; transform-origin: 0 50%;
+  background: linear-gradient(0deg, rgba(255, 246, 220, .75) 0 1px, rgba(70, 42, 12, .5) 1px 3px, rgba(255, 246, 220, .35) 3px 4px, transparent 6px);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); }
 .rib { position: absolute; left: 462px; top: 215px; width: 13px; height: 150px; transform: translateZ(1px);
-  background: linear-gradient(90deg, #6b1e1b, #9b2f27 50%, #6b1e1b); clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 90%, 0 100%); }
+  background: linear-gradient(90deg, #5a1815, #8a2a22 50%, #5a1815); clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 90%, 0 100%); }
 .gut { position: absolute; left: -26px; top: -320px; width: 52px; height: 640px; transform: translateZ(1px);
-  background: linear-gradient(90deg, transparent, rgba(60, 35, 10, .38) 45%, rgba(40, 20, 5, .55) 50%, rgba(60, 35, 10, .38) 55%, transparent); }
+  background: linear-gradient(90deg, transparent, rgba(60, 35, 10, .5) 42%, rgba(15, 6, 0, .85) 49.5%, rgba(255, 240, 200, .25) 50.5%, rgba(60, 35, 10, .5) 58%, transparent), repeating-linear-gradient(0deg, transparent 0 40px, rgba(0,0,0,.18) 40px 41px); }
 
 /* ---------- printed map on the page ---------- */
 .meadow { position: absolute; left: -500px; top: -320px; width: 1000px; height: 640px; transform: translateZ(1px);
@@ -96,12 +142,12 @@ html, body { margin: 0; height: 100%; background: #120b06; color: var(--cream); 
 .ink.street.h { clip-path: inset(0 0 0 calc(var(--p) * 100%)); }
 
 /* text lying on the page */
-.txt { position: absolute; left: 0; top: 0; width: 450px; transform: translate3d(-474px, 226px, 4px); font-family: var(--serif); color: var(--ink); }
-.txt .ln { position: relative; font-size: 23px; line-height: 1.25; white-space: nowrap; display: inline-block; }
-.txt .cap { font-size: 12px; font-style: italic; color: #6b5a3e; margin: 0 0 6px; white-space: nowrap; }
+.txt { position: absolute; left: 0; top: 0; width: 450px; transform: translate3d(-474px, 226px, 4px); font-family: var(--serif); color: #170d05; }
+.txt .ln { position: relative; font-size: 27px; font-weight: 600; line-height: 1.25; white-space: nowrap; display: inline-block; }
+.txt .cap { font-size: 14px; font-style: italic; color: #3b2a14; margin: 0 0 6px; white-space: nowrap; }
 .txt .old { opacity: var(--oldO, 1); }
 .txt .old::after { content: ""; position: absolute; left: -2px; right: -2px; top: 54%; height: 2.5px; background: #6b1e1b; transform-origin: 0 50%; transform: scaleX(var(--strike, 0)); }
-.txt .neu { color: #5a1f14; font-family: var(--hand), var(--serif); font-style: italic; clip-path: inset(0 calc((1 - var(--nr, 0)) * 100%) 0 0); margin-top: 4px; }
+.txt .neu { color: #4a140c; font-family: var(--hand), var(--serif); font-style: italic; clip-path: inset(0 calc((1 - var(--nr, 0)) * 100%) 0 0); margin-top: 4px; }
 .txt .capn { clip-path: inset(0 calc((1 - var(--nr, 0)) * 100%) 0 0); }
 .note { position: absolute; left: 0; top: 0; width: 420px; transform: translate3d(48px, 232px, 4px); font-family: var(--hand), var(--serif); color: #4a3220; }
 .note .hw { font-size: 24px; font-style: italic; white-space: nowrap; clip-path: inset(0 calc((1 - var(--m, 0)) * 100%) 0 0); }
@@ -150,5 +196,6 @@ kbd { font: 10px monospace; background: rgba(0, 0, 0, .18); border-radius: 3px; 
 #dock[data-echo="true"] .echo { display: block; }
 .status { grid-column: 1 / -1; font-size: 12px; color: #a99872; }
 
-@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } .pool { animation: none; } }
+body.reduced .pool { animation: none; }
 @media (max-width: 760px) { #dock { grid-template-columns: 1fr; } .ctl { justify-content: flex-start; } }

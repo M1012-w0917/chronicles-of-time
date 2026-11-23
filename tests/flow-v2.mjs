@@ -26,6 +26,12 @@ ok('Chinese copy and English captions present in DOM');
 assert.equal(await pg.evaluate(() => document.querySelectorAll('canvas').length), 0);
 assert.ok(await pg.evaluate(() => document.querySelectorAll('.bx.b').length) > 40);
 assert.equal(await pg.evaluate(() => getComputedStyle(document.querySelector('#world')).transformStyle), 'preserve-3d'); ok('CSS 3D DOM scene, no canvas');
+const parts = await pg.evaluate(() => ({ spine: document.querySelectorAll('.bx.spine').length, lip: document.querySelectorAll('.bx.lip').length,
+  pages: document.querySelectorAll('.bx.pg').length, steps: document.querySelectorAll('.bx.pg.step').length, pfx: document.querySelectorAll('.pfx').length,
+  dent: document.querySelectorAll('.dent').length, pool: document.querySelectorAll('.pool').length, rib: document.querySelectorAll('.rib').length, gut: document.querySelectorAll('.gut').length,
+  imps: document.querySelectorAll('.imp').length, layers: document.querySelectorAll('.bx.cover, .bx.lip, .bx.spine, .bx.pg').length }));
+assert.ok(parts.spine === 1 && parts.lip === 1 && parts.pages === 6 && parts.steps === 4 && parts.pfx === 2 && parts.dent >= 3 && parts.pool === 1 && parts.rib === 1 && parts.gut === 1, JSON.stringify(parts));
+assert.ok(parts.imps >= 25, 'fold impressions exist'); ok('book parts present: spine, lip, page stack, fore-edge steps, stains, plate marks, candle pool, gutter, ribbon');
 const old0 = await S(pg); assert.ok(old0.counts.buildings > 40 && old0.counts.people > 25 && old0.counts.stones === 0);
 
 await pg.keyboard.down('Space'); await pg.waitForTimeout(500); assert.equal((await S(pg)).state, 'WRITING');
@@ -34,13 +40,21 @@ await pg.keyboard.down('Space'); await pg.waitForTimeout(1900); await pg.keyboar
 assert.equal((await S(pg)).state, 'REWRITING'); await pg.waitForTimeout(3500);
 const mid = await S(pg); assert.ok(mid.t > 0.2 && mid.t < 0.9);
 assert.ok(mid.counts.buildings < old0.counts.buildings && mid.counts.buildings > 0, 'mid: some buildings sunk, some not');
-ok('hold rewrites the same world progressively');
+assert.ok(mid.counts.footprints > 0 && mid.counts.footprints === await pg.evaluate(() => document.querySelectorAll('.bx.b.gone').length), 'footprints: ' + mid.counts.footprints);
+const fpVis = await pg.evaluate(() => { const e = document.querySelector('.bx.b.gone .sh'); return e ? [getComputedStyle(e).display, getComputedStyle(e).opacity] : null; });
+assert.ok(fpVis && fpVis[0] !== 'none' && +fpVis[1] > 0.5, 'sunk building leaves a visible footprint ' + fpVis);
+assert.ok(mid.counts.ridges > 0 && mid.counts.creases > 0, 'terrain and creases show mid-rewrite');
+ok('hold rewrites the same world progressively; sunk buildings leave pressed footprints; ridges and creases rise');
 await pg.keyboard.press('z'); await pg.waitForTimeout(300); assert.equal((await S(pg)).state, 'UNDOING'); ok('Z undoes');
 await pg.waitForTimeout(4500); assert.equal((await S(pg)).state, 'OLD');
 
 await pg.evaluate(() => window.__slice.setProgress(1)); await pg.waitForTimeout(700);
 const nw = await S(pg);
 assert.equal(nw.counts.buildings, 0); assert.ok(nw.counts.stones >= 8 && nw.counts.tufts > 50 && nw.counts.ink === 0); assert.equal(nw.counts.people, 1);
+assert.ok(nw.counts.footprints === old0.counts.buildings && nw.counts.ridges >= 10 && nw.counts.creases >= 8);
+assert.ok(nw.counts.folds === old0.counts.people - 1, 'folds ' + nw.counts.folds); assert.equal(nw.heroFold, 0);
+const impsShown = await pg.evaluate(() => [...document.querySelectorAll('.imp')].filter((e) => e.style.display !== 'none' && +e.style.getPropertyValue('--o') > 0.9).length);
+assert.equal(impsShown, nw.counts.folds); ok('new world: every folded person left an impression, hero still standing, footprints and creases remain');
 ok('new world: buildings sunk, streets wiped, stones and tufts risen, one token left');
 const sunk = await pg.evaluate(() => [...document.querySelectorAll('.bx.b')].every((e) => e.classList.contains('gone'))); assert.ok(sunk);
 await pg.reload(); await pg.waitForTimeout(500); assert.equal((await S(pg)).state, 'NEW'); ok('new world persists across reload');

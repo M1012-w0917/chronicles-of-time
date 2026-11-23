@@ -12,7 +12,7 @@ t('seeded rng is deterministic', () => { const a = C.rng(7), b = C.rng(7); for (
 t('world is deterministic and has all kinds', () => {
   const a = C.buildWorld(1842), b = C.buildWorld(1842);
   assert.deepEqual(a.items.map((i) => [i.kind, i.x, i.y]), b.items.map((i) => [i.kind, i.x, i.y]));
-  for (const k of ['ink', 'building', 'person', 'stone', 'tuft']) assert.ok(a.items.some((i) => i.kind === k), k);
+  for (const k of ['ink', 'building', 'person', 'stone', 'tuft', 'ridge', 'crease']) assert.ok(a.items.some((i) => i.kind === k), k);
   assert.equal(a.items.filter((i) => i.hero).length, 1);
 });
 t('buildings stay on the city grid and off the text zone', () => {
@@ -28,7 +28,7 @@ t('old city at t=0, new world at t=1 (same items)', () => {
   W.items.forEach((i, k) => {
     if (i.kind === 'building') { assert.equal(v0[k], 1); assert.equal(v1[k], 0); }
     if (i.kind === 'person') { assert.equal(v0[k], 0); assert.equal(v1[k], i.hero ? 0 : 1); }
-    if (i.kind === 'stone' || i.kind === 'tuft') { assert.equal(v0[k], 0); assert.equal(v1[k], 1); }
+    if (['stone', 'tuft', 'ridge', 'crease'].includes(i.kind)) { assert.equal(v0[k], 0); assert.equal(v1[k], 1); }
     if (i.kind === 'ink') { assert.equal(v0[k], 0); assert.equal(v1[k], 1); }
   });
 });
@@ -38,6 +38,12 @@ t('transition is monotonic and spreads outward from the printed line', () => {
   const near = bs.reduce((a, b) => (b.delay < a.delay ? b : a)), far = bs.reduce((a, b) => (b.delay > a.delay ? b : a));
   assert.ok(C.distN(near.x, near.y) < C.distN(far.x, far.y));
   const mid = bs.map((b) => C.itemValue(b, 0.5)); assert.ok(mid.some((k) => k < 0.5) && mid.some((k) => k > 0.5), 'mid-rewrite mixes old and new');
+});
+t('paper terrain and creases start before the last buildings sink (visible together at t=0.45)', () => {
+  const W = C.buildWorld(); const at = (k) => W.items.filter((i) => i.kind === k).map((i) => C.itemValue(i, 0.45));
+  assert.ok(at('ridge').some((v) => v > 0.3), 'ridges rising'); assert.ok(at('crease').some((v) => v > 0.3), 'creases showing');
+  assert.ok(at('building').some((v) => v < 0.1) && at('building').some((v) => v > 0.9), 'buildings mixed');
+  assert.ok(W.items.filter((i) => i.kind === 'person' && !i.hero).every((p) => C.itemValue(p, 1) === 1), 'every non-hero person fully folds');
 });
 t('the hero never folds', () => { const h = C.buildWorld().items.find((i) => i.hero); for (let x = 0; x <= 1; x += 0.1) assert.equal(C.itemValue(h, x), 0); });
 t('hold to write, early release cancels', () => {
