@@ -30,9 +30,9 @@ The fact is "City of Ashmere founded in year 42" becoming "City of Ashmere was n
 
 Only after the world is NEW (and never during compare or after undo): a figure appears as a paper-white absence cut out of a dark wooded bank (it is the unpainted paper, not a drawn shape), slowly turns from back to front and two dark slits open in the hat; a vermilion seal lands where the city gate used to be; a margin note "He remembers year 42." appears on the slip. The seal is the only red on the page.
 
-## Book-page deepening (issue #24, same PR)
+## Book-page deepening (PR #7 / issue #4, same PR)
 
-The scroll is now framed as a history book page: rollers and a binding edge with a red stitched spine on the left, a folded page edge on the right, a "史书 卷一" label, and ink-bleed fibres drawn over the ink. The new world is still painted by the same stroke engine (erase, bleed, repaint). The haunting figure is cut out at the former city gate (`C.VANISHED`), matching the rewritten sentence. See `git diff` of `rewrite-v3/` for details.
+The scroll is now framed as a history book page: rollers and a binding edge with a red stitched spine on the left, a folded page edge on the right, a "史书 卷一" label, and ink-bleed fibres drawn over the ink. The figure rides parallax plane 3, the same plane as the bank it stands on, so it does not slide off its ground. The new world is still painted by the same stroke engine (erase, bleed, repaint). The haunting figure is cut out at the former city gate (`C.VANISHED`), matching the rewritten sentence. See `git diff` of `rewrite-v3/` for details.
 
 Run entry: `python3 -m http.server 8000` then open `/rewrite-v3/index.html`; `file://` also works.
 

@@ -63,7 +63,7 @@ await pg.evaluate(() => window.__slice.setProgress(1)); await pg.waitForTimeout(
 assert.equal((await S(pg)).heroHeading, 180); assert.equal(await pg.evaluate(() => document.getElementById('dock').dataset.echo), 'false');
 await until(pg, () => window.__slice.getState().haunt > 0.97);
 const h = await S(pg); assert.ok(h.heroHeading < 8 && h.seal > 0.9 && h.figure > 0.9, JSON.stringify(h));
-assert.ok(Math.hypot(h.figurePos.x - h.vanished.x, h.figurePos.y - h.vanished.y) <= 40, JSON.stringify(h)); ok('figure stands at the vanished gate');
+assert.ok(Math.hypot(h.figurePos.x - h.vanished.x, h.figurePos.y - h.vanished.y) <= 40, JSON.stringify(h)); assert.equal(h.figurePlane, 3); ok('figure stands at the vanished gate, on the same parallax plane as its bank');
 assert.equal(await pg.evaluate(() => document.getElementById('dock').dataset.echo), 'true'); ok('figure turns to face you, seal lands, margin note appears only after the rewrite');
 
 await pg.keyboard.down('c'); await until(pg, () => window.__slice.getState().c === 1);

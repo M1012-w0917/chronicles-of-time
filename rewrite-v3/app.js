@@ -205,6 +205,7 @@
     requestAnimationFrame(frame);
   }
 
+  const FIGURE_PLANE = 3;
   function drawPlane(img, dx) {
     sctx.setTransform(cover, 0, 0, cover, offX + dx * cover, offY + dx * 0.4 * cover);
     sctx.drawImage(img, SH.x, SH.y, SH.w, SH.h);
@@ -225,7 +226,7 @@
     // the lone absence and the seal on the wrong place
     const fa = hv.figure * hvis;
     if (fa > 0.01) {
-      sctx.setTransform(cover, 0, 0, cover, offX + offs[2] * cover, offY + offs[2] * 0.4 * cover); // same plane as the vanished gate
+      sctx.setTransform(cover, 0, 0, cover, offX + offs[FIGURE_PLANE] * cover, offY + offs[FIGURE_PLANE] * 0.4 * cover); // the dark bank under the figure is painted on plane 3, so the figure rides plane 3
       const fp = C.figureAt(m.haunt);
       P.cutFigure(sctx, paper, fp.x, fp.y, HAUNT_FIG.h, hv.heading, fa, 1 - C.smooth(hv.heading / 45));
     }
@@ -285,7 +286,7 @@
       const v = m.view();
       return {
         state: m.state, settled: m.settled, t: m.t, td: v.td, w: m.w, c: m.c, haunt: m.haunt, reduced: m.reduced,
-        heroHeading: hv.heading, figurePos: C.figureAt(m.haunt), vanished: { x: C.VANISHED.x, y: C.VANISHED.y }, seal: hv.seal * hvis, figure: hv.figure * hvis, margin: hv.margin,
+        figurePlane: FIGURE_PLANE, heroHeading: hv.heading, figurePos: C.figureAt(m.haunt), vanished: { x: C.VANISHED.x, y: C.VANISHED.y }, seal: hv.seal * hvis, figure: hv.figure * hvis, margin: hv.margin,
         painted: cursor, totalStamps: NEW.length, tmax, planes: planes.map((_, p) => planeMode(p, v.td)), offsets: offs.slice(), mist: mistA.slice(),
         brush: { x: bx, y: by }, strikeDrawn, strikeTotal: strikeStamps.length,
       };
