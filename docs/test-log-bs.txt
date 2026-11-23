@@ -21,6 +21,9 @@ PASS new world persisted
 PASS stays in new world, no auto revert
 PASS dwell: image is stable (only candle flicker)
 PASS English caption for new fact visible
+PASS still in the new world 7+ s after it finished (no auto shade)
+PASS accessible name of the fact line is the current (new) sentence
+PASS Look at the back button enabled in NEW
 --- 5 haunt on the back of the paper
 PASS HAUNT with roll note visible
 PASS note text: roll 0, shade 1
@@ -33,12 +36,28 @@ PASS page turn: leaf lifts and shade raises its lantern
 PASS shade does not move with the turning leaf
 PASS page turn completes (turns=1)
 --- 6 compare (hold C) and revert (Z)
+PASS compare in HAUNT hides the roll note (no contradiction with the old keeper)
+PASS compare in HAUNT removes the shade from the image
+PASS note returns after releasing C
 PASS C shows the old world in the same camera
 PASS old text shown while comparing
 PASS compare image differs from new world
 PASS release C returns to new world
 PASS Z reverts to OLD, haunt cleared, persistence cleared
 PASS reverted image matches the original first screen
+--- 6b idle timer, pointer capture, readability, narrow viewport
+PASS moving the candle keeps the new world (idle timer reset)
+PASS reduced motion also waits (no 1.2 s auto shade)
+PASS dragging off the line during the hold keeps writing (pointer capture)
+PASS font floor: #meta is 12.0px at 1280 wide
+PASS font floor: #cap is 12.1px at 1280 wide
+PASS font floor: #note is 14.9px at 1280 wide
+PASS font floor: #cmpTag is 14.4px at 1280 wide
+PASS font floor: #fact is 22.4px at 1280 wide
+PASS font floor: #cap is 12.0px at 640 wide
+PASS font floor: #cmpTag is 12.0px at 640 wide
+PASS font floor: #fact is 12.0px at 640 wide
+PASS fact line fits inside the page at 640 wide
 --- 7 keyboard path
 PASS keyboard Space early release cancels
 PASS keyboard Enter hold writes
@@ -55,4 +74,4 @@ PASS reduced reconstruction completes quickly (crossfade)
 PASS average render time per frame under 40 ms
 PASS no console or page errors
 
-RESULT 47 passed, 0 failed
+RESULT 65 passed, 0 failed

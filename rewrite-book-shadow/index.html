@@ -12,20 +12,22 @@
     <canvas id="stage" width="1280" height="720" role="img" aria-label="一本打开的线装古书,烛光透过纸页 An open thread-bound book with candlelight shining through the paper"></canvas>
     <h1 id="title" class="ov">城门志 <small>Annals of the Gate</small></h1>
     <p id="meta" class="ov">本册只记一条事实。按住落笔,烛光透纸,纸纤维里的皮影随之改写。<br><i>One fact is kept here. Hold the pen down and the candle shines through the leaf. The puppets in its fibres are rebuilt to match.</i></p>
-    <div id="fact" class="ov" tabindex="0" role="button" aria-label="按住空格或按住这一行以落笔改写 Hold Space or press and hold this line to write">
+    <div id="fact" class="ov" tabindex="0" role="button" aria-labelledby="factOld factNew" aria-describedby="hint">
       <span class="old" id="factOld">城门每日黄昏关闭,守门人点亮三盏灯。</span>
       <span class="neu" id="factNew">这座城从来没有城门,黄昏也没有守门人。</span>
     </div>
     <div id="holdBar" class="ov" aria-hidden="true"><i id="holdFill"></i></div>
     <p id="cap" class="ov"><span id="capOld">The city gate closes every dusk, and the gatekeeper lights three lamps.</span><span id="capNew">This city never had a gate, and dusk never had a gatekeeper.</span></p>
-    <p id="note" class="ov" hidden aria-live="polite">守门人名册 0 · 纸背的影 1 <i>Gatekeepers on the roll 0, shades on the back of the leaf 1</i></p>
+    <p id="note" class="ov" hidden>守门人名册 0 · 纸背的影 1 <i>Gatekeepers on the roll 0, shades on the back of the leaf 1</i></p>
+    <div id="sr" role="status" aria-live="polite"></div>
     <div id="cmpTag" class="ov">对照旧世界 <i>Comparing with the old world</i></div>
   </div>
   <div id="bar">
-    <p id="hint">按住空格,或按住这一行,约 1.2 秒落笔,提前松手即取消 <i>Hold Space or the line for about 1.2 s. Release early to cancel.</i></p>
+    <p id="hint">按住空格,或按住这一行,约 1.2 秒落笔,提前松手即取消 <i>Hold Space or the line for about 1.2 s. Release early to cancel. In the new world, take your time: the shade only comes after 20 s with no input, or on H.</i></p>
     <div id="controls">
       <button id="compareBtn" type="button" aria-pressed="false">对照旧世界 <i>Compare (hold C)</i></button>
       <button id="revertBtn" type="button">撤回 <i>Revert (Z)</i></button>
+      <button id="waitBtn" type="button" disabled>看纸背 <i>Look at the back (H)</i></button>
       <button id="turnBtn" type="button" disabled>翻页 <i>Turn page (P)</i></button>
       <button id="reduceBtn" type="button" aria-pressed="false">减少动效 <i>Reduced motion</i></button>
       <span class="tag">状态 <b id="stateTag">OLD</b> · 烛光 <i>Light: pointer or arrow keys</i></span>

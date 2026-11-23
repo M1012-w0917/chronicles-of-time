@@ -15,6 +15,7 @@ await pg.mouse.down(); await pg.waitForTimeout(1500); await pg.mouse.up(); // fu
 await pg.mouse.move(x + 100, y - 200, { steps: 40 });
 await pg.waitForFunction(() => window.__bs.getState().state === 'NEW', null, { timeout: 60000 }); await pg.waitForTimeout(1800);
 await pg.keyboard.down('c'); await pg.waitForTimeout(1500); await pg.keyboard.up('c'); await pg.waitForTimeout(900);
+await pg.click('#waitBtn');
 await pg.waitForFunction(() => window.__bs.getState().haunt > 0.95, null, { timeout: 60000 });
 await pg.mouse.move(x + 380, y - 220, { steps: 30 }); await pg.waitForTimeout(900); await pg.mouse.move(x - 480, y - 220, { steps: 40 }); await pg.waitForTimeout(1200);
 await pg.click('#turnBtn'); await pg.waitForFunction(() => window.__bs.getState().turns === 1, null, { timeout: 10000 }); await pg.waitForTimeout(900);

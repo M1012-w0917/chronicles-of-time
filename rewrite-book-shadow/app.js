@@ -28,12 +28,15 @@
   if (q.has('ly')) { light.y = light.ty = parseFloat(q.get('ly')); }
   let time = frozen ? 5 : 0, last = performance.now(), frame = 0, lastShade = null, lastNote = '', ftSum = 0, ftMax = 0, ftN = 0;
 
+  const STATE_SR = { RECON: '落笔。纸页正在改写。 Writing. The leaf is being rewritten.', NEW: '新历史已成。这座城从来没有城门,黄昏也没有守门人。 The new history is set. This city never had a gate, and dusk never had a gatekeeper.', OLD: '旧世界。城门每日黄昏关闭,守门人点亮三盏灯。 The old world. The city gate closes every dusk, and the gatekeeper lights three lamps.' };
+  let lastState = m.state, lastCur = '';
+  function announce(t) { $('sr').textContent = t; }
   function render() {
     const v = m.view(), td = v.td;
     const n = m.reduced ? C.smooth(td) : C.span(td, 0.3, 0.7);
     const glow = m.glow();
     const out = P.draw(g, {
-      td, time: m.reduced ? 0 : time, glow, light: { x: light.x, y: light.y }, w: m.w, haunt: m.haunt, flip: m.flip,
+      td, time: m.reduced ? 0 : time, glow, light: { x: light.x, y: light.y }, w: m.w, haunt: v.haunt, flip: m.flip,
       reduced: m.reduced, inkA: m.t > 0 ? 1 - 0.8 * C.span(td, 0.04, 0.34) : m.w, pen: m.t > 0 ? 1 - C.span(m.t, 0, 0.1) : (m.w > 0 ? 1 : 0),
     });
     lastShade = out.shade;
@@ -46,8 +49,12 @@
     $('stateTag').textContent = m.state;
     $('compareBtn').setAttribute('aria-pressed', String(m.compare)); $('reduceBtn').setAttribute('aria-pressed', String(m.reduced));
     $('turnBtn').disabled = !(m.state === 'HAUNT' && m.haunt > 0.5 && !m.flipping);
-    const note = m.haunt > 0.5 ? '1' : '0';
-    if (note !== lastNote) { lastNote = note; $('note').hidden = note === '0'; }
+    $('waitBtn').disabled = m.state !== 'NEW';
+    const note = v.haunt > 0.5 ? '1' : '0';
+    if (note !== lastNote) { lastNote = note; $('note').hidden = note === '0'; if (note === '1') announce('纸背浮出一个影子。守门人名册 0,纸背的影 1。 A shade has appeared on the back of the leaf. Gatekeepers on the roll 0, shades 1.' ); }
+    if (m.state !== lastState) { lastState = m.state; if (STATE_SR[m.state]) announce(STATE_SR[m.state]); }
+    const cur = n > 0.5 ? 'factNew' : 'factOld';
+    if (cur !== lastCur) { lastCur = cur; $('fact').setAttribute('aria-labelledby', cur); }
     frame++;
   }
 
@@ -66,7 +73,7 @@
   }
 
   // ---- input ----
-  const setLight = (x, y) => { light.tx = C.clamp(x, 150, 1130); light.ty = C.clamp(y, 100, 600); };
+  const setLight = (x, y) => { m.poke(); light.tx = C.clamp(x, 150, 1130); light.ty = C.clamp(y, 100, 600); };
   window.addEventListener('keydown', (e) => {
     const onBtn = e.target && e.target.closest && e.target.closest('button');
     if (onBtn && (e.code === 'Space' || e.key === 'Enter')) return;
@@ -74,7 +81,9 @@
     else if (e.key === 'c' || e.key === 'C') { if (!e.repeat) m.setCompare(true); }
     else if (e.key === 'z' || e.key === 'Z') m.revert();
     else if (e.key === 'p' || e.key === 'P') m.turnPage();
+    else if (e.key === 'h' || e.key === 'H') m.summon();
     else if (e.key.indexOf('Arrow') === 0) { e.preventDefault(); const d = { ArrowLeft: [-90, 0], ArrowRight: [90, 0], ArrowUp: [0, -70], ArrowDown: [0, 70] }[e.key]; setLight(light.tx + d[0], light.ty + d[1]); }
+    else if (e.key !== 'Tab' && e.key !== 'Shift') m.poke();
   });
   window.addEventListener('keyup', (e) => {
     const onBtn = e.target && e.target.closest && e.target.closest('button');
@@ -83,12 +92,13 @@
     else if (e.key === 'c' || e.key === 'C') m.setCompare(false);
   });
   const fact = $('fact');
-  fact.addEventListener('pointerdown', (e) => { e.preventDefault(); m.press(); });
-  ['pointerup', 'pointerleave', 'pointercancel'].forEach((nm) => fact.addEventListener(nm, () => m.release()));
+  fact.addEventListener('pointerdown', (e) => { e.preventDefault(); try { fact.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ } m.press(); });
+  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach((nm) => fact.addEventListener(nm, () => m.release()));
   wrap.addEventListener('pointermove', (e) => { const r = stage.getBoundingClientRect(); setLight((e.clientX - r.left) / r.width * P.W, (e.clientY - r.top) / r.height * P.H); });
   $('compareBtn').addEventListener('click', () => m.setCompare(!m.compare));
   $('revertBtn').addEventListener('click', () => m.revert());
   $('turnBtn').addEventListener('click', () => m.turnPage());
+  $('waitBtn').addEventListener('click', () => m.summon());
   $('reduceBtn').addEventListener('click', () => m.setReduced(!m.reduced));
   if (mq && mq.addEventListener) mq.addEventListener('change', (e) => { if (reducedParam == null) m.setReduced(e.matches); });
 

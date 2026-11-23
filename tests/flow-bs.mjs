@@ -60,7 +60,13 @@ s = await S(); ok((s.state === 'NEW' || s.state === 'HAUNT') && s.t === 1, 'stay
 ok(dist(d1, d2) < 3, 'dwell: image is stable (only candle flicker)', dist(d1, d2).toFixed(2));
 ok(await pg.locator('#capNew').evaluate((e) => +getComputedStyle(e).opacity > 0.99), 'English caption for new fact visible');
 
+await pg.waitForTimeout(5000);
+s = await S(); ok(s.state === 'NEW' && s.haunt === 0, 'still in the new world 7+ s after it finished (no auto shade)', s.state);
+ok(await pg.evaluate(() => document.getElementById('fact').getAttribute('aria-labelledby') === 'factNew'), 'accessible name of the fact line is the current (new) sentence');
+ok(await pg.locator('#waitBtn').isEnabled(), 'Look at the back button enabled in NEW');
+
 console.log('--- 5 haunt on the back of the paper');
+await pg.keyboard.press('h');
 await until(() => window.__bs.getState().haunt > 0.95, null, 40000);
 s = await S(); ok(s.state === 'HAUNT' && s.noteVisible, 'HAUNT with roll note visible');
 ok((await pg.textContent('#note')).includes('守门人名册 0'), 'note text: roll 0, shade 1');
@@ -78,6 +84,11 @@ await until(() => window.__bs.getState().turns === 1, null, 8000); ok(true, 'pag
 
 console.log('--- 6 compare (hold C) and revert (Z)');
 const fpHaunt = await FP();
+await pg.keyboard.down('c'); await pg.waitForTimeout(700);
+s = await S(); ok(s.compare && !s.noteVisible, 'compare in HAUNT hides the roll note (no contradiction with the old keeper)');
+const fpHc = await FP(); ok(dist(fpHc, fpHaunt) > 3, 'compare in HAUNT removes the shade from the image', dist(fpHc, fpHaunt).toFixed(2));
+await pg.keyboard.up('c'); await pg.waitForTimeout(800);
+s = await S(); ok(s.noteVisible, 'note returns after releasing C');
 await pg.keyboard.down('c'); await pg.waitForTimeout(800);
 s = await S(); ok(s.compare && s.c > 0.9 && s.td < 0.1, 'C shows the old world in the same camera', { c: s.c, td: s.td });
 ok(+s.factOld > 0.9, 'old text shown while comparing');
@@ -88,6 +99,26 @@ await pg.keyboard.press('z');
 await until(() => window.__bs.getState().state === 'OLD', null, 15000);
 s = await S(); ok(s.t === 0 && s.haunt === 0 && s.persisted === null, 'Z reverts to OLD, haunt cleared, persistence cleared', s);
 await pg.waitForTimeout(300); const fpRev = await FP(); ok(dist(fpRev, fpBefore) < 4, 'reverted image matches the original first screen', dist(fpRev, fpBefore).toFixed(2));
+
+console.log('--- 6b idle timer, pointer capture, readability, narrow viewport');
+const live = async (qs = '') => { await pg.goto(BASE + '?fresh=1'); await pg.evaluate(() => localStorage.setItem('bs.world', 'new')); await pg.goto(BASE + (qs ? '?' + qs : '')); await pg.waitForTimeout(400); };
+await live(); await pg.waitForTimeout(300);
+for (let i = 0; i < 4; i++) { await pg.mouse.move(300 + i * 100, 300); await pg.waitForTimeout(400); }
+s = await S(); ok(s.state === 'NEW', 'moving the candle keeps the new world (idle timer reset)');
+await live('reduced=1'); await pg.waitForTimeout(2500); s = await S(); ok(s.state === 'NEW', 'reduced motion also waits (no 1.2 s auto shade)', s.state);
+await fresh(); const fb = await pg.locator('#fact').boundingBox();
+await pg.mouse.move(fb.x + 20, fb.y + fb.height / 2); await pg.mouse.down(); await pg.mouse.move(fb.x + 200, fb.y - 200, { steps: 6 }); await pg.waitForTimeout(300);
+s = await S(); ok(s.state === 'WRITING' && s.w > 0.1, 'dragging off the line during the hold keeps writing (pointer capture)', { state: s.state, w: s.w });
+await pg.mouse.up(); await pg.waitForTimeout(600);
+for (const id of ['meta', 'cap', 'note', 'cmpTag', 'fact']) {
+  const px = await pg.evaluate((i) => parseFloat(getComputedStyle(document.getElementById(i)).fontSize), id); ok(px >= 12, `font floor: #${id} is ${px.toFixed(1)}px at 1280 wide`);
+}
+await pg.setViewportSize({ width: 640, height: 360 }); await pg.waitForTimeout(300);
+for (const id of ['cap', 'cmpTag', 'fact']) {
+  const px = await pg.evaluate((i) => parseFloat(getComputedStyle(document.getElementById(i)).fontSize), id); ok(px >= 12, `font floor: #${id} is ${px.toFixed(1)}px at 640 wide`);
+}
+ok(await pg.evaluate(() => { const f = document.querySelector('#factOld'); return f.scrollWidth <= document.getElementById('bookWrap').clientWidth * 0.52; }), 'fact line fits inside the page at 640 wide');
+await pg.setViewportSize({ width: 1280, height: 720 });
 
 console.log('--- 7 keyboard path');
 await fresh(); await pg.focus('#fact'); await pg.keyboard.down('Space'); await pg.waitForTimeout(400); await pg.keyboard.up('Space'); await pg.waitForTimeout(600);

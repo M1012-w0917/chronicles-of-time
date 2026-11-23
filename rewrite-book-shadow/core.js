@@ -7,6 +7,7 @@
   const span = (t, a, b) => smooth((t - a) / (b - a));
   const hash = (i, s = 0) => { const x = Math.sin(i * 127.1 + s * 311.7) * 43758.5453; return x - Math.floor(x); };
   const HOLD_MS = 1200;
+  const IDLE_MS = 20000, IDLE_REDUCED_MS = 8000; // new world waits this long with no input before the shade appears on its own
 
   function createMachine(opt) {
     const m = {
@@ -15,6 +16,8 @@
       press() { if (m.state === 'OLD' || m.state === 'WRITING') { m.state = 'WRITING'; m.holding = true; } },
       release() { m.holding = false; },
       revert() { if (m.t > 0 && m.state !== 'REVERTING') { m.state = 'REVERTING'; m.holding = false; m.w = 0; m.flipping = false; m.flip = 0; } },
+      poke() { if (m.state === 'NEW') m.dwell = 0; },
+      summon() { if (m.state === 'NEW') m.state = 'HAUNT'; },
       setCompare(v) { m.compare = !!v; },
       setReduced(v) { m.reduced = !!v; },
       turnPage() { if (m.state === 'HAUNT' && m.haunt > 0.5 && !m.flipping) { m.flipping = true; m.flip = 0; return true; } return false; },
@@ -31,7 +34,7 @@
           if (m.t >= 1) { m.t = 1; m.state = 'NEW'; m.dwell = 0; }
         } else if (s === 'NEW') {
           m.dwell += dt;
-          if (m.dwell >= (m.reduced ? 1200 : 3200)) m.state = 'HAUNT';
+          if (m.dwell >= (m.reduced ? IDLE_REDUCED_MS : IDLE_MS)) m.state = 'HAUNT';
         } else if (s === 'HAUNT') {
           m.haunt = Math.min(1, m.haunt + dt / 2400);
         } else if (s === 'REVERTING') {
@@ -43,7 +46,7 @@
         if (m.flipping) { m.flip += dt / (m.reduced ? 700 : 1600); if (m.flip >= 1) { m.flipping = false; m.flip = 0; m.turns++; } }
       },
       // shown world progress: comparing pulls the whole book back to the old world in the same camera
-      view() { return { td: m.t * (1 - smooth(m.c)) }; },
+      view() { const k = 1 - smooth(m.c); return { td: m.t * k, haunt: m.haunt * k }; },
       glow() { return m.lit ? 1 : 0.04 + 0.96 * Math.max(smooth(m.w), span(m.t, 0, 0.12)); },
     };
     return m;
@@ -55,6 +58,6 @@
     return { x: dx / d, y: dy / d, dist: d };
   }
 
-  const api = { clamp, smooth, span, hash, createMachine, shadeVector, HOLD_MS };
+  const api = { clamp, smooth, span, hash, createMachine, shadeVector, HOLD_MS, IDLE_MS, IDLE_REDUCED_MS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.BSCore = api;
 })(typeof window !== 'undefined' ? window : globalThis);
