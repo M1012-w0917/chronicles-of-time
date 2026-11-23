@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>V5 机械皮影剧场 / Mechanical Shadow Theatre</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-state="OLD" data-reduced="false" data-compare="false">
+<main id="room">
+  <section id="theatre" aria-label="皮影舞台 Shadow-puppet stage">
+    <canvas id="stage" width="1280" height="720" role="img" aria-label="三层纱幕上的皮革皮影舞台 A stage of leather puppets on three scrims"></canvas>
+    <canvas id="sur" width="1280" height="64" role="img" aria-label="字幕 Surtitle"></canvas>
+    <div id="dim" aria-hidden="true"></div>
+    <div id="cmpTag">对照旧世界 <i>Comparing with the old world</i></div>
+  </section>
+  <section id="desk" aria-label="写字台 Writing desk">
+    <div id="bookWrap">
+      <div id="pool" aria-hidden="true"></div>
+      <div id="book">
+        <div class="page left">
+          <h3>城门志 <small>Annals of the Gate</small></h3>
+          <p class="meta">本册只记一条事实。落笔即成真,台上的皮影与影子随之改写。<br><i>One fact is kept here. Writing it makes it true, and the puppets and their shadows are rebuilt to match.</i></p>
+        </div>
+        <div class="page right">
+          <div id="fact" tabindex="0" role="button" aria-label="按住空格或按住这一行以改写 Hold Space or press and hold this line to rewrite">
+            <span class="old" id="factOld">城门每日黄昏关闭,守门人点亮三盏灯。</span>
+            <span class="neu" id="factNew">这座城从来没有城门,黄昏也没有守门人。</span>
+            <canvas id="ink" width="560" height="86"></canvas>
+          </div>
+          <p class="cap"><span id="capOld">The city gate closes every dusk, and the gatekeeper lights three lamps.</span><br><span id="capNew">This city never had a gate, and dusk never had a gatekeeper.</span></p>
+          <div class="hold" aria-hidden="true"><div id="holdBar"></div></div>
+          <p id="hint">按住空格,或按住这一行,约 1.2 秒 <i>Hold Space or press the line for about 1.2 s. Release early to cancel.</i></p>
+        </div>
+        <div id="quill" aria-hidden="true"></div>
+      </div>
+    </div>
+    <div id="side">
+      <div id="controls">
+        <button id="compareBtn" type="button" aria-pressed="false">对照旧世界 <i>Compare (C)</i></button>
+        <button id="revertBtn" type="button">撤回 <i>Revert (Z)</i></button>
+        <button id="reduceBtn" type="button" aria-pressed="false">减少动效 <i>Reduced motion</i></button>
+      </div>
+      <p id="note" hidden aria-live="polite">守门人名册 0 · 纱幕上的影 1 <i>Gatekeepers on the roll 0, shades on the scrim 1</i></p>
+      <p class="tag">状态 <b id="stateTag">OLD</b></p>
+    </div>
+  </section>
+</main>
+<script src="core.js"></script>
+<script src="cjk.js"></script>
+<script src="paint.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
