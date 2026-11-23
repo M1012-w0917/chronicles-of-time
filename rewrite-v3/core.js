@@ -235,7 +235,7 @@
     m.forceHaunt = function (h) { m.hT = T.hauntDelayMs + T.hauntMs * clamp(h); m.haunt = clamp(h); };
     m.step = function (dt) {
       const tgt = m.compare ? 1 : 0;
-      if (m.reduced) m.c = tgt; else m.c = clamp(m.c + (tgt > m.c ? dt : -dt) / T.compareMs);
+      if (m.reduced) m.c = tgt; else m.c = tgt > m.c ? Math.min(tgt, m.c + dt / T.compareMs) : Math.max(tgt, m.c - dt / T.compareMs); // settle on the target, never step past it
       switch (m.state) {
         case 'OLD': if (m.w > 0) m.w = Math.max(0, m.w - dt / T.cancelMs); break;
         case 'WRITING': m.w += dt / T.holdMs; if (m.w >= 1) { m.w = 1; m.state = 'REWRITING'; m.tm = 0; } break;

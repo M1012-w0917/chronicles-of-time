@@ -55,6 +55,11 @@ t('undo returns to the old world', () => { const m = C.createMachine(); m.scrub(
 t('compare shows old without changing the stored world', () => {
   const m = C.createMachine(); m.scrub(1); m.setCompare(true); run(m, 1000); assert.equal(m.view().td, 0); assert.equal(m.t, 1); m.setCompare(false); run(m, 1000); assert.equal(m.view().td, 1);
 });
+t('held compare settles at 1 and stays there (no step past the target)', () => {
+  const m = C.createMachine(); m.scrub(1); m.setCompare(true); run(m, 1000);
+  for (let i = 0; i < 60; i++) { m.step(16); assert.equal(m.c, 1, 'step ' + i); }
+  m.setCompare(false); run(m, 1000); for (let i = 0; i < 60; i++) { m.step(16); assert.equal(m.c, 0, 'step ' + i); }
+});
 t('haunting is caused by the rewrite and reversed by undo', () => {
   const m = C.createMachine(); run(m, 6000); assert.equal(m.haunt, 0);
   m.press(); run(m, 1700); m.release(); while (m.state === 'REWRITING') { assert.equal(m.haunt, 0); m.step(16); }

@@ -1,0 +1,11 @@
+date: 2026-11-23
+code: 4756b06 plus the compare fix (rewrite-v3 paint.js identical to 8b7c3db); headless Chromium, software rendering, 1600x900
+method: node tests/perf-v3.mjs <tag>; time spent inside the app frame() callback during REWRITING, one full real-keyboard rewrite per run.
+"nofibres" = bleed() call in drawStamps temporarily disabled (not committed).
+fibres run0 frames 169 mean_ms 42.81 p50 35.10 p95 84.80 max 88.60
+fibres run1 frames 150 mean_ms 49.20 p50 42.90 p95 84.40 max 87.00
+nofibres run0 frames 168 mean_ms 43.27 p50 34.50 p95 84.10 max 88.70
+nofibres run1 frames 170 mean_ms 42.57 p50 34.60 p95 83.70 max 87.00
+label layout (fallback font, no CJK installed):
+layout 1600x900 {"label":[8,74,36,207],"span":[11,87,33,194],"slip":[1220,86,1440,504],"dock":[400,817,1200,886],"status":[947,844,1187,859]}
+layout 800x700 {"label":[8,74,36,207],"span":[11,87,33,194],"slip":[702,86,922,496],"dock":[32,646,768,686],"status":[0,0,0,0]}

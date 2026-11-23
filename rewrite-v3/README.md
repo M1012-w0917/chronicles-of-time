@@ -38,7 +38,12 @@ Run entry: `python3 -m http.server 8000` then open `/rewrite-v3/index.html`; `fi
 
 Evidence: `docs/screenshots/v3d-01-before.jpg` to `v3d-07-undo.jpg` (before, hold, rebuild, new dwell, haunt, compare, undo; real keyboard session, 1600x900), `v3d-before-after.jpg` (same composition side by side), `docs/video/v3-deep-flow.webm` (real session: early release cancel, full hold, rewrite, dwell, haunt, C compare, Z undo, reduced motion toggle and a second rewrite), raw logs in `docs/test-logs/`. The old `v3-0*.jpg` and `v3-flow.webm` are kept.
 
-Unverified: Chinese glyphs are not visible in sandbox renders (no CJK fonts; only checked through DOM text), only headless Chromium on software rendering was tested, no real GPU or other browsers, no touch device.
+Review follow-up (2026-11-23):
+- Flow flake: `flow-v3.mjs` failed about 1 run in 3 at "compare looks like the old city". Cause: in `core.js` `m.step`, once `m.c` reached the target 1, `tgt > m.c` was false, so it stepped down by `dt / compareMs` and then back up, so a held C hovered just below 1 (0.926 to 1). The test waited for `c === 1` and then took a fingerprint one frame later at `c` < 1. Fixed: `c` now moves toward the target and stops there. Regression unit test "held compare settles at 1 and stays there". Raw failing output from before the fix: `docs/test-logs/flake-before-fix/`. Repeated runs after the fix: `docs/test-logs/flow-v3-repeat.log`.
+- Fibre cost: time inside the app frame callback during a real rewrite, headless software rendering, two runs each: with fibres mean 42.8 / 49.2 ms, p95 84.8 / 84.4 ms; with the `bleed()` call disabled mean 43.3 / 42.6 ms, p95 84.1 / 83.7 ms. The difference is within run-to-run noise. Raw numbers: `docs/test-logs/perf-fibres.log`, script `tests/perf-v3.mjs`. Not measured on a GPU.
+- Label geometry with the fallback font: the "史书 卷一" span box is 22x107 px inside the 28 px strip (x 8 to 36, y 74 to 207) and does not overlap the slip or the dock at 1600x900 or 800x700. Real CJK glyphs are still not rendered here.
+
+Unverified: Chinese glyphs are not visible in sandbox renders (no CJK fonts; only checked through DOM text and box geometry), only headless Chromium on software rendering was tested, no real GPU or other browsers, no touch device.
 
 Asset sources: all procedural, no external images, fonts or network.
 

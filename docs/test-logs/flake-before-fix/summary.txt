@@ -1,0 +1,4 @@
+code: 4756b06 (before the compare fix), flow-v3.mjs repeated, exit code per run; the loop was cut after 3 runs by the sandbox command limit
+run1 0
+run2 0
+run3 1

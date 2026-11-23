@@ -67,7 +67,7 @@ assert.ok(Math.hypot(h.figurePos.x - h.vanished.x, h.figurePos.y - h.vanished.y)
 assert.equal(await pg.evaluate(() => document.getElementById('dock').dataset.echo), 'true'); ok('figure turns to face you, seal lands, margin note appears only after the rewrite');
 
 await pg.keyboard.down('c'); await until(pg, () => window.__slice.getState().c === 1);
-{ const fc = await FP(pg); assert.ok(diff(fOld, fc) < diff(fNew, fc) * 0.5 && (await S(pg)).figure < 0.05, 'compare looks like the old city'); } assert.equal(await pg.getAttribute('#compareBtn', 'aria-pressed'), 'true');
+{ const fc = await FP(pg); const st = await S(pg); assert.ok(diff(fOld, fc) < diff(fNew, fc) * 0.5 && st.figure < 0.05, 'compare looks like the old city: ' + JSON.stringify({ dOld: diff(fOld, fc), dNew: diff(fNew, fc), fOld, fNew, fc, st })); } assert.equal(await pg.getAttribute('#compareBtn', 'aria-pressed'), 'true');
 await pg.keyboard.up('c'); await until(pg, () => window.__slice.getState().c === 0); assert.ok(diff(fNew, await FP(pg)) < 40); ok('hold C compares, release returns');
 
 // reduced motion
