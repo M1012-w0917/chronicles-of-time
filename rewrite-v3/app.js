@@ -13,7 +13,7 @@
   const m = C.createMachine({ reduced: reducedParam != null ? reducedParam === '1' : !!(mq && mq.matches) });
   const frozen = ['t', 'w', 'state', 'haunt'].some((k) => q.has(k)); // debug params make a deterministic still
   const NEW = C.newStamps(1);
-  let HAUNT_FIG = { x: 1010, y: 700, h: 178 }, SEAL_AT = { x: 560, y: 612, s: 76 };
+  let HAUNT_FIG = { h: 178 }, SEAL_AT = { x: 560, y: 612, s: 76 };
 
   let saved = store.get('v3ink.settled');
   // initial state
@@ -96,7 +96,7 @@
     for (let i = 0, k = 0; i < F.length; i++, k += 4) {
       const A = F[i], e = C.reveal(td, A, 0.1), x = (td - A - 0.03) / 0.06;
       E[k + 3] = e * 255;
-      Rg[k] = 34; Rg[k + 1] = 31; Rg[k + 2] = 28; Rg[k + 3] = Math.abs(x) < 2.6 ? 80 * Math.exp(-x * x) : 0;
+      Rg[k] = 34; Rg[k + 1] = 31; Rg[k + 2] = 28; Rg[k + 3] = Math.abs(x) < 5 ? 100 * Math.exp(-x * x) + 30 * Math.exp(-x * x / 5) : 0; // sharp wet edge plus a wide seep halo
       if (masked) N[k + 3] = C.reveal(td, A + C.NEW_LAG * 0.9, 0.1) * 255;
     }
     for (let j = 0; j < (masked ? 3 : 2); j++) maskC[j].getContext('2d').putImageData(maskD[j], 0, 0);
@@ -225,8 +225,9 @@
     // the lone absence and the seal on the wrong place
     const fa = hv.figure * hvis;
     if (fa > 0.01) {
-      sctx.setTransform(cover, 0, 0, cover, offX + offs[3] * cover, offY + offs[3] * 0.4 * cover);
-      P.cutFigure(sctx, paper, HAUNT_FIG.x, HAUNT_FIG.y, HAUNT_FIG.h, hv.heading, fa, 1 - C.smooth(hv.heading / 45));
+      sctx.setTransform(cover, 0, 0, cover, offX + offs[2] * cover, offY + offs[2] * 0.4 * cover); // same plane as the vanished gate
+      const fp = C.figureAt(m.haunt);
+      P.cutFigure(sctx, paper, fp.x, fp.y, HAUNT_FIG.h, hv.heading, fa, 1 - C.smooth(hv.heading / 45));
     }
     const sa = hv.seal * hvis;
     if (sa > 0.01) {
@@ -284,7 +285,7 @@
       const v = m.view();
       return {
         state: m.state, settled: m.settled, t: m.t, td: v.td, w: m.w, c: m.c, haunt: m.haunt, reduced: m.reduced,
-        heroHeading: hv.heading, seal: hv.seal * hvis, figure: hv.figure * hvis, margin: hv.margin,
+        heroHeading: hv.heading, figurePos: C.figureAt(m.haunt), vanished: { x: C.VANISHED.x, y: C.VANISHED.y }, seal: hv.seal * hvis, figure: hv.figure * hvis, margin: hv.margin,
         painted: cursor, totalStamps: NEW.length, tmax, planes: planes.map((_, p) => planeMode(p, v.td)), offsets: offs.slice(), mist: mistA.slice(),
         brush: { x: bx, y: by }, strikeDrawn, strikeTotal: strikeStamps.length,
       };

@@ -1,0 +1,20 @@
+date: 2026-11-23T14:47:00Z
+HEAD at run time: 6765afaf5534526fd67bedd6890ac32f914da22c (uncommitted working tree changes included)
+ok - Chinese copy and English captions present
+ok - old city on one canvas, nothing of the new world painted yet
+ok - early release cancels
+ok - rewrite repaints the same canvas progressively (stroke count rises, planes mix old and new)
+ok - Z undoes back to the old city
+ok - new world: every plane repainted
+ok - new world persists across reload
+ok - pointer parallax: planes shift by depth
+ok - the old painting is nearly flat, the new one has depth
+ok - figure stands at the vanished gate
+ok - figure turns to face you, seal lands, margin note appears only after the rewrite
+ok - hold C compares, release returns
+ok - reduced motion: held keyframes 0 / 0.5 / 1 only, crossfaded
+ok - reduced motion reaches the same new world, no parallax
+ok - reduced-motion toggle works
+ok - no console errors over http
+ok - works from file://
+17 passed

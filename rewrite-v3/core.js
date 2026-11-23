@@ -196,7 +196,7 @@
     // dark wooded bank where nobody ever built: the ground the lone figure stands on
     for (let i = 0; i < 100; i++) {
       const a = rnd() * 6.283, d = Math.sqrt(rnd());
-      wash([{ p: 3, kind: 'bank', x: 1010 + Math.cos(a) * d * 170, y: 640 + Math.sin(a) * d * 110, r: 32 + rnd() * 40, a: 0.075, k: 0 }]);
+      wash([{ p: 3, kind: 'bank', x: VANISHED.x + 20 + Math.cos(a) * d * 170, y: VANISHED.y - 10 + Math.sin(a) * d * 110, r: 32 + rnd() * 40, a: 0.075, k: 0 }]);
     }
     for (let i = 0; i < 90; i++) { // sandbank edge and water
       const y = 700 + rnd() * 220, x = -60 + rnd() * 1700, len = 70 + rnd() * 220;
@@ -264,6 +264,9 @@
   }
 
   // The haunting is a function of one number, so it can be tested and screenshotted: h 0..1.
+  // The old city's gate (paint.js paintCity: gate arch base at 580,656) is what the rewrite removes. The figure stands there and walks a short way along the old street.
+  const VANISHED = { x: 580, y: 656, reach: 36 };
+  function figureAt(h) { return { x: VANISHED.x + VANISHED.reach * smooth(clamp(h)), y: VANISHED.y }; }
   function hauntState(h) {
     h = clamp(h);
     return {
@@ -274,5 +277,5 @@
     };
   }
 
-  return { FACT, TIMING, WORLD, PLANES, PLANE_DELAY, PARALLAX, NEW_LAG, clamp, smooth, lerp, rng, noise2, fbm, arrival, reveal, smoothPath, stroke, ridge, ridgeY, washBody, mountainStamps, newStamps, createMachine, hauntState };
+  return { FACT, TIMING, WORLD, PLANES, PLANE_DELAY, PARALLAX, NEW_LAG, clamp, smooth, lerp, rng, noise2, fbm, arrival, reveal, smoothPath, stroke, ridge, ridgeY, washBody, mountainStamps, newStamps, createMachine, hauntState, VANISHED, figureAt };
 });

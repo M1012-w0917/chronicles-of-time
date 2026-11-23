@@ -61,6 +61,10 @@ t('haunting is caused by the rewrite and reversed by undo', () => {
   run(m, 12000); assert.ok(m.haunt > 0.99); m.undo(); run(m, 6000); assert.equal(m.haunt, 0);
   const a = C.hauntState(0), b = C.hauntState(1); assert.equal(a.heading, 180); assert.equal(b.heading, 0); assert.equal(a.seal, 0); assert.equal(b.seal, 1); assert.equal(a.margin, 0); assert.equal(b.margin, 1);
 });
+t('the figure stands where the old gate was and stays on the old street', () => {
+  for (const h of [0, 0.12, 0.5, 1]) { const p = C.figureAt(h); assert.ok(Math.hypot(p.x - C.VANISHED.x, p.y - C.VANISHED.y) <= 40, 'h=' + h); }
+  assert.deepEqual(C.figureAt(0), { x: C.VANISHED.x, y: C.VANISHED.y });
+});
 t('reduced motion holds keyframes only', () => {
   const m = C.createMachine({ reduced: true }); m.press(); run(m, 1700); const seen = new Set(); let g = 0;
   while (m.state !== 'NEW' && g++ < 1000) { m.step(50); seen.add(m.t); }

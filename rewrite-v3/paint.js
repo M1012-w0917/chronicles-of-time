@@ -32,8 +32,26 @@
       if (s.r < 0.45) continue;
       ctx.globalAlpha = s.a;
       ctx.drawImage(sp[s.k], s.x - s.r, s.y - s.r, s.r * 2, s.r * 2);
+      if (s.k === 1 && s.r > 2.4 && s.a > 0.25) bleed(ctx, s);
     }
     ctx.globalAlpha = 1;
+  }
+  // capillary fibres creeping out of a firm stamp into the paper. Deterministic: seeded from the stamp's own position.
+  function bleed(ctx, s) {
+    let h = (Math.imul(Math.round(s.x * 7) | 0, 73856093) ^ Math.imul(Math.round(s.y * 7) | 0, 19349663)) >>> 0;
+    const rnd = () => { h = (Math.imul(h ^ (h >>> 15), 2246822507) + 374761393) >>> 0; return h / 4294967296; };
+    if (rnd() > 0.55) return;
+    const n = 1 + (rnd() * 2.4 | 0);
+    ctx.lineCap = 'round';
+    for (let i = 0; i < n; i++) {
+      const a = rnd() * 6.283, r0 = s.r * (0.8 + rnd() * 0.2), len = s.r * (0.5 + rnd() * 0.9) + 3, bend = (rnd() - 0.5) * 0.9;
+      const x0 = s.x + Math.cos(a) * r0, y0 = s.y + Math.sin(a) * r0;
+      ctx.strokeStyle = 'rgba(' + INK + ',' + (0.1 + rnd() * 0.16) * Math.min(1, s.a + 0.3) + ')';
+      ctx.lineWidth = 0.5 + rnd() * 0.7;
+      ctx.beginPath(); ctx.moveTo(x0, y0);
+      ctx.quadraticCurveTo(x0 + Math.cos(a + bend) * len * 0.55, y0 + Math.sin(a + bend) * len * 0.55, x0 + Math.cos(a + bend * 1.8) * len, y0 + Math.sin(a + bend * 1.8) * len);
+      ctx.stroke();
+    }
   }
   const line = (ctx, pts, o, rnd) => drawStamps(ctx, C.stroke(pts, o, rnd));
 

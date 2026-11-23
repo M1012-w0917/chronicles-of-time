@@ -30,6 +30,18 @@ The fact is "City of Ashmere founded in year 42" becoming "City of Ashmere was n
 
 Only after the world is NEW (and never during compare or after undo): a figure appears as a paper-white absence cut out of a dark wooded bank (it is the unpainted paper, not a drawn shape), slowly turns from back to front and two dark slits open in the hat; a vermilion seal lands where the city gate used to be; a margin note "He remembers year 42." appears on the slip. The seal is the only red on the page.
 
+## Book-page deepening (issue #24, same PR)
+
+The scroll is now framed as a history book page: rollers and a binding edge with a red stitched spine on the left, a folded page edge on the right, a "史书 卷一" label, and ink-bleed fibres drawn over the ink. The new world is still painted by the same stroke engine (erase, bleed, repaint). The haunting figure is cut out at the former city gate (`C.VANISHED`), matching the rewritten sentence. See `git diff` of `rewrite-v3/` for details.
+
+Run entry: `python3 -m http.server 8000` then open `/rewrite-v3/index.html`; `file://` also works.
+
+Evidence: `docs/screenshots/v3d-01-before.jpg` to `v3d-07-undo.jpg` (before, hold, rebuild, new dwell, haunt, compare, undo; real keyboard session, 1600x900), `v3d-before-after.jpg` (same composition side by side), `docs/video/v3-deep-flow.webm` (real session: early release cancel, full hold, rewrite, dwell, haunt, C compare, Z undo, reduced motion toggle and a second rewrite), raw logs in `docs/test-logs/`. The old `v3-0*.jpg` and `v3-flow.webm` are kept.
+
+Unverified: Chinese glyphs are not visible in sandbox renders (no CJK fonts; only checked through DOM text), only headless Chromium on software rendering was tested, no real GPU or other browsers, no touch device.
+
+Asset sources: all procedural, no external images, fonts or network.
+
 ## Art source
 
 All procedural. No images, fonts or network. Only the idea of a small seeded RNG (mulberry32) is shared with other candidates; no code was copied from `rewrite/` (V1).

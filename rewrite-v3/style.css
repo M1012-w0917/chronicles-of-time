@@ -1,4 +1,4 @@
-/* V3: the painting is the whole page. Only chrome: two scroll rollers, a hanging slip with the written fact, a brush. */
+/* V3: the painting is the whole page. Only chrome: a bound spine and a folded page edge, a hanging slip with the written fact, a brush. */
 :root { --ink: #221f1c; --paper: #e9e0c8; --seal: #b3271d; }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; overflow: hidden; background: #1c1916; color: var(--ink); touch-action: none; user-select: none; -webkit-user-select: none; }
@@ -9,13 +9,26 @@ canvas#ghost.on { opacity: var(--ga, 1); }
   background: radial-gradient(ellipse at 50% 46%, transparent 55%, rgba(40,28,14,.28) 100%),
               linear-gradient(90deg, rgba(40,28,14,.35), transparent 7%, transparent 93%, rgba(40,28,14,.35)); }
 
-/* scroll rollers: the volume edge */
-.roller { position: fixed; top: 0; bottom: 0; width: 30px; pointer-events: none; z-index: 3;
-  background: linear-gradient(90deg, #2a1f16, #5a4630 28%, #8a6e4c 45%, #4a3827 70%, #1e1610); box-shadow: 0 0 22px rgba(0,0,0,.55); }
-.roller.left { left: 0; } .roller.right { right: 0; }
-.roller i { position: absolute; left: -4px; right: -4px; top: -2px; height: 14px; background: #20170f; border-radius: 3px; box-shadow: 0 calc(100vh - 12px) 0 #20170f; }
-.roller.left::after, .roller.right::after { content: ""; position: absolute; top: 0; bottom: 0; width: 12px; background: linear-gradient(90deg, rgba(190,178,150,.9), rgba(160,150,125,.55)); }
-.roller.left::after { left: 30px; } .roller.right::after { right: 30px; transform: scaleX(-1); }
+/* the volume edge: a bound spine with stitched thread on the left, a folded page edge with paper thickness lines on the right */
+.roller { position: fixed; top: 0; bottom: 0; pointer-events: none; z-index: 3; }
+.roller i { display: none; }
+.roller.left { left: 0; width: 46px;
+  background: linear-gradient(90deg, #1b130c 0, #3b2a1b 9px, #5a4128 14px, #2a1d12 20px, rgba(40,28,14,.55) 24px, rgba(40,28,14,.22) 34px, transparent 46px);
+  box-shadow: 4px 0 18px rgba(30,20,10,.38); }
+.roller.left::before { content: ""; position: absolute; left: 30px; top: 0; bottom: 0; width: 3px;
+  background: repeating-linear-gradient(180deg, rgba(120,36,26,.92) 0 16px, transparent 16px 40px); border-radius: 2px; box-shadow: 0 0 2px rgba(40,10,6,.5); }
+.roller.left::after { content: ""; position: absolute; left: 31px; top: 0; bottom: 0; width: 1px; background: rgba(120,36,26,.55); }
+.roller.right { right: 0; width: 38px;
+  background: repeating-linear-gradient(90deg, rgba(60,44,26,.34) 0 1px, transparent 1px 4px),
+              linear-gradient(270deg, #cfc4a6 0, #e3d9bd 7px, #b8aa86 12px, rgba(120,100,66,.45) 16px, rgba(60,44,26,.18) 26px, transparent 38px);
+  box-shadow: -4px 0 16px rgba(30,20,10,.3); }
+.roller.right::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 22px;
+  background: linear-gradient(90deg, transparent, rgba(255,250,235,.28) 55%, rgba(80,58,30,.3) 100%); transform: skewY(0deg); }
+.roller.right::after { content: ""; position: absolute; right: 16px; top: 0; bottom: 0; width: 1px; background: rgba(60,44,26,.4); box-shadow: 3px 0 0 rgba(255,250,235,.35); }
+/* title label strip on the spine */
+#bookLabel { position: fixed; left: 8px; top: 74px; z-index: 3; width: 28px; padding: 12px 0; pointer-events: none; text-align: center;
+  background: linear-gradient(#e8dcbc, #d9cba6); border: 1px solid rgba(34,31,28,.55); box-shadow: 1px 2px 4px rgba(20,12,6,.45), inset 0 0 6px rgba(120,90,50,.25); }
+#bookLabel span { writing-mode: vertical-rl; display: block; margin: 0 auto; font-family: "Songti SC", "Noto Serif CJK SC", "Source Han Serif SC", "STSong", "SimSun", serif; font-size: 16px; letter-spacing: .18em; color: var(--ink); }
 
 /* the written fact */
 #slip { position: fixed; z-index: 2; width: 220px; transform: translate(-50%, 0); pointer-events: auto; --w: 0; --r: 0; --c: 0; --old: 1; }
