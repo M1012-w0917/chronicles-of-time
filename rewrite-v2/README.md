@@ -19,10 +19,10 @@ Tests (run from the repo root, server on :8000 for the browser tests; start the 
 node tests/run-v2.mjs        # unit tests of rewrite-v2/core.js + node --check of every V2 script
 node tests/flow-v2.mjs       # headless Chromium flow with assertions (http and file://)
 node tests/shoot-v2.mjs      # docs/screenshots/v2-*.jpg
-node tests/record-v2.mjs     # docs/video/v2-flow.webm
+node tests/record-v2.mjs     # rewrite-v2/evidence/video/v2-interaction.webm
 ```
 
-Evidence: `docs/screenshots/v2-01-initial.jpg` to `v2-06-reduced.jpg` and `docs/video/v2-flow.webm` (about 2 MB, about 28 s).
+Evidence: `docs/screenshots/v2-01-initial.jpg` to `v2-06-reduced.jpg` and `rewrite-v2/evidence/video/v2-interaction.webm` (the old `docs/video/v2-flow.webm` was removed, it showed the pre-deepening look).
 
 ## Controls
 

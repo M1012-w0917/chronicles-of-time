@@ -1,7 +1,7 @@
 # after-flow
-date: 2026-11-23T15:16:12Z
+date: 2026-11-23T15:21:50Z
 node: v22.23.4
-commit: a09a11a
+commit: b0766eb
 command: node tests/flow-v2.mjs
 
 ok - Chinese copy and English captions present in DOM
@@ -23,4 +23,3 @@ ok - reduced-motion toggle works
 ok - no console errors over http
 ok - works from file://
 18 passed
-exit: 0
