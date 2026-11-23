@@ -1,0 +1,17 @@
+ok - Chinese copy and English captions present in DOM
+ok - CSS 3D DOM scene, no canvas
+ok - early release cancels
+ok - hold rewrites the same world progressively
+ok - Z undoes
+ok - new world: buildings sunk, streets wiped, stones and tufts risen, one token left
+ok - new world persists across reload
+ok - old world persists after scrubbing back
+ok - lone token turns to the camera; margin note appears
+ok - hold C compares, release returns
+ok - drag orbits, wheel zooms
+ok - reduced motion: held keyframes 0 / 0.5 / 1 only, crossfaded
+ok - reduced motion reaches the same new world
+ok - reduced-motion toggle works
+ok - no console errors over http
+ok - works from file://
+16 passed
