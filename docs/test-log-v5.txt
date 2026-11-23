@@ -1,6 +1,8 @@
-# V5 test log, captured 2026-11-19T03:47:31Z, node v22.23.4, browser: /inner_container/opt/playwright/chromium_headless_shell-1232/chrome-headless-shell-linux64/chrome-headless-shell
+# V5 test log, captured 2026-11-23T15:04:52Z, node v22.23.4, base HEAD 65a5581 + this round's working tree (committed on top of it), browser: /inner_container/opt/playwright/chromium_headless_shell-1232/chrome-headless-shell-linux64/chrome-headless-shell
+# before/after: commit 65a5581 extracted with git archive into a temp dir outside the repo, served on :8001
 $ node --check rewrite-v5/*.js tests/*-v5.mjs
 ok rewrite-v5/app.js
+ok rewrite-v5/cjk.js
 ok rewrite-v5/core.js
 ok rewrite-v5/paint.js
 ok tests/flow-v5.mjs
@@ -10,37 +12,67 @@ ok tests/shoot-v5.mjs
 $ python3 -m http.server 8000 & node tests/flow-v5.mjs
 ok - Chinese copy, English captions and CJK font stack present in the DOM (glyph rendering 未验证: this sandbox has no CJK system font)
 ok - initial: one stage canvas, gate intact, three lamps lit, keeper alive, no haunt note
+ok - surtitle: CJK font detected = false, mode strokes; 24 authored glyphs; ?cjk=strokes draws 879 bright glyph px vs 349 with the font path
+ok - book raised and enlarged: 940x221 px at y 634 (stage ends at 621)
+ok - tether: keeper moved 159 px and his shade followed 158 px, cord drawn from his chest to the shade (offset 78 px from the lamp)
+ok - pen-down focus: surtitle 落笔, stage dimmed to 0.36, lit pool on the book, enlarged quill, shade offset grows to 129 px with the lamp
 ok - pen down swings the backlight (shadows move first, pieces unchanged); early release cancels
 ok - cancel returns the lamp and leaves the old world
-ok - same stage canvas changes continuously over 28 sampled frames: biggest step 13.7 of 142.6 accumulated change, no black frame
+ok - same stage canvas changes continuously over 31 sampled frames: biggest step 9.8 of 130.2 accumulated change, no black frame
 ok - gate boards, bricks, trees, road, lantern cone and keeper path are all mid-way at one t
-ok - frame cost: render avg 2.4 ms, max 5.9 ms over 311 frames (headless software canvas)
+ok - frame cost: render avg 3.8 ms, max 7.9 ms over 210 frames (headless software canvas)
 ok - NEW world holds still for the dwell: no gate, keeper gone, trees and road, no shade yet
 ok - new reality persists across reload
 ok - hotkeys work while a button has focus; persistence writes only on state change
 ok - hold C compares (old stage returns), release returns to the new world
 ok - revert runs the stage backwards to the old gate and clears persistence
-ok - browser frame rate sample: 32.2 fps (headless, software raster)
+ok - browser frame rate sample: 20.7 fps (headless, software raster)
 ok - haunt: keeper is gone from every rod and puppet, the lamp moves away, the lantern shade stays and its arm pulls the front rod (travel 48 px)
 ok - the haunt hides while comparing
 ok - keyboard: Enter on the focused line writes, early release cancels
 ok - pointer: press-hold on the line writes, early release cancels
 ok - pointer: compare and revert buttons work
-ok - reduced motion: rewrite is a 9929 ms in-place cross-fade (no backlight swing, no board or brick travel)
+ok - reduced motion: rewrite is a 11473 ms in-place cross-fade (no backlight swing, no board or brick travel)
 ok - reduced motion: cancel and revert work, pen-down does not swing the lamp
 ok - reduced motion reaches the same haunt
 ok - reduced-motion toggle works
 ok - no console errors over http
 ok - works from file://
-24 passed
-$ node tests/shoot-v5.mjs
-v5-01-initial
-v5-02-penDown
-v5-03-reconstructing
-v5-04-new
-v5-05-haunt
-v5-06-compare
-v5-07-reduced-mid
+28 passed
+$ BEFORE=http://localhost:8001/rewrite-v5/index.html node tests/shoot-v5.mjs
+v5-01-initial ?t=0&cjk=strokes
+v5-02-penDown ?w=0.8&cjk=strokes
+v5-03-reconstructing ?t=0.5&cjk=strokes
+v5-04-new ?state=new&cjk=strokes
+v5-05-haunt ?state=new&haunt=1&cjk=strokes
+v5-06-compare ?state=new&compare=1&cjk=strokes
+v5-07-reduced-mid ?t=0.3&reduced=1&cjk=strokes
+v5-08-before http://localhost:8001/rewrite-v5/index.html?state=new&haunt=1
+v5-09-after http://localhost:8000/rewrite-v5/index.html?state=new&haunt=1&cjk=strokes
+v5-10-before-after
 $ node tests/record-v5.mjs
-docs/video/v5-flow.webm 3.54 MB 30.1 s wall
--rw-r--r--. 1 root root 3536037 Nov 19 03:49 docs/video/v5-flow.webm
+  2.4 s before the rewrite ["OLD",0,"改写前"]
+  3.0 s pen down (Space held) ["WRITING",0,"落笔"]
+  3.3 s released early: cancelled ["OLD",0,"改写前"]
+  5.9 s held 1.5 s: rewrite starts ["RECONSTRUCTING",0.04,"重构中"]
+ 10.1 s rebuilding ["RECONSTRUCTING",0.51,"重构中"]
+ 14.5 s new world, dwell ["NEW",1,"新世界"]
+ 25.6 s haunt ["HAUNT",1,"因果反常 守门人 0 · 影 1"]
+ 28.7 s C held: compare ["HAUNT",1,"对照旧世界"]
+ 30.3 s Z: revert ["REVERTING",0.93,"撤回"]
+ 35.2 s back in the old world ["OLD",0,"改写前"]
+docs/video/v5-flow.webm 4.07 MB 35.5 s wall
+-rw-r--r--. 1 root root 4066075 Nov 23 15:06 docs/video/v5-flow.webm
+
+docs/screenshots/:
+total 1252
+-rw-r--r--. 1 root root 131831 Nov 23 15:06 v5-01-initial.jpg
+-rw-r--r--. 1 root root 106670 Nov 23 15:06 v5-02-penDown.jpg
+-rw-r--r--. 1 root root 133175 Nov 23 15:06 v5-03-reconstructing.jpg
+-rw-r--r--. 1 root root 125594 Nov 23 15:06 v5-04-new.jpg
+-rw-r--r--. 1 root root 133091 Nov 23 15:06 v5-05-haunt.jpg
+-rw-r--r--. 1 root root 135987 Nov 23 15:06 v5-06-compare.jpg
+-rw-r--r--. 1 root root 122812 Nov 23 15:06 v5-07-reduced-mid.jpg
+-rw-r--r--. 1 root root 142570 Nov 23 15:06 v5-08-before.jpg
+-rw-r--r--. 1 root root 133091 Nov 23 15:06 v5-09-after.jpg
+-rw-r--r--. 1 root root  94541 Nov 23 15:06 v5-10-before-after.jpg

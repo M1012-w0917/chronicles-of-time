@@ -25,7 +25,20 @@ const V5Paint = (function () {
       g.beginPath(); g.moveTo(x, y); g.lineTo(h ? x + l : x + 0.8, h ? y + 0.8 : y + l); g.stroke();
     }
   })();
+  // leather thickness map: warm blotches where the hide is thin and light comes through, dark ones where it is thick
+  const hide = mk(192, 192);
+  (function () {
+    const g = hide.getContext('2d'); g.fillStyle = 'rgba(255,150,70,0.1)'; g.fillRect(0, 0, 192, 192); // base warm transmission
+    for (let i = 0; i < 46; i++) {
+      const x = hash(i, 101) * 192, y = hash(i, 102) * 192, r = 14 + hash(i, 103) * 36, thin = hash(i, 104) > 0.45, c = thin ? '255,176,84,' + (0.12 + hash(i, 105) * 0.12) : '34,12,4,' + (0.12 + hash(i, 105) * 0.14);
+      for (const ox of [-192, 0, 192]) for (const oy of [-192, 0, 192]) { const gr = g.createRadialGradient(x + ox, y + oy, 0, x + ox, y + oy, r); gr.addColorStop(0, 'rgba(' + c + ')'); gr.addColorStop(1, 'rgba(' + c.replace(/[\d.]+$/, '0') + ')'); g.fillStyle = gr; g.fillRect(x + ox - r, y + oy - r, r * 2, r * 2); }
+    }
+  })();
+  const hidePat = grain.getContext('2d').createPattern(hide, 'repeat');
   const sg = mk(Math.ceil(W * 0.26) + 2, Math.ceil(H * 0.26) + 2), sgx = sg.getContext('2d');
+  const sgL = [0, 1, 2].map(() => { const c = mk(sg.width, sg.height); return c; }), sgLx = sgL.map((c) => c.getContext('2d'));
+  const sb = mk(Math.ceil(W * 0.07), Math.ceil(H * 0.07)), sbx = sb.getContext('2d'); // cast shadow of one scrim on the next: very soft
+  const shc = mk(W, H), shcx = shc.getContext('2d');                                    // flat shade, composited once so overlapping limbs do not double the alpha
   const SHRES = [0.09, 0.15, 0.26];            // far scrim: softest shadow, near scrim: sharpest
 
   // ---- per-frame state ----
@@ -42,16 +55,30 @@ const V5Paint = (function () {
   const dia = (g, x, y, r) => { g.moveTo(x, y - r); g.lineTo(x + r, y); g.lineTo(x, y + r); g.lineTo(x - r, y); g.closePath(); };
   function poly(g, a) { g.moveTo(a[0], a[1]); for (let i = 2; i < a.length; i += 2) g.lineTo(a[i], a[i + 1]); g.closePath(); }
   // modes: 'm' main leather, 's' silhouette for soft shadows, 'h' solid haunt shade
-  function skin(g, mode, tint, rule) {
+  function skin(g, mode, tint, rule, thin) {
     if (mode !== 'm') { g.fillStyle = mode === 'h' ? 'rgb(14,8,22)' : '#000'; g.fill(rule || 'evenodd'); return; }
     g.globalCompositeOperation = 'multiply'; g.fillStyle = rgb(tint); g.fill(rule || 'evenodd');
     g.globalCompositeOperation = 'source-over';
-    g.lineWidth = 1.5; g.strokeStyle = 'rgba(40,16,8,0.72)'; g.stroke();
-    g.globalCompositeOperation = 'screen'; g.fillStyle = 'rgba(255,170,90,0.05)'; g.fill(rule || 'evenodd'); g.globalCompositeOperation = 'source-over'; // light leaking through the hide
+    // translucent hide: the backlight shows warm through thin patches (thickness map), and the edge, where the hide is thick and folded, stays dark
+    if (!thin && F.layer !== 0) { const sm = g.imageSmoothingEnabled; g.imageSmoothingEnabled = false; g.fillStyle = hidePat; g.fill(rule || 'evenodd'); g.imageSmoothingEnabled = sm; } // small leaves, big ground fills and the far scrim (softest, farthest) skip the thickness map: it would not read there and it is the costly part of a frame
+    g.lineJoin = 'round'; g.lineWidth = 3.6; g.strokeStyle = 'rgba(28,9,3,0.3)'; g.stroke();
+    g.lineWidth = 1.5; g.strokeStyle = 'rgba(40,16,8,0.8)'; g.stroke();
   }
+  // stitched seam: dark thread dashes with a pale highlight, and a dark gap shadow between the joined pieces
+  function stitch(g, mode, fn) {
+    if (mode !== 'm') return; g.beginPath(); fn(); g.save(); g.lineCap = 'round';
+    g.lineWidth = 3.2; g.strokeStyle = 'rgba(255,214,150,0.32)'; g.stroke(); // the light coming through the needle holes
+    g.setLineDash([5, 3.5]); g.lineWidth = 1.8; g.strokeStyle = 'rgba(26,8,3,0.92)'; g.stroke(); g.restore();
+  }
+  // lacing across a joint (cross stitch)
+  function lace(g, mode, x, y, r) { if (mode !== 'm') return; r = r || 3.4; g.beginPath(); g.moveTo(x - r, y - r); g.lineTo(x + r, y + r); g.moveTo(x + r, y - r); g.lineTo(x - r, y + r); g.lineWidth = 1.2; g.strokeStyle = 'rgba(24,8,3,0.9)'; g.stroke(); }
   function engrave(g, mode, fn) { if (mode !== 'm') return; g.beginPath(); fn(); g.lineWidth = 1; g.strokeStyle = 'rgba(70,26,10,0.5)'; g.stroke(); }
   function rivet(g, mode, x, y, r) {
     if (mode !== 'm') return; r = r || 3;
+    // the rivet casts a small shadow away from the backlight and the hole around it lets a ring of light through
+    const sx = x + (x - F.LX) * 0.012 + 1.6, sy = y + 2.4;
+    g.beginPath(); circ(g, sx, sy, r * 1.5); g.fillStyle = 'rgba(10,3,0,0.42)'; g.fill();
+    g.beginPath(); circ(g, x, y, r + 1.3); g.lineWidth = 1; g.strokeStyle = 'rgba(255,196,110,0.55)'; g.stroke();
     g.beginPath(); circ(g, x, y, r); g.fillStyle = 'rgb(48,22,10)'; g.fill();
     g.beginPath(); circ(g, x - r * 0.3, y - r * 0.3, r * 0.4); g.fillStyle = 'rgba(255,210,140,0.85)'; g.fill();
   }
@@ -68,7 +95,7 @@ const V5Paint = (function () {
     g.beginPath(); rr(g, 0, 0, w, h, Math.min(5, h / 4));
     if (mode !== 'h') holes(g, face ? kind : 'back', w, h, seed);
     skin(g, mode, face ? tint : back);
-    engrave(g, mode, () => { g.moveTo(3, 3); g.lineTo(w - 3, 3); g.lineTo(w - 3, h - 3); g.lineTo(3, h - 3); g.closePath(); });
+    stitch(g, mode, () => { g.moveTo(3.5, 3.5); g.lineTo(w - 3.5, 3.5); g.lineTo(w - 3.5, h - 3.5); g.lineTo(3.5, h - 3.5); g.closePath(); });
     if (kind !== 'brick') { rivet(g, mode, 7, h / 2, 2.6); rivet(g, mode, w - 7, h / 2, 2.6); }
     g.restore();
   }
@@ -117,7 +144,7 @@ const V5Paint = (function () {
   function leaf(g, mode, len, seed) {
     g.beginPath(); g.moveTo(0, 0); g.quadraticCurveTo(len * 0.55, -len * 0.28, len, 0); g.quadraticCurveTo(len * 0.55, len * 0.28, 0, 0); g.closePath();
     if (mode !== 'h') { g.moveTo(len * 0.25, 0); g.quadraticCurveTo(len * 0.5, -2.2, len * 0.7, 0); g.quadraticCurveTo(len * 0.5, 2.2, len * 0.25, 0); g.closePath(); }
-    skin(g, mode, [78 + hash(seed, 21) * 60, 140 + hash(seed, 22) * 40, 56 + hash(seed, 23) * 40]);
+    skin(g, mode, [78 + hash(seed, 21) * 60, 140 + hash(seed, 22) * 40, 56 + hash(seed, 23) * 40], 'evenodd', true);
   }
   function cluster(g, mode, size, seed, k) {
     if (k <= 0.01) return; g.save(); g.scale(k, k);
@@ -167,7 +194,7 @@ const V5Paint = (function () {
     for (let x = WIN.x; x <= WIN.x + WIN.w + 20; x += 40) g.lineTo(x, GROUND + Math.sin(x * 0.02) * 5 + (hash(x, 3) - 0.5) * 6);
     g.lineTo(WIN.x + WIN.w + 20, 590); g.closePath();
     if (mode !== 'h') for (let i = 0; i < 18; i++) { const x = 150 + i * 58 + hash(i, 6) * 24, y = GROUND + 20 + hash(i, 7) * 40; poly(g, [x, y, x + 3, y - 14, x + 6, y]); poly(g, [x + 10, y, x + 13, y - 10, x + 16, y]); }
-    skin(g, mode, mixc([170, 112, 56], [110, 140, 66], C.sky(td)));
+    skin(g, mode, mixc([170, 112, 56], [110, 140, 66], C.sky(td)), 'evenodd', true);
     drawRoad(g, mode);
     TREES.forEach((t, i) => drawTree(g, mode, t[0], t[1], t[2], t[3], C.tree(i, td), i, false));
     // brick wings: individual leather tiles, flipped then hauled up on cords
@@ -189,6 +216,7 @@ const V5Paint = (function () {
       g.beginPath(); rr(g, -15, -222, 30, 222, 3); rr(g, -23, -242, 46, 24, 4);
       if (mode !== 'h') { for (let k = 0; k < 4; k++) rr(g, -3, -200 + k * 48, 6, 30, 3); circ(g, 0, -230, 5); }
       skin(g, mode, [178, 50, 32]); engrave(g, mode, () => { g.moveTo(-9, -216); g.lineTo(-9, -6); g.moveTo(9, -216); g.lineTo(9, -6); });
+      stitch(g, mode, () => { g.moveTo(-23, -218); g.lineTo(23, -218); }); lace(g, mode, -10, -218, 2.6); lace(g, mode, 10, -218, 2.6);
       rivet(g, mode, 0, -150, 3); rivet(g, mode, 0, -70, 3); g.restore();
     }
     g.restore();
@@ -213,6 +241,7 @@ const V5Paint = (function () {
       skin(g, mode, [160, 40, 28]); engrave(g, mode, () => { g.moveTo(-200, 8); g.lineTo(200, 8); });
       g.beginPath(); rr(g, -175, 14, 350, 28, 3); if (mode !== 'h') for (let k = 0; k < 11; k++) dia(g, -150 + k * 30, 28, 6);
       skin(g, mode, [156, 68, 36]); rivet(g, mode, -165, 28, 3); rivet(g, mode, 165, 28, 3);
+      stitch(g, mode, () => { g.moveTo(-196, 15); g.lineTo(196, 15); }); lace(g, mode, -120, 15); lace(g, mode, 0, 15); lace(g, mode, 120, 15);
       addRod('LT', ...pt(g, 0, 40), L.rise);
       for (let i = 0; i < 3; i++) {
         const lp = C.lamp(i, td), lx = (i - 1) * 96, ly = 42 + 50 - lp.pull * 56, sc = 1 - lp.pull * 0.5;
@@ -242,7 +271,8 @@ const V5Paint = (function () {
     g.beginPath(); g.moveTo(-17, -136); g.lineTo(17, -136); g.lineTo(26, -52); g.quadraticCurveTo(0, -44, -26, -52); g.closePath();
     if (mode !== 'h') { for (let i = 0; i < 5; i++) circ(g, -16 + i * 8, -66 + (i & 1) * 6, 2.8); for (let i = 0; i < 4; i++) dia(g, -12 + i * 8, -112, 3); }
     skin(g, mode, [208, 62, 38]);
-    engrave(g, mode, () => { g.moveTo(-18, -100); g.lineTo(18, -100); g.moveTo(0, -136); g.lineTo(0, -48); });
+    engrave(g, mode, () => { g.moveTo(0, -136); g.lineTo(0, -48); });
+    stitch(g, mode, () => { g.moveTo(-18, -100); g.lineTo(18, -100); }); lace(g, mode, -10, -100, 2.2); lace(g, mode, 10, -100, 2.2);
     // far arm
     const fa = pose.reach; g.beginPath();
     if (fa) { const sx = -10, sy = -128, tx = lerp(sx, fa[0], 0.97), ty = lerp(sy + 40, fa[1], 0.97); const mx = (sx + tx) / 2 - 18, my = (sy + ty) / 2; limb(g, sx, sy, Math.atan2(mx - sx, my - sy), Math.hypot(mx - sx, my - sy), 5, 4); limb(g, mx, my, Math.atan2(tx - mx, ty - my), Math.hypot(tx - mx, ty - my), 4, 1.6); }
@@ -275,7 +305,7 @@ const V5Paint = (function () {
       g.beginPath(); const x0 = side ? 880 : 110, x1 = side ? 1170 : 400;
       g.moveTo(x0, 590); g.lineTo(x0, 548); for (let i = 0; i <= 8; i++) { const x = lerp(x0, x1, i / 8); g.lineTo(x, 540 + Math.sin(i * 1.3 + side * 2) * 10 + (side ? i : 8 - i) * 2); } g.lineTo(x1, 590); g.closePath();
       if (mode !== 'h') for (let i = 0; i < 9; i++) { const x = lerp(x0 + 10, x1 - 10, i / 9), y = 572; poly(g, [x, y, x + 2, y - 16, x + 5, y]); }
-      skin(g, mode, mixc([110, 62, 36], [78, 84, 46], C.sky(td)));
+      skin(g, mode, mixc([110, 62, 36], [78, 84, 46], C.sky(td)), 'evenodd', true);
     }
     // slabs of the old patrol path, flipped and dragged out through the stage lip
     for (let i = 0; i < 10; i++) {
@@ -289,7 +319,7 @@ const V5Paint = (function () {
       const p = keeperPlace(td, tm), pose = { ph: p.ph, arm: 0, slack: p.slack, reach: null, torso: 0 };
       g.save(); g.translate(p.x, p.y); g.rotate(p.rot * 0.5); g.scale(p.s * p.face, p.s);
       keeperFig(g, mode, pose); g.restore();
-      if (mode === 'm') { const a = pose.torso || [p.x, p.y - 90 * p.s]; addRod('K', a[0], a[1], p.slack); F.keeper = { lantern: pose.lantern, s: p.s, y: p.y, cone: C.cone(td) * (1 - p.slack) }; }
+      if (mode === 'm') { const a = pose.torso || [p.x, p.y - 90 * p.s]; addRod('K', a[0], a[1], p.slack); F.keeper = { lantern: pose.lantern, torso: pose.torso, s: p.s, y: p.y, cone: C.cone(td) * (1 - p.slack) }; }
     }
   }
 
@@ -322,20 +352,80 @@ const V5Paint = (function () {
     return pose;
   }
 
+  // keeper's shade on the middle scrim: where the lamp throws it. It follows the keeper (his position and pose) and slides when the lamp swings.
+  function trailShade(g, S) {
+    const td = F.td; F.tether = null; if (!C.keeperAlive(td)) return;
+    const k = C.keeper(td), a = 1 - span(k.pull, 0.4, 1); if (a < 0.02) return;
+    const p = keeperPlace(td, S.time), kx = p.x - (F.LX - 640) * PAR[2], off = 78 - (F.LX - 640) * 0.3, sx = kx + off, sy = p.y - 4, sc = p.s * 1.08;
+    shcx.setTransform(1, 0, 0, 1, 0, 0); shcx.clearRect(0, 0, W, H);
+    shcx.save(); shcx.translate(sx, sy); shcx.rotate(p.rot * 0.5); shcx.scale(sc * p.face, sc); keeperFig(shcx, 'h', { ph: p.ph - 0.25, arm: 0, slack: p.slack, reach: null }); shcx.restore();
+    g.save(); g.globalAlpha = 0.8 * a; g.drawImage(shc, 0, 0); g.restore();
+    // the tether: a dotted cord from his feet to the feet of his shade, so it reads as one pulling the other
+    // the tether (drawn in front, after the near scrim): from the keeper's chest to his shade's chest, so it reads as one leading the other
+    F.tether = { a, kx, ky: p.y, sx, sy, off, from: null, to: [sx, sy - 98 * sc] };
+  }
+
+  // red velvet drapes at both sides of the stage: fold shading and light falloff follow the single backlight
+  function drapes(g, S) {
+    const sway = S.reduced ? 0 : Math.sin(S.time * 0.8) * 2.5;
+    [0, 1].forEach((side) => {
+      const x0 = side ? WIN.x + WIN.w : WIN.x, dir = side ? -1 : 1, top = WIN.y, bot = WIN.y + WIN.h;
+      const edge = (y) => { const u = (y - top) / (bot - top); return 96 - 58 * Math.pow(u, 1.5) + Math.sin(u * 9 + side) * 3 + sway * u; };
+      g.save(); g.beginPath(); g.rect(WIN.x, WIN.y, WIN.w, WIN.h); g.clip();
+      // cast shadow on the scrims
+      const sh = g.createLinearGradient(x0 + dir * 60, 0, x0 + dir * 190, 0); sh.addColorStop(0, 'rgba(14,2,0,0.5)'); sh.addColorStop(1, 'rgba(14,2,0,0)');
+      g.fillStyle = sh; g.fillRect(Math.min(x0 + dir * 60, x0 + dir * 190), WIN.y, 130, WIN.h);
+      g.beginPath(); g.moveTo(x0, top); for (let y = top; y <= bot; y += 12) g.lineTo(x0 + dir * edge(y), y); g.lineTo(x0, bot); g.closePath(); g.clip();
+      g.fillStyle = '#6c1510'; g.fillRect(Math.min(x0, x0 + dir * 110), top, 110, bot - top);
+      const nF = 7, w = 15.5, gr = g.createLinearGradient(x0, 0, x0 + dir * w * nF, 0);
+      for (let f = 0; f < nF; f++) { // one gradient, seven folds: crest brightness falls off with distance from the lamp
+        const cx = x0 + dir * (f + 0.5) * w, lit = Math.max(0, 1 - Math.abs(cx - F.LX) / 900), u = f / nF, du = 1 / nF;
+        gr.addColorStop(u + 0.02 * du, 'rgba(12,0,0,' + (0.55 - 0.2 * lit) + ')'); gr.addColorStop(u + 0.55 * du, 'rgba(255,96,60,' + (0.1 + 0.5 * lit) + ')'); gr.addColorStop(u + 0.98 * du, 'rgba(12,0,0,' + (0.5 - 0.15 * lit) + ')');
+      }
+      g.fillStyle = gr; g.fillRect(Math.min(x0, x0 + dir * w * nF), top, w * nF, bot - top);
+      const tg = g.createLinearGradient(0, top, 0, bot); tg.addColorStop(0, 'rgba(0,0,0,0.55)'); tg.addColorStop(0.35, 'rgba(0,0,0,0)'); tg.addColorStop(1, 'rgba(0,0,0,0.35)'); g.fillStyle = tg; g.fillRect(WIN.x, top, WIN.w, bot - top);
+      g.restore();
+      // gilt tie-back cord where the drape is gathered
+      g.save(); g.lineWidth = 4; g.strokeStyle = '#d8a850'; g.beginPath(); const yy = top + (bot - top) * 0.72; g.moveTo(x0, yy - 6); g.quadraticCurveTo(x0 + dir * edge(yy) * 0.5, yy + 10, x0 + dir * edge(yy), yy); g.stroke();
+      g.fillStyle = '#d8a850'; g.beginPath(); circ(g, x0 + dir * edge(yy), yy, 5); g.fill(); g.restore();
+    });
+    // shadow of the valance on the top of the scrims
+    const vs = g.createLinearGradient(0, WIN.y, 0, WIN.y + 90); vs.addColorStop(0, 'rgba(20,0,0,0.55)'); vs.addColorStop(1, 'rgba(20,0,0,0)');
+    g.save(); g.beginPath(); g.rect(WIN.x, WIN.y, WIN.w, WIN.h); g.clip(); g.fillStyle = vs; g.fillRect(WIN.x, WIN.y, WIN.w, 90); g.restore();
+  }
+
+  // scrim hem: each of the three screens hangs from its own weighted rod, nearer = lower and heavier
+  const HEM = [[530, 3], [546, 5], [564, 8]];
+  function hem(g, i) {
+    const y = HEM[i][0], h = HEM[i][1];
+    g.fillStyle = 'rgba(30,10,4,' + (0.35 + i * 0.15) + ')'; g.fillRect(WIN.x, y, WIN.w, h);
+    g.fillStyle = 'rgba(255,200,130,' + (0.18 + i * 0.07) + ')'; g.fillRect(WIN.x, y, WIN.w, 1);
+    const sh = g.createLinearGradient(0, y + h, 0, y + h + 10 + i * 4); sh.addColorStop(0, 'rgba(10,3,0,0.35)'); sh.addColorStop(1, 'rgba(10,3,0,0)'); g.fillStyle = sh; g.fillRect(WIN.x, y + h, WIN.w, 14 + i * 4);
+  }
+
   function draw(g, S) {
     const td = S.td, hv = S.haunt;
-    F = { td, time: S.time, LX: 640 - 270 * S.lightW + 340 * hv.lightMove + (S.reduced ? 0 : Math.sin(S.time * 3.1) * 3), lights: [], att: {}, gone: {}, lines: [], mode: 'm', keeper: null };
+    F = { td, time: S.time, LX: 640 - 270 * S.lightW + 340 * hv.lightMove + (S.reduced ? 0 : Math.sin(S.time * 3.1) * 3), lights: [], att: {}, gone: {}, lines: [], mode: 'm', keeper: null, tether: null };
     g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = '#1a0b05'; g.fillRect(0, 0, W, H);
     g.save(); g.beginPath(); g.rect(WIN.x, WIN.y, WIN.w, WIN.h); g.clip();
     for (let i = 0; i < 3; i++) {
-      F.mode = 'm'; paper(g, i);
-      // soft cast shadow of this layer on its scrim, resolution (blur) set by depth
-      const r = SHRES[i]; sgx.setTransform(1, 0, 0, 1, 0, 0); sgx.clearRect(0, 0, sg.width, sg.height); sgx.setTransform(r, 0, 0, r, 0, 0);
-      F.mode = 's'; sgx.save(); applyLayer(sgx, i, -(F.LX - 640) * [0.1, 0.07, 0.05][i] + [8, 12, 16][i], [16, 12, 9][i]); LAYERS[i](sgx, 's'); sgx.restore();
-      g.save(); g.globalAlpha = [0.3, 0.34, 0.4][i]; g.imageSmoothingEnabled = true; g.drawImage(sg, 0, 0, W * r, H * r, 0, 0, W, H); g.restore();
+      F.mode = 'm'; F.layer = i; paper(g, i);
+      // the layer in front of this scrim throws its shadow on it: offset and blur grow with the gap, and the offset slides with the lamp
+      if (i > 0) {
+        const gap = i === 1 ? 1 : 0.6, src = sgL[i - 1], rp = SHRES[i - 1];
+        sbx.setTransform(1, 0, 0, 1, 0, 0); sbx.clearRect(0, 0, sb.width, sb.height); sbx.drawImage(src, 0, 0, W * rp, H * rp, 0, 0, sb.width, sb.height);
+        g.save(); g.globalAlpha = 0.3 * gap + 0.1; g.drawImage(sb, 0, 0, sb.width, sb.height, 34 * gap - (F.LX - 640) * 0.2 * gap, 22 * gap, W, H); g.restore();
+      }
+      // soft cast shadow of this layer on its own scrim, resolution (blur) set by depth
+      const r = SHRES[i], sx = sgLx[i]; sx.setTransform(1, 0, 0, 1, 0, 0); sx.clearRect(0, 0, sg.width, sg.height); sx.setTransform(r, 0, 0, r, 0, 0);
+      F.mode = 's'; sx.save(); applyLayer(sx, i, -(F.LX - 640) * [0.1, 0.07, 0.05][i] + [8, 12, 16][i], [16, 12, 9][i]); LAYERS[i](sx, 's'); sx.restore();
+      g.save(); g.globalAlpha = [0.3, 0.34, 0.4][i]; g.imageSmoothingEnabled = true; g.drawImage(sgL[i], 0, 0, W * r, H * r, 0, 0, W, H); g.restore();
       F.mode = 'm'; g.save(); applyLayer(g, i, 0, 0); LAYERS[i](g, 'm'); g.restore();
       if (i === 1) { F.lights.forEach((l) => glow(g, l[0], l[1], l[2], l[3])); }
+      if (i === 1) trailShade(g, S);
+      hem(g, i);
     }
+    F.layer = 3;
     // keeper lantern cone on the near scrim
     if (F.keeper && F.keeper.lantern && F.keeper.cone > 0.01) {
       const k = F.keeper, lx = k.lantern[0] - (F.LX - 640) * PAR[2], ly = k.lantern[1], c = k.cone, s = Math.max(0.5, k.s);
@@ -343,16 +433,25 @@ const V5Paint = (function () {
       g.save(); g.globalCompositeOperation = 'lighter'; const bg = g.createLinearGradient(0, ly, 0, 560); bg.addColorStop(0, 'rgba(255,200,110,' + (0.3 * c) + ')'); bg.addColorStop(1, 'rgba(255,200,110,0)');
       g.fillStyle = bg; g.beginPath(); g.moveTo(lx - 5, ly); g.lineTo(lx + 120 * c * s, 560); g.lineTo(lx - 120 * c * s, 560); g.closePath(); g.fill(); g.restore();
     }
+    if (F.tether && F.keeper && F.keeper.torso) {
+      const T = F.tether, a = T.a, f = F.keeper.torso, t = T.to; T.from = f.slice();
+      const cord = () => { g.beginPath(); g.moveTo(f[0], f[1]); g.quadraticCurveTo((f[0] + t[0]) / 2, Math.max(f[1], t[1]) + 18, t[0], t[1]); };
+      g.save(); g.lineCap = 'round'; cord(); g.lineWidth = 5; g.strokeStyle = 'rgba(30,10,4,' + (0.55 * a) + ')'; g.stroke();
+      cord(); g.setLineDash([2.5, 6]); g.lineDashOffset = -F.time * 8; g.lineWidth = 2.6; g.strokeStyle = 'rgba(255,236,170,' + a + ')'; g.stroke(); g.restore();
+      [f, t].forEach((q) => { g.beginPath(); circ(g, q[0], q[1], 3.6); g.fillStyle = 'rgba(255,236,170,' + a + ')'; g.fill(); });
+    }
     // the shade: in screen space, parallax 0, so the moving lamp does not carry it. No rod, no keeper.
     let shadePose = null;
     if (hv.shade > 0.01) {
       F.mode = 'h'; const r = 0.26; sgx.setTransform(1, 0, 0, 1, 0, 0); sgx.clearRect(0, 0, sg.width, sg.height); sgx.setTransform(r, 0, 0, r, 0, 0);
       shadeFigure(sgx, 's', hv);
       g.save(); g.globalAlpha = 0.55 * hv.shade; g.drawImage(sg, 0, 0, W * r, H * r, 0, 0, W, H); g.restore();
-      g.save(); g.globalAlpha = 0.72 * hv.shade; shadePose = shadeFigure(g, 'h', hv); g.restore();
+      shcx.setTransform(1, 0, 0, 1, 0, 0); shcx.clearRect(0, 0, W, H); shadePose = shadeFigure(shcx, 'h', hv);
+      g.save(); g.globalAlpha = 0.78 * hv.shade; g.drawImage(shc, 0, 0); g.restore();
       const lan = shadePose.lantern; if (lan) { glow(g, lan[0], lan[1], 170 * hv.shade, 0.7 * hv.shade); glow(g, lan[0], lan[1] + 70, 160 * hv.shade, 0.22 * hv.shade); }
       F.mode = 'm';
     }
+    drapes(g, S);
     // bloom and vignette
     glow(g, F.LX, 330, 520, 0.06, '255,236,190');
     const vg = g.createRadialGradient(640, 320, 220, 640, 320, 760); vg.addColorStop(0, 'rgba(40,12,0,0)'); vg.addColorStop(1, 'rgba(40,12,0,0.5)');
@@ -406,6 +505,10 @@ const V5Paint = (function () {
       }
       if (id === 'K' && hv.shade > 0.5) tip = [park[0] + 26 * hv.tug - 14, PARK_Y - 40 * Math.abs(hv.tug)]; // the empty keeper rod is pulled from the scrim
       out[id] = tip;
+      if (id === 'K' && hv.shade > 0.5) { // the cord from the pulled rod to a shade that does not answer it
+        g.save(); g.lineCap = 'round'; g.setLineDash([1.5, 6]); g.lineWidth = 3; g.strokeStyle = 'rgba(255,226,150,' + (0.85 * Math.min(1, (hv.shade - 0.5) * 2)) + ')';
+        g.lineDashOffset = -F.time * 6 * (hv.tug > 0 ? 1 : 0); g.beginPath(); g.moveTo(tip[0], tip[1]); g.lineTo(600, 552 - 108); g.stroke(); g.restore();
+      }
       rodLine(g, sx, 706, tip[0], tip[1], 3.6);
       g.beginPath(); g.arc(sx, 706, 8, 0, TAU); g.fillStyle = '#5a3016'; g.fill(); g.strokeStyle = '#1a0b05'; g.lineWidth = 1.5; g.stroke();
       g.beginPath(); g.arc(tip[0], tip[1], 3.4, 0, TAU); g.fillStyle = '#2a1208'; g.fill();
@@ -413,5 +516,5 @@ const V5Paint = (function () {
     F.rodTips = out;
   }
 
-  return { W, H, WIN, mk, draw, rodTips: () => (F && F.rodTips) || null };
+  return { W, H, WIN, mk, draw, rodTips: () => (F && F.rodTips) || null, tether: () => (F && F.tether) || null };
 })();

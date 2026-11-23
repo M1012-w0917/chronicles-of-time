@@ -85,7 +85,9 @@
     m.press = function () { if (m.state === 'OLD') m.state = 'WRITING'; };
     m.release = function () { if (m.state === 'WRITING') m.state = 'OLD'; };
     m.revert = function () {
-      if (m.state === 'NEW' || m.state === 'HAUNT' || (m.state === 'RECONSTRUCTING' && m.t > 0)) { m.state = 'REVERTING'; m.haunt = 0; m.hT = 0; }
+      if (m.state === 'NEW' || m.state === 'HAUNT' || m.state === 'RECONSTRUCTING') { // also at t = 0: a Z pressed the instant the pen lands still takes it back
+        m.state = 'REVERTING'; m.haunt = 0; m.hT = 0;
+      }
     };
     m.setCompare = function (b) { m.compare = !!b; };
     m.setProgress = function (v) {

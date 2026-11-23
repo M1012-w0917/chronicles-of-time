@@ -36,9 +36,37 @@ assert.equal(old0.metrics.bricksGone, 0); assert.equal(old0.metrics.boardsAway, 
 assert.equal(await pg.evaluate(() => document.querySelectorAll('canvas#stage').length), 1); assert.equal(await pg.evaluate(() => document.getElementById('note').hidden), true);
 const fOld = await FP(pg); ok('initial: one stage canvas, gate intact, three lamps lit, keeper alive, no haunt note');
 
+// 1b CJK fallback surtitle: detection, forced modes, the 24 authored glyphs, real pixels on the surtitle canvas
+const surInk = (p) => p.evaluate(() => { const c = document.getElementById('sur'), d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let n = 0; for (let i = 0; i < d.length; i += 4) if (d[i] > 200 && d[i + 1] > 170 && d[i + 3] > 200) n++; return n; });
+{ const cj = await pg.evaluate(() => ({ chars: V5Cjk.chars, n: Object.keys(V5Cjk.glyphs).length }));
+  assert.equal(cj.n, 24); for (const ch of '改写前落笔重构中新世界因果反常对照旧撤回守门人影') assert.ok(cj.chars.includes(ch), 'glyph ' + ch);
+  const s0 = (await S(pg)).sur; assert.equal(s0.zh, '改写前'); assert.equal(s0.en, 'Before the rewrite');
+  assert.equal(s0.mode, s0.cjkFont ? 'font' : 'strokes', 'auto mode follows detection');
+  const forced = await open(BASE + '?fresh=1&cjk=strokes', ctx); assert.equal((await S(forced)).sur.mode, 'strokes'); const inkS = await surInk(forced);
+  const ff2 = await open(BASE + '?fresh=1&cjk=font', ctx); assert.equal((await S(ff2)).sur.mode, 'font'); const inkF = await surInk(ff2);
+  assert.ok(inkS > 600, 'stroke glyphs put ink on the surtitle: ' + inkS);
+  if (!s0.cjkFont) assert.ok(inkS > inkF + 400, 'without a CJK font the stroke glyphs add the Chinese the font cannot draw: ' + inkS + ' vs ' + inkF);
+  await forced.close(); await ff2.close();
+  ok('surtitle: CJK font detected = ' + s0.cjkFont + ', mode ' + s0.mode + '; 24 authored glyphs; ?cjk=strokes draws ' + inkS + ' bright glyph px vs ' + inkF + ' with the font path'); }
+
+// 1c raised book and the tether that shows how the keeper's shade should follow him
+{ const s1 = await S(pg); const bk = s1.bookBox, st = s1.stageBox;
+  assert.ok(bk.h >= 200 && bk.w >= 900, 'book is large: ' + JSON.stringify(bk)); assert.ok(bk.y - (st.y + st.h) < 30, 'book sits right under the stage: ' + (bk.y - st.y - st.h).toFixed(0) + ' px');
+  ok('book raised and enlarged: ' + bk.w.toFixed(0) + 'x' + bk.h.toFixed(0) + ' px at y ' + bk.y.toFixed(0) + ' (stage ends at ' + (st.y + st.h).toFixed(0) + ')'); }
+{ const a = await S(pg); assert.ok(a.tether && a.tether.a > 0.9 && a.tether.from && a.tether.to, 'tether visible in the old world');
+  await pg.waitForTimeout(1500); const b2 = await S(pg); const kMove = Math.hypot(b2.tether.from[0] - a.tether.from[0], b2.tether.from[1] - a.tether.from[1]), sMove = Math.hypot(b2.tether.to[0] - a.tether.to[0], b2.tether.to[1] - a.tether.to[1]);
+  assert.ok(kMove > 5 && sMove > 5, 'keeper walks and his shade follows: keeper ' + kMove.toFixed(0) + ' px, shade ' + sMove.toFixed(0) + ' px');
+  assert.ok(Math.abs((b2.tether.sx - b2.tether.kx) - b2.tether.off) < 1, 'shade sits at the lamp-driven offset');
+  ok('tether: keeper moved ' + kMove.toFixed(0) + ' px and his shade followed ' + sMove.toFixed(0) + ' px, cord drawn from his chest to the shade (offset ' + b2.tether.off.toFixed(0) + ' px from the lamp)'); }
+assert.equal((await S(pg)).dim, 0, 'no pen-down dim in OLD');
+
 // 2 pen down: the lamp swings first, pieces do not move yet; early release cancels
 await pg.keyboard.down('Space'); await pg.waitForTimeout(700);
-const wr = await S(pg); assert.equal(wr.state, 'WRITING'); assert.ok(wr.lightW > 0.1 && wr.lightX < 640 - 40, 'backlight swung with the ink: ' + wr.lightX);
+const wr = await S(pg);
+assert.equal(wr.sur.zh, '落笔'); assert.ok(wr.dim > 0.25, 'pen-down focus dims the stage: ' + wr.dim);
+assert.ok(wr.tether && wr.tether.off > 110, 'the lamp swing slides the shade further from the keeper: offset ' + (wr.tether && wr.tether.off.toFixed(0)));
+{ const qs = await pg.evaluate(() => { const r = document.getElementById('quill').getBoundingClientRect(); return { h: r.height, glow: getComputedStyle(document.getElementById('pool')).opacity }; }); assert.ok(qs.h > 150 && parseFloat(qs.glow) > 0.3, 'quill enlarged and lit: ' + JSON.stringify(qs)); }
+ok('pen-down focus: surtitle 落笔, stage dimmed to ' + wr.dim.toFixed(2) + ', lit pool on the book, enlarged quill, shade offset grows to ' + wr.tether.off.toFixed(0) + ' px with the lamp'); assert.equal(wr.state, 'WRITING'); assert.ok(wr.lightW > 0.1 && wr.lightX < 640 - 40, 'backlight swung with the ink: ' + wr.lightX);
 assert.equal(wr.metrics.bricksGone + wr.metrics.boardsAway, 0, 'shadows moved before any piece did'); assert.ok(wr.t === 0);
 await pg.keyboard.up('Space'); assert.equal((await S(pg)).state, 'OLD'); ok('pen down swings the backlight (shadows move first, pieces unchanged); early release cancels');
 await until(pg, () => window.__slice.getState().w === 0); const rel = await S(pg); assert.equal(rel.t, 0); assert.ok(Math.abs(rel.lightX - 640) < 6); ok('cancel returns the lamp and leaves the old world');
@@ -46,7 +74,7 @@ await until(pg, () => window.__slice.getState().w === 0); const rel = await S(pg
 // 3 continuous reconstruction on the same canvas
 await pg.evaluate(() => { document.getElementById('stage').dataset.same = 'yes'; window.__slice.resetFrameStats(); });
 await pg.keyboard.down('Space'); await until(pg, () => window.__slice.getState().state === 'RECONSTRUCTING'); await pg.keyboard.up('Space');
-const run = await sampleUntil(pg, () => window.__slice.getState().state === 'NEW', 30000, 250);
+const run = await sampleUntil(pg, () => window.__slice.getState().state === 'NEW', 30000, 170);
 assert.ok(run.length >= 28, 'sampled frames: ' + run.length);
 for (let i = 1; i < run.length; i++) assert.ok(run[i].t >= run[i - 1].t, 't never goes back');
 const steps = run.slice(1).map((r, i) => dist(run[i].fp, r.fp)); const total = steps.reduce((a, v) => a + v, 0);
@@ -69,6 +97,7 @@ assert.ok(fr.frameMs.avg < 40, 'render avg under 40 ms in software rendering');
 // 4 dwell, persistence, compare, revert
 let s = await S(pg); assert.equal(s.state, 'NEW'); const fNew = await FP(pg);
 assert.equal(s.metrics.keeperAlive, false); assert.ok(s.metrics.bricksGone > 0.99 && s.metrics.treeGrow > 0.99 && s.metrics.roadOpen > 0.99);
+assert.ok(run.some((r) => r.s.sur.zh === '重构中'), 'surtitle 重构中 during the rewrite'); assert.equal(s.sur.zh, '新世界'); assert.equal(s.dim, 0, 'focus dim lifted');
 await pg.waitForTimeout(1500); s = await S(pg); assert.equal(s.state, 'NEW'); assert.equal(s.haunt, 0); assert.equal(s.shade, 0); ok('NEW world holds still for the dwell: no gate, keeper gone, trees and road, no shade yet');
 await pg.goto(BASE); await pg.waitForFunction(() => window.__slice && ['NEW', 'HAUNT'].includes(window.__slice.getState().state), null, { timeout: 30000 }); ok('new reality persists across reload');
 await pg.focus('#revertBtn'); await pg.evaluate(() => { window.__w = 0; const o = Storage.prototype.setItem; Storage.prototype.setItem = function (...a) { window.__w++; return o.apply(this, a); }; });
@@ -76,11 +105,13 @@ await pg.waitForTimeout(800); assert.equal(await pg.evaluate(() => window.__w), 
 await pg.keyboard.down('c'); await until(pg, () => window.__slice.getState().c === 1); ok('hotkeys work while a button has focus; persistence writes only on state change');
 { const fc = await FP(pg); assert.ok(dist(fOld, fc) < dist(fNew, fc) * 0.5, 'compare looks like the old stage'); const cs = await S(pg); assert.equal(cs.t, 1); assert.ok(cs.td < 0.05); }
 assert.equal(await pg.getAttribute('#compareBtn', 'aria-pressed'), 'true');
+assert.equal((await S(pg)).sur.zh, '对照旧世界', 'surtitle while comparing');
 await pg.keyboard.up('c'); await until(pg, () => window.__slice.getState().c === 0); ok('hold C compares (old stage returns), release returns to the new world');
-await pg.keyboard.press('z'); await pg.waitForTimeout(300); assert.equal((await S(pg)).state, 'REVERTING'); assert.equal((await S(pg)).persisted, null, 'mid-revert reload would not restore the new world');
+await pg.keyboard.press('z'); await pg.waitForTimeout(300); assert.equal((await S(pg)).state, 'REVERTING'); assert.equal((await S(pg)).sur.zh, '撤回'); assert.equal((await S(pg)).persisted, null, 'mid-revert reload would not restore the new world');
 const back2 = await sampleUntil(pg, () => window.__slice.getState().state === 'OLD', 20000, 300); assert.ok(back2.length >= 8);
 for (let i = 1; i < back2.length; i++) assert.ok(back2[i].t <= back2[i - 1].t + 1e-9);
-await pg.waitForTimeout(500); { const fr2 = await FP(pg), s2 = await S(pg); assert.ok(dist(fOld, fr2) < dist(fNew, fr2) * 0.7, 'old stage restored (ambient keeper differs): ' + dist(fOld, fr2).toFixed(1) + ' vs new ' + dist(fNew, fr2).toFixed(1)); assert.equal(s2.metrics.bricksGone, 0); assert.equal(s2.metrics.keeperAlive, true); } assert.equal((await S(pg)).persisted, null); ok('revert runs the stage backwards to the old gate and clears persistence');
+await pg.waitForTimeout(500); { const fr2 = await FP(pg), s2 = await S(pg); const top = (f) => f.slice(0, 32 * 9); // rows above the keeper band: the walking keeper, his trailing shade and the tether cord are ambient and time-dependent
+  assert.ok(dist(top(fOld), top(fr2)) < dist(top(fNew), top(fr2)) * 0.5, 'old stage restored (upper half, keeper band excluded): ' + dist(top(fOld), top(fr2)).toFixed(1) + ' vs new ' + dist(top(fNew), top(fr2)).toFixed(1)); assert.equal(s2.metrics.bricksGone, 0); assert.equal(s2.metrics.keeperAlive, true); } assert.equal((await S(pg)).persisted, null); ok('revert runs the stage backwards to the old gate and clears persistence');
 
 const fps = await pg.evaluate(() => new Promise((res) => { let k = 0; const t0 = performance.now(); (function f() { if (++k < 60) requestAnimationFrame(f); else res(60000 / (performance.now() - t0)); })(); }));
 ok('browser frame rate sample: ' + fps.toFixed(1) + ' fps (headless, software raster)');
@@ -108,6 +139,7 @@ assert.ok(Math.abs(cropShade0 - cropClean) > 8, 'shade changes its region before
 assert.ok(Math.abs(cropShade1 - cropClean) > 8, 'shade still changes the same region after the lamp moved: ' + cropShade1.toFixed(1) + ' vs ' + cropClean.toFixed(1));
 assert.ok(Math.abs(cropShade1 - cropShade0) < 25, 'shade stays put while the light moves: ' + cropShade0.toFixed(1) + ' to ' + cropShade1.toFixed(1));
 { const hs = await S(pg); assert.ok(Math.abs(hs.w) <= 1); assert.equal(await pg.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--w').trim()), '0.0000', 'quill and hold bar reset in the haunt'); }
+assert.equal(h.tether, null, 'no keeper, no tether to the shade'); assert.equal(h.sur.zh, '因果反常 守门人 0 · 影 1');
 ok('haunt: keeper is gone from every rod and puppet, the lamp moves away, the lantern shade stays and its arm pulls the front rod (travel ' + moved.toFixed(0) + ' px)');
 await pg.keyboard.down('c'); await until(pg, () => window.__slice.getState().c === 1); assert.ok((await S(pg)).shade < 0.01); await pg.keyboard.up('c'); ok('the haunt hides while comparing');
 
