@@ -1,3 +1,9 @@
+# after-flow
+date: 2026-11-23T15:16:12Z
+node: v22.23.4
+commit: a09a11a
+command: node tests/flow-v2.mjs
+
 ok - Chinese copy and English captions present in DOM
 ok - CSS 3D DOM scene, no canvas
 ok - book parts present: spine, lip, page stack, fore-edge steps, stains, plate marks, candle pool, gutter, ribbon
@@ -17,3 +23,4 @@ ok - reduced-motion toggle works
 ok - no console errors over http
 ok - works from file://
 18 passed
+exit: 0

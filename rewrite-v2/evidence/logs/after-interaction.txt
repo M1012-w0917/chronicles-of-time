@@ -1,0 +1,21 @@
+# after-interaction
+date: 2026-11-23T15:15:13Z
+node: v22.23.4
+commit: a09a11a
+command: node tests/interaction-v2.mjs
+
+ok - 1 before rewrite: old city, 58 buildings (0.3s)
+ok - 2 pen down, early release cancels, world unchanged (1.0s)
+ok - 3 hold full: mid-rewrite, 18 buildings left, 6 footprints (7.4s)
+ok - 4 undo mid-rewrite returns to the old city (9.6s)
+ok - 5 chained rewrite #2 started with Enter (11.1s)
+ok - 6 new world reached: 58 footprints, 32 folds (20.2s)
+ok - 7 dwell then haunt: hero turned to camera, margin note shown (29.1s)
+ok - 8 compare shows old, release returns to new (29.5s)
+ok - 9 undo from new world returns to old (33.8s)
+ok - 10 chained rewrite #3 completes (44.3s)
+ok - 11 Tab reaches pen, undo, compare, scrub, reduce controls: penBtn > undoBtn > compareBtn > scrub > reduceBtn >  > penBtn (44.4s)
+ok - 12 reduced motion: only keyframes 0/0.5/1, same new world (52.0s)
+ok - 13 no console errors (52.0s)
+13 passed
+exit: 0
