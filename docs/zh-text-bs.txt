@@ -1,0 +1,34 @@
+Chinese text present in the DOM (exact strings and code points).
+Glyph rendering is NOT verified: the capture machine has no CJK font, so these render as gaps in the screenshots and the video.
+
+#factOld
+  text: 城门每日黄昏关闭,守门人点亮三盏灯。
+  CJK characters: 17
+  code points: U+57CE U+95E8 U+6BCF U+65E5 U+9EC4 U+660F U+5173 U+95ED U+5B88 U+95E8 U+4EBA U+70B9 U+4EAE U+4E09 U+76CF U+706F U+3002
+  font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", STSong, SimSun, "Noto Sans CJK SC", "PingFang SC", "Microsoft YaHei", serif
+
+#factNew
+  text: 这座城从来没有城门,黄昏也没有守门人。
+  CJK characters: 18
+  code points: U+8FD9 U+5EA7 U+57CE U+4ECE U+6765 U+6CA1 U+6709 U+57CE U+95E8 U+9EC4 U+660F U+4E5F U+6CA1 U+6709 U+5B88 U+95E8 U+4EBA U+3002
+  font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", STSong, SimSun, "Noto Sans CJK SC", "PingFang SC", "Microsoft YaHei", serif
+
+#title
+  text: 城门志 Annals of the Gate
+  CJK characters: 3
+  code points: U+57CE U+95E8 U+5FD7
+  font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", STSong, SimSun, "Noto Sans CJK SC", "PingFang SC", "Microsoft YaHei", serif
+
+#note
+  text: 守门人名册 0 · 纸背的影 1 Gatekeepers on the roll 0, shades on the back of the leaf 1
+  CJK characters: 9
+  code points: U+5B88 U+95E8 U+4EBA U+540D U+518C U+7EB8 U+80CC U+7684 U+5F71
+  font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", STSong, SimSun, "Noto Sans CJK SC", "PingFang SC", "Microsoft YaHei", serif
+
+#anomNote
+  text: 影子答错了方向 The shade answers the wrong way
+  CJK characters: 7
+  code points: U+5F71 U+5B50 U+7B54 U+9519 U+4E86 U+65B9 U+5411
+  font-family: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", STSong, SimSun, "Noto Sans CJK SC", "PingFang SC", "Microsoft YaHei", serif
+
+Canvas spine title: 城门志 is drawn with fillText in paint.js (same font stack).

@@ -1,0 +1,128 @@
+--- 1 before
+PASS before: OLD, world dark
+PASS DOM old text exact
+PASS DOM new text exact
+PASS old text visible, new hidden
+PASS CJK font stack and lang zh-CN
+--- 2 hold to write, early release cancels
+PASS holding 0.5 s: WRITING partway
+PASS candle brightens while writing
+PASS early release cancels back to OLD
+PASS text unchanged after cancel
+--- 3 full hold, continuous reconstruction in the same camera
+PASS progress t never goes backwards during reconstruction
+PASS many intermediate frames sampled
+PASS continuity: no cut between consecutive frames (mean luma delta)
+PASS start and end fingerprints differ
+PASS reaches new world
+PASS text swapped to new fact in the same place
+PASS new world persisted
+--- 4 dwell in the new world
+PASS stays in new world, no auto revert
+PASS dwell: image is stable (only candle flicker)
+PASS English caption for new fact visible
+PASS still in the new world 7+ s after it finished (no auto shade)
+PASS accessible name of the fact line is the current (new) sentence
+PASS Look at the back button enabled in NEW
+--- 5 haunt on the back of the paper
+PASS HAUNT with roll note visible
+PASS note text: roll 0, shade 1
+PASS anomaly: none before the candle has moved
+PASS anomaly: a short candle move (140 px) does not trigger it
+PASS anomaly 1: a long candle move makes the shade answer the wrong way, caption shown
+PASS anomaly: candle is on the left yet the cast and the lean go right (reverse response)
+PASS anomaly caption in Chinese and English
+PASS anomaly announced in the status region
+PASS anomaly 2: settles, caption gone
+PASS shade casts toward the candle on both sides (anomalous: real shadows fall away)
+PASS cast offset follows light direction
+PASS shade leans toward the light
+PASS shade stays pinned on the paper while light moves
+PASS the anomaly happens once per haunt session, later moves follow the normal rule
+PASS turn page enabled in HAUNT
+PASS page turn: leaf lifts and shade raises its lantern
+PASS shade does not move with the turning leaf
+PASS page turn: the outline emerging from the leaf back has the same height and position as the shade
+PASS page turn: the emerging outline is the same silhouette mirrored across the spine
+PASS page turn completes (turns=1)
+PASS shade remains in place after the page turn
+--- 6 compare (hold C) and revert (Z)
+PASS compare in HAUNT hides the roll note (no contradiction with the old keeper)
+PASS compare in HAUNT removes the shade from the image
+PASS note returns after releasing C
+PASS C shows the old world in the same camera
+PASS old text shown while comparing
+PASS compare image differs from new world
+PASS release C returns to new world
+PASS Z reverts to OLD, haunt cleared, persistence cleared
+PASS reverted image matches the original first screen
+--- 6b idle timer, pointer capture, readability, narrow viewport
+PASS moving the candle keeps the new world (idle timer reset)
+PASS reduced motion also waits (no 1.2 s auto shade)
+PASS dragging off the line during the hold keeps writing (pointer capture)
+PASS font floor: #meta is 12.0px at 1280 wide
+PASS font floor: #cap is 12.0px at 1280 wide
+PASS font floor: #note is 13.8px at 1280 wide
+PASS font floor: #cmpTag is 14.4px at 1280 wide
+PASS font floor: #fact is 19.5px at 1280 wide
+PASS font floor: #cap is 12.0px at 640 wide
+PASS font floor: #cmpTag is 12.0px at 640 wide
+PASS font floor: #fact is 14.0px at 640 wide
+--- 6c layout zones at four sizes, with real CJK widths simulated
+PASS 1600x900: no horizontal scroll
+PASS 1600x900: every overlay, hint and control row is inside the viewport
+PASS 1600x900: fact line, hold bar, caption, notes, hint and controls do not overlap each other
+PASS 1600x900: 19 CJK characters at 25.0px wrap inside the fact box
+PASS 1600x900: fact font floor
+PASS 1600x900: no text overlay enters the gate/keeper zone or the shade zone
+PASS 1280x720: no horizontal scroll
+PASS 1280x720: every overlay, hint and control row is inside the viewport
+PASS 1280x720: fact line, hold bar, caption, notes, hint and controls do not overlap each other
+PASS 1280x720: 19 CJK characters at 19.5px wrap inside the fact box
+PASS 1280x720: fact font floor
+PASS 1280x720: no text overlay enters the gate/keeper zone or the shade zone
+PASS 640x360: no horizontal scroll
+PASS 640x360: every overlay, hint and control row is inside the viewport
+PASS 640x360: fact line, hold bar, caption, notes, hint and controls do not overlap each other
+PASS 640x360: 19 CJK characters at 14.0px wrap inside the fact box
+PASS 640x360: fact font floor
+PASS 640x360: stacked, book canvas above, fact line below it, caption below the fact line
+PASS 390x844: no horizontal scroll
+PASS 390x844: every overlay, hint and control row is inside the viewport
+PASS 390x844: fact line, hold bar, caption, notes, hint and controls do not overlap each other
+PASS 390x844: 19 CJK characters at 14.0px wrap inside the fact box
+PASS 390x844: fact font floor
+PASS 390x844: stacked, book canvas above, fact line below it, caption below the fact line
+PASS 390: hint and controls fully inside the viewport vertically
+MEASURE 390x844 {"fact":{"l":12,"t":298.5,"r":378,"b":332.09375},"factOldScrollW":366,"factNewScrollW":366,"factBoxW":366,"cap":{"l":12,"t":344.09375,"r":378,"b":377.6875},"hint":{"l":10,"t":448.078125,"r":380,"b":502.640625},"controls":{"l":10,"t":510.640625,"r":380,"b":642.640625},"docScrollWidth":390}
+PASS 390: holding the fact line writes
+--- 6d pierced holes, page-curl warp, gather trail, reduced anomaly
+PASS pierced hole passes more light than the leather body (pixel probe)
+PASS warp: paper squeezes horizontally at the spine compared with mid page
+PASS warp: candle spot mid page is not squeezed
+PASS warp: candle spot on the spine is squeezed to under 80% width
+PASS gather trail visible at t 0.3, 0.6, 0.8
+PASS gather trail fades by t=1
+PASS gathering shows as continuous change between t=0.3 and 0.6
+PASS reduced motion: anomaly is one static reversed cast with the caption, no lean
+PASS reduced anomaly is frozen (no movement)
+PASS a held arrow key (auto-repeat) moves the candle far but does not arm the anomaly
+PASS one deliberate key press (90 px, plus the first press) is below the threshold
+PASS three deliberate key presses reach the threshold and arm the anomaly
+--- 7 keyboard path
+PASS keyboard Space early release cancels
+PASS keyboard Enter hold writes
+PASS arrow keys move the candle
+PASS keyboard Z reverts
+PASS buttons are focusable
+--- 8 reduced motion
+PASS reduced=1 honoured
+PASS reduced: frozen mid-state has no sway or flicker
+PASS reduced: shade does not lean
+PASS prefers-reduced-motion media query turns reduced on
+PASS reduced reconstruction completes quickly (crossfade)
+--- 9 runtime
+PASS average render time per frame under 40 ms
+PASS no console or page errors
+
+RESULT 113 passed, 0 failed

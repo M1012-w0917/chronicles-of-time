@@ -1,0 +1,55 @@
+:root { --cjk: "Noto Serif CJK SC","Source Han Serif SC","Songti SC","STSong","SimSun","Noto Sans CJK SC","PingFang SC","Microsoft YaHei",serif; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: #0d0907; color: #efe3c4; font-family: var(--cjk); }
+#room { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+#bookWrap { position: relative; width: min(100vw, calc((100vh - 74px) * 16 / 9)); aspect-ratio: 16 / 9; container-type: inline-size; }
+#stage { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.ov { position: absolute; margin: 0; color: #2a1c14; }
+.ov i, #bar i { font-style: italic; font-family: Georgia, "Times New Roman", serif; }
+/* Zones on the 1280x720 page. Puppet stage: x 520-800, y 150-470 (gate, keeper) and the shade zone x 200-500, y 380-520.
+   The left page keeps title, note and anomaly caption above the shade and the intro below it; the right page keeps the fact line, hold bar and caption in a strip under the stage. */
+#title { left: 14%; top: 14.2%; width: 33%; font-size: max(14px, 2.7cqw); font-weight: 600; letter-spacing: .12em; text-shadow: 0 1px 0 rgba(255,246,220,.6); }
+#title small { font-size: max(13px, 1.3cqw); letter-spacing: 0; font-family: Georgia, serif; font-style: italic; }
+#note { left: 14%; top: 21.5%; width: 26%; font-size: max(12px, 1.2cqw); line-height: 1.4; color: #1c2438; font-weight: 600; }
+#anomNote { left: 14%; top: 34.5%; width: 26%; font-size: max(12px, 1.2cqw); line-height: 1.4; color: #8a3a1a; font-weight: 600; }
+#note[hidden], #anomNote[hidden] { display: none; }
+#meta { left: 14%; top: 73.4%; width: 33.5%; font-size: max(12px, 1.02cqw); line-height: 1.5; }
+#fact { left: 52%; top: 69%; width: 37.6%; height: 9%; font-size: max(12px, 1.7cqw); cursor: pointer; outline: none; touch-action: none; user-select: none; }
+#fact:focus-visible { outline: 2px solid #8a3a1a; outline-offset: 4px; }
+#fact span { position: absolute; left: 0; top: 0; right: 0; line-height: 1.45; letter-spacing: .04em; white-space: normal; overflow-wrap: anywhere; transition: none; }
+#holdBar { left: 52%; top: 78.4%; width: 37.6%; height: .5cqw; min-height: 3px; background: rgba(42,28,20,.18); border-radius: 3px; overflow: hidden; }
+#holdFill { display: block; height: 100%; width: calc(var(--w, 0) * 100%); background: #8a3a1a; }
+#cap { left: 52%; top: 79.6%; width: 37.6%; height: 6%; font-size: max(12px, 1.0cqw); line-height: 1.4; font-family: Georgia, serif; font-style: italic; }
+#cap span { position: absolute; left: 0; top: 0; right: 0; }
+#cmpTag { right: 7%; top: 8.4%; padding: .3cqw 1cqw; background: rgba(42,28,20,.82); color: #f3e5bd; font-size: max(12px, 1.25cqw); border-radius: 3px; opacity: 0; transition: opacity .2s; }
+body[data-compare="true"] #cmpTag { opacity: 1; }
+#bar { width: min(100vw, calc((100vh - 74px) * 16 / 9)); padding: 8px 10px 6px; font-size: 13px; }
+#hint { margin: 0 0 8px; color: #cdbb8d; line-height: 1.4; }
+#controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+button { font: inherit; padding: 5px 10px; background: #3a2616; color: #f3e5bd; border: 1px solid #8a6a3a; border-radius: 4px; cursor: pointer; }
+button:hover:not(:disabled) { background: #52351e; }
+button:focus-visible { outline: 2px solid #e6a93c; outline-offset: 2px; }
+button[aria-pressed="true"] { background: #8a3a1a; }
+button:disabled { opacity: .45; cursor: default; }
+.tag { margin-left: auto; color: #cdbb8d; }
+@media (prefers-reduced-motion: reduce) { #cmpTag { transition: none; } }
+#sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@container (max-width: 760px) { #meta { display: none; } }
+/* Narrow screens: the book stays on top, the fact line, hold bar, captions and notes stack below it, outside the puppet stage. */
+@media (max-width: 700px) {
+  #room { justify-content: flex-start; }
+  #bookWrap { width: 100%; aspect-ratio: auto; display: flex; flex-direction: column; container-type: normal; }
+  #stage { position: relative; inset: auto; height: auto; aspect-ratio: 4 / 3; object-fit: cover; object-position: 50% 50%; } /* crop the side margins (x 160-1120 stays) so the puppets are a third larger */
+  #title, #meta { display: none; }
+  #fact, #holdBar, #cap, #note, #anomNote { position: relative; left: auto; top: auto; width: auto; margin: 6px 12px 0; }
+  #fact { height: auto; font-size: 14px; color: #efe3c4; padding: 4px 0; display: grid; }
+  #fact span { position: static; grid-area: 1 / 1; color: #efe3c4; }
+  #holdBar { height: 4px; margin-top: 2px; background: rgba(239,227,196,.2); }
+  #cap { height: auto; display: grid; font-size: 12px; color: #cdbb8d; }
+  #cap span { position: static; grid-area: 1 / 1; }
+  #note { font-size: 12px; color: #b9c4e8; }
+  #anomNote { font-size: 12px; color: #f0a070; }
+  #cmpTag { top: 2%; right: 2%; font-size: 12px; }
+  #bar { width: 100%; }
+  .tag { margin-left: 0; }
+}
