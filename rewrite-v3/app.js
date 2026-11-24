@@ -285,7 +285,8 @@
       tx = cr.left + (s.x / strike.width) * cr.width; ty = cr.top + (s.y / strike.height) * cr.height; ta = 16;
     } else if (!m.reduced && (m.state === 'REWRITING' || m.state === 'UNDOING') && lastStamp && now - lastStampAt < 1500) {
       const [sx, sy] = toScreen(lastStamp.x, lastStamp.y, offs[lastStamp.p]); tx = sx; ty = sy; ta = 24 + Math.sin(now / 90) * 4;
-    } else if (m.state === 'REWRITING' || m.state === 'NEW') { tx = cr.left + cr.width * 0.4; ty = cr.bottom + 52; ta = 28; }
+    } else if (m.state === 'REWRITING' || (m.state === 'NEW' && hv.margin < 0.05)) { // once the margin note appears the brush rests in the corner, off the note
+      tx = cr.left + cr.width * 0.4; ty = cr.bottom + 52; ta = 28; }
     const k = frozen ? 1 : 1 - Math.exp(-dt / 120);
     bx += (tx - bx) * k; by += (ty - by) * k; bang += (ta - bang) * k;
     brush.style.transform = 'translate(' + bx.toFixed(1) + 'px,' + by.toFixed(1) + 'px) rotate(' + bang.toFixed(1) + 'deg) translate(-50%,-100%)';
