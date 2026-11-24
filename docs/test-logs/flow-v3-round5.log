@@ -1,0 +1,25 @@
+# flow-v3 | 2026-11-24T00:20:10Z | HEAD 727eb0e445ebc16413da4d7b87ea0860d1e9bbb7 | status: 17 entries (0 changed code/test files)
+ok - Chinese copy and English captions present
+ok - old city on one canvas, nothing of the new world painted yet
+ok - early release cancels
+ok - rewrite repaints the same canvas progressively (stroke count rises, planes mix old and new)
+ok - Z undoes back to the old city
+ok - new world: every plane repainted
+ok - new world persists across reload
+ok - pointer parallax: planes shift by depth
+ok - the old painting is nearly flat, the new one has depth
+ok - figure stands at the vanished gate, on the same parallax plane as its bank
+ok - the old gate roofs, doorway and wall rhythm are cut back to paper along the road
+ok - status line ties the figure to the rewritten gate
+ok - figure turns to face you, seal lands, margin note appears only after the rewrite
+# compare fingerprint distance: to old 4.91, to new 28.34
+ok - hold C compares, release returns
+ok - no cut path in the old world
+ok - folded page: frame, crease, fore-edge, fish-tails and margin are on screen
+ok - title label, slip and dock stay on screen at 1600x900, 1920x1080, 1280x720
+ok - reduced motion: held keyframes 0 / 0.5 / 1 only, crossfaded
+ok - reduced motion reaches the same new world, no parallax
+ok - reduced-motion toggle works
+ok - no console errors over http
+ok - works from file://
+22 passed

@@ -1,5 +1,5 @@
-date: 2026-11-23T14:47:34Z
-HEAD at run time: 6765afaf5534526fd67bedd6890ac32f914da22c (uncommitted working tree changes included)
+date: 2026-11-23T15:25:48Z
+HEAD at run time: 2b56610f05b645eb36b54f9f6690acc3f3696fc0 (DIRTY working tree)
 v3-01-initial
 v3-02-penDown
 v3-03-mid
@@ -8,9 +8,10 @@ v3-05-haunt
 v3-06-reduced
 v3d-before-after
 shot v3d-01-before {"state":"OLD","t":0,"w":0,"c":0,"haunt":0,"figurePos":{"x":580,"y":656},"vanished":{"x":580,"y":656}}
-shot v3d-02-hold {"state":"WRITING","t":0,"w":0.38,"c":0,"haunt":0,"figurePos":{"x":580,"y":656},"vanished":{"x":580,"y":656}}
+shot v3d-02-hold {"state":"WRITING","t":0,"w":0.4,"c":0,"haunt":0,"figurePos":{"x":580,"y":656},"vanished":{"x":580,"y":656}}
 shot v3d-03-rebuild {"state":"REWRITING","t":0.52,"w":1,"c":0,"haunt":0,"figurePos":{"x":580,"y":656},"vanished":{"x":580,"y":656}}
-shot v3d-04-new-dwell {"state":"NEW","t":1,"w":1,"c":0,"haunt":0.03,"figurePos":{"x":580.1149077331572,"y":656},"vanished":{"x":580,"y":656}}
+shot v3d-04-new-dwell {"state":"NEW","t":1,"w":1,"c":0,"haunt":0.03,"figurePos":{"x":580.1062242917501,"y":656},"vanished":{"x":580,"y":656}}
 shot v3d-05-haunt {"state":"NEW","t":1,"w":1,"c":0,"haunt":1,"figurePos":{"x":616,"y":656},"vanished":{"x":580,"y":656}}
 shot v3d-06-compare {"state":"NEW","t":1,"w":1,"c":1,"haunt":1,"figurePos":{"x":616,"y":656},"vanished":{"x":580,"y":656}}
 shot v3d-07-undo {"state":"OLD","t":0,"w":0,"c":0,"haunt":0,"figurePos":{"x":580,"y":656},"vanished":{"x":580,"y":656}}
+exit 0
