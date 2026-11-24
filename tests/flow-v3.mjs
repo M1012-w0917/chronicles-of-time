@@ -19,6 +19,8 @@ const diff = (a, c) => a.reduce((s, v, i) => s + Math.abs(v - c[i]), 0) / a.leng
 const until = (pg, fn, ms = 60000) => pg.waitForFunction(fn, null, { timeout: ms });
 const ctx = await b.newContext({ viewport: { width: 1600, height: 900 } });
 let pg = await open(BASE, ctx);
+const holdMist = (p) => p.evaluate(() => window.__slice.holdMist(true)); // mist drifts with the clock; pin it so fingerprints from different moments are comparable
+await holdMist(pg); await pg.waitForTimeout(100);
 
 const text = await pg.evaluate(() => document.body.textContent);
 for (const s of ['灰堡市建于永昌四十二年。', '灰堡市从未建立。', '他记得永昌四十二年。', 'City of Ashmere founded in year 42.', 'City of Ashmere was never founded.']) assert.ok(text.includes(s), 'missing ' + s);
@@ -46,7 +48,7 @@ await pg.evaluate(() => window.__slice.setProgress(1)); await pg.waitForTimeout(
 const nw = await S(pg), fNew = await FP(pg);
 assert.deepEqual(nw.planes, ['new', 'new', 'new', 'new', 'new']); assert.equal(nw.painted, nw.totalStamps); assert.ok(diff(fOld, fNew) > 8, 'looks different');
 ok('new world: every plane repainted');
-await pg.reload(); await pg.waitForFunction(() => window.__slice && window.__slice.getState().state === 'NEW', null, { timeout: 30000 }); ok('new world persists across reload');
+await pg.reload(); await pg.waitForFunction(() => window.__slice && window.__slice.getState().state === 'NEW', null, { timeout: 30000 }); await holdMist(pg); ok('new world persists across reload');
 
 // depth: parallax is stronger in the new world, and follows the pointer
 await pg.mouse.move(100, 450); await pg.waitForTimeout(1500); const a = await S(pg);
@@ -64,11 +66,22 @@ assert.equal((await S(pg)).heroHeading, 180); assert.equal(await pg.evaluate(() 
 await until(pg, () => window.__slice.getState().haunt > 0.97);
 const h = await S(pg); assert.ok(h.heroHeading < 8 && h.seal > 0.9 && h.figure > 0.9, JSON.stringify(h));
 assert.ok(Math.hypot(h.figurePos.x - h.vanished.x, h.figurePos.y - h.vanished.y) <= 40, JSON.stringify(h)); assert.equal(h.figurePlane, 3); ok('figure stands at the vanished gate, on the same parallax plane as its bank');
+assert.ok(h.pathCut > 0.9 && h.cutShapes.roofs === 2 && h.cutShapes.arch === 1 && h.cutShapes.crenels > 12, JSON.stringify([h.pathCut, h.cutShapes])); ok('the old gate roofs, doorway and wall rhythm are cut back to paper along the road');
+assert.match(await pg.textContent('#status'), /gate that stood here was struck from the record/); ok('status line ties the figure to the rewritten gate');
 assert.equal(await pg.evaluate(() => document.getElementById('dock').dataset.echo), 'true'); ok('figure turns to face you, seal lands, margin note appears only after the rewrite');
 
 await pg.keyboard.down('c'); await until(pg, () => window.__slice.getState().c === 1);
-{ const fc = await FP(pg); const st = await S(pg); assert.ok(diff(fOld, fc) < diff(fNew, fc) * 0.5 && st.figure < 0.05, 'compare looks like the old city: ' + JSON.stringify({ dOld: diff(fOld, fc), dNew: diff(fNew, fc), fOld, fNew, fc, st })); } assert.equal(await pg.getAttribute('#compareBtn', 'aria-pressed'), 'true');
+{ const fc = await FP(pg); const st = await S(pg); console.log('# compare fingerprint distance: to old ' + diff(fOld, fc).toFixed(2) + ', to new ' + diff(fNew, fc).toFixed(2)); assert.ok(diff(fOld, fc) < diff(fNew, fc) * 0.5 && st.figure < 0.05 && st.pathCut < 0.05, 'compare looks like the old city: ' + JSON.stringify({ dOld: diff(fOld, fc), dNew: diff(fNew, fc), fOld, fNew, fc, st })); } assert.equal(await pg.getAttribute('#compareBtn', 'aria-pressed'), 'true');
 await pg.keyboard.up('c'); await until(pg, () => window.__slice.getState().c === 0); assert.ok(diff(fNew, await FP(pg)) < 40); ok('hold C compares, release returns');
+
+// the cut path is absent in the old world
+await pg.evaluate(() => window.__slice.setProgress(0)); await pg.waitForTimeout(400); assert.equal((await S(pg)).pathCut, 0); await pg.evaluate(() => window.__slice.setProgress(1)); ok('no cut path in the old world');
+{ const fv = (await S(pg)).foldVisible; assert.deepEqual(fv, { frame: true, crease: true, foreEdge: true, fishTail: true, margin: true }); assert.equal((await S(pg)).fibre.seed, 91); ok('folded page: frame, crease, fore-edge, fish-tails and margin are on screen'); }
+for (const [w, hh] of [[1600, 900], [1920, 1080], [1280, 720]]) { await pg.setViewportSize({ width: w, height: hh }); await pg.waitForTimeout(500);
+  const r = await pg.evaluate(() => { const g = (s) => { const q = document.querySelector(s).getBoundingClientRect(); return [q.left, q.top, q.right, q.bottom]; }; return { label: g('#bookLabel'), slip: g('#slip'), dock: g('#dock'), frame: g('#folio .frame'), vw: innerWidth, vh: innerHeight }; });
+  assert.ok(r.dock[0] >= 0 && r.dock[2] <= r.vw && r.dock[3] <= r.vh && r.slip[1] >= 0 && r.slip[3] < r.dock[1] + 1 && r.label[0] >= 0, w + 'x' + hh + ' ' + JSON.stringify(r)); }
+ok('title label, slip and dock stay on screen at 1600x900, 1920x1080, 1280x720');
+await pg.setViewportSize({ width: 1600, height: 900 }); await pg.waitForTimeout(600);
 
 // reduced motion
 const rc = await b.newContext({ viewport: { width: 1600, height: 900 }, reducedMotion: 'reduce' });

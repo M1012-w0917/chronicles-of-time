@@ -61,6 +61,22 @@
   const reveal = (td, A, soft) => smooth((td - A) / (soft || 0.1)); // 0 = still old at this point, 1 = rewritten
   const NEW_LAG = 0.07; // new strokes land this much after the wash front has erased the old ink
 
+  // ---- paper fibre direction field: ink creeps along fibres, not radially. Seeded, so identical on every run. ----
+  const FIBRE_SEED = 91;
+  const fibreDir = (x, y) => 0.42 + (fbm(x / 140, y / 140, FIBRE_SEED, 2) - 0.5) * 1.5; // radians, mostly a slight diagonal that drifts across the sheet
+  function fibrePath(x, y, len, sign) { // a short polyline that follows the field from (x,y); sign -1 walks the other way
+    const pts = [[x, y]], n = 4, st = len / n;
+    let px = x, py = y;
+    for (let i = 0; i < n; i++) { const a = fibreDir(px, py) + (sign < 0 ? Math.PI : 0); px += Math.cos(a) * st; py += Math.sin(a) * st; pts.push([px, py]); }
+    return pts;
+  }
+  // streaks elongated along the fibres, about -0.5..0.5. Offsets where the rewrite front reaches a point so the wet edge fingers along the paper grain.
+  function seep(x, y) {
+    const a = fibreDir(x, y), c = Math.cos(a), s = Math.sin(a), u = x * c + y * s, v = -x * s + y * c;
+    return (noise2(u / 300, v / 30, 57) - 0.5) * 0.75 + (noise2(u / 140, v / 22, 58) - 0.5) * 0.25; // cells stay wider than the 10-unit field grid
+  }
+  const SEEP_AMP = 0.05;
+
   // ---- brush stroke simulation (pure geometry; paint.js draws the stamps) ----
   function smoothPath(pts, step) {
     if (pts.length < 2) return pts.slice();
@@ -92,7 +108,8 @@
       const s = cum[i], u = s / L;
       if (s < next) continue;
       let prof = 1;
-      if (u < ta) prof = 0.18 + 0.82 * Math.pow(u / ta, 0.7);
+      if (o.blunt && u < ta + 0.04) prof = 1.12 - 0.12 * (u / (ta + 0.04)); // 起笔: the tip lands full width, a blunt dark start
+      else if (u < ta) prof = 0.18 + 0.82 * Math.pow(u / ta, 0.7);
       else if (u > 1 - tb) prof = 0.06 + 0.94 * Math.pow((1 - u) / tb, 0.8);
       prof *= 1 + Math.sin(u * 7 + phase) * 0.08 + (rnd() - 0.5) * (o.jit == null ? 0.12 : o.jit);
       const width = Math.max(0.6, o.w * prof);
@@ -107,8 +124,11 @@
           const off = ((b + 0.5) / nb - 0.5) * width + (rnd() - 0.5) * 1.2;
           out.push({ x: x + nx * off, y: y + ny * off, r: 1.1 + rnd() * 1.1, a: o.a * (0.3 + 0.4 * rnd()), k: 1 });
         }
+      } else if (o.light) { // 淡墨: soft, low alpha, wide faint halo, no hard core
+        out.push({ x, y, r: width * 0.7, a: o.a * 0.6, k: 0 });
+        if (rnd() < 0.35) out.push({ x: x + nx * (rnd() - 0.5) * width * 1.5, y: y + ny * (rnd() - 0.5) * width * 1.5, r: width * 1.9, a: o.a * 0.12, k: 0 });
       } else {
-        out.push({ x, y, r: width / 2, a: o.a, k: o.k == null ? 1 : o.k });
+        out.push({ x, y, r: width / 2, a: o.a, k: o.k == null ? 1 : o.k, wt: o.wet ? 1 : 0 }); // 湿墨 carries wt: dark core, long fibre creep
         if (o.bleed && rnd() < o.bleed) out.push({ x: x + nx * (rnd() - 0.5) * width, y: y + ny * (rnd() - 0.5) * width, r: width * 0.95, a: o.a * 0.14, k: 0 });
       }
     }
@@ -196,7 +216,7 @@
     // dark wooded bank where nobody ever built: the ground the lone figure stands on
     for (let i = 0; i < 100; i++) {
       const a = rnd() * 6.283, d = Math.sqrt(rnd());
-      wash([{ p: 3, kind: 'bank', x: VANISHED.x + 20 + Math.cos(a) * d * 170, y: VANISHED.y - 10 + Math.sin(a) * d * 110, r: 32 + rnd() * 40, a: 0.075, k: 0 }]);
+      wash([{ p: 3, kind: 'bank', x: VANISHED.x + 20 + Math.cos(a) * d * 190, y: VANISHED.y - 60 + Math.sin(a) * d * 130, r: 32 + rnd() * 40, a: 0.1, k: 0 }]);
     }
     for (let i = 0; i < 90; i++) { // sandbank edge and water
       const y = 700 + rnd() * 220, x = -60 + rnd() * 1700, len = 70 + rnd() * 220;
@@ -266,6 +286,12 @@
   // The haunting is a function of one number, so it can be tested and screenshotted: h 0..1.
   // The old city's gate (paint.js paintCity: gate arch base at 580,656) is what the rewrite removes. The figure stands there and walks a short way along the old street.
   const VANISHED = { x: 580, y: 656, reach: 36 };
+  // Geometry of the old city that paint.js uses twice: to paint it (paintCity) and to cut its shapes back to paper along the road (cutPath).
+  const CITY = {
+    gate: { x: 580, base: 656, rad: 30, body: { x: 510, y: 548, w: 140, h: 108 }, roofs: [{ y: 552, hw: 105, h: 52 }, { y: 492, hw: 70, h: 44 }] },
+    wall: { x0: 200, x1: 1190, top: 591, step: 15, w: 9, h: 9 },
+    pagoda: { x: 930, base: 585, tiers: 5 },
+  };
   function figureAt(h) { return { x: VANISHED.x + VANISHED.reach * smooth(clamp(h)), y: VANISHED.y }; }
   function hauntState(h) {
     h = clamp(h);
@@ -274,8 +300,9 @@
       heading: 180 * (1 - smooth(h / 0.85)),            // 180 = back turned, 0 = facing the viewer
       seal: smooth((h - 0.55) / 0.2),                   // vermilion seal lands on the wrong place
       margin: h >= 0.95 ? 1 : 0,                        // a margin note that nobody wrote
+      path: smooth(h / 0.9),                            // the old gate's shapes are cut back to paper along its road, in step with the walk
     };
   }
 
-  return { FACT, TIMING, WORLD, PLANES, PLANE_DELAY, PARALLAX, NEW_LAG, clamp, smooth, lerp, rng, noise2, fbm, arrival, reveal, smoothPath, stroke, ridge, ridgeY, washBody, mountainStamps, newStamps, createMachine, hauntState, VANISHED, figureAt };
+  return { FACT, TIMING, WORLD, PLANES, PLANE_DELAY, PARALLAX, NEW_LAG, clamp, smooth, lerp, rng, noise2, fbm, arrival, reveal, smoothPath, stroke, ridge, ridgeY, washBody, mountainStamps, newStamps, createMachine, hauntState, VANISHED, CITY, figureAt, fibreDir, fibrePath, seep, SEEP_AMP };
 });

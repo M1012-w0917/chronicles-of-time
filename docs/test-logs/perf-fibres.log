@@ -9,3 +9,8 @@ nofibres run1 frames 170 mean_ms 42.57 p50 34.60 p95 83.70 max 87.00
 label layout (fallback font, no CJK installed):
 layout 1600x900 {"label":[8,74,36,207],"span":[11,87,33,194],"slip":[1220,86,1440,504],"dock":[400,817,1200,886],"status":[947,844,1187,859]}
 layout 800x700 {"label":[8,74,36,207],"span":[11,87,33,194],"slip":[702,86,922,496],"dock":[32,646,768,686],"status":[0,0,0,0]}
+
+# round 5 (folded page, fibre-field bleed, staged erosion), 2026-11-24, software GL, 1600x900
+round5 run0 frames 158 mean_ms 48.50 p50 41.80 p95 92.40 max 95.00
+round5 run1 frames 159 mean_ms 48.18 p50 41.60 p95 91.90 max 96.00
+# reference above: fibres mean 42.8-49.2, p95 84.4-84.8 ; round5 p95 is about 8 ms higher (extra outline mask pass on the city plane, wider rim)

@@ -24,9 +24,9 @@
 
   // ---- layout and layers (rebuilt on resize) ----
   let sc = 1, cover = 1, offX = 0, offY = 0, R = 1, SW = 0, SHT = 0, GW = 176, GH = 100;
-  let paper, fibre, planes = [], mist = [], sealImg, tmp, fields = [];
+  let paper, fibre, planes = [], mist = [], sealImg, tmp, fields = [], penStamps = [];
   let cursor = 0, tmax = 0, lastStamp = null, lastStampAt = 0;
-  const maskC = [P.mk(GW, GH), P.mk(GW, GH), P.mk(GW, GH)];
+  const maskC = [P.mk(GW, GH), P.mk(GW, GH), P.mk(GW, GH), P.mk(GW, GH)];
   const maskD = maskC.map((c) => c.getContext('2d').createImageData(GW, GH));
   const planeCtxT = (c) => { const x = c.getContext('2d'); x.setTransform(R, 0, 0, R, -SH.x * R, -SH.y * R); return x; };
 
@@ -40,11 +40,14 @@
     paper = P.mk(scene.width, scene.height); fibre = P.mk(scene.width, scene.height); P.paintPaper(paper, fibre, 3);
     tmp = P.mk(SW, SHT);
     planes = [];
-    for (let p = 0; p < C.PLANES; p++) planes.push({ old: P.mk(SW, SHT), nw: P.mk(SW, SHT), cur: P.mk(SW, SHT), base: p === 0 || p === 4 ? P.mk(SW, SHT) : null, key: '', minA: 1, maxA: 0 });
+    for (let p = 0; p < C.PLANES; p++) planes.push({ old: P.mk(SW, SHT), oldF: p === 2 ? P.mk(SW, SHT) : null, oldL: p === 2 ? P.mk(SW, SHT) : null, nw: P.mk(SW, SHT), cur: P.mk(SW, SHT), base: p === 0 || p === 4 ? P.mk(SW, SHT) : null, key: '', minA: 1, maxA: 0 });
     const oct = (p) => planeCtxT(planes[p].old);
     const mt = C.mountainStamps('old', 1);
     [0, 1].forEach((p) => P.drawStamps(oct(p), mt.filter((s) => s.p === p)));
-    P.paintCity(oct(2)); P.paintRiver(oct(3));
+    P.paintCity(planeCtxT(planes[2].oldF), planeCtxT(planes[2].oldL)); // fills and lines apart, so the old outline can retreat last
+    { const o2 = planes[2].old.getContext('2d'); o2.drawImage(planes[2].oldF, 0, 0); o2.drawImage(planes[2].oldL, 0, 0); }
+    P.paintRiver(oct(3));
+    penStamps = C.stroke([[1252, 250], [1228, 298], [1182, 360], [1118, 412]], { w: 30, a: 0.9, blunt: 1, ta: 0, tb: 0.85, wet: 1, bleed: 0.3 }, C.rng(77));
     P.paintSky(planeCtxT(planes[0].base)); P.paintForeground(planeCtxT(planes[4].base));
     // arrival fields at low resolution (the same numbers decide old erasure and new strokes)
     fields = [];
@@ -52,7 +55,8 @@
       const F = new Float32Array(GW * GH);
       let mn = 1, mx = 0;
       for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++) {
-        const a = C.arrival(p, SH.x + (x + 0.5) / GW * SH.w, SH.y + (y + 0.5) / GH * SH.h);
+        const wx = SH.x + (x + 0.5) / GW * SH.w, wy = SH.y + (y + 0.5) / GH * SH.h;
+        const a = C.arrival(p, wx, wy) + C.SEEP_AMP * C.seep(wx, wy); // the front fingers along the paper fibres
         F[y * GW + x] = a; if (a < mn) mn = a; if (a > mx) mx = a;
       }
       fields.push(F); planes[p].minA = mn; planes[p].maxA = mx;
@@ -84,26 +88,33 @@
   }
 
   // ---- composite one plane for progress td: old ink eroded by the front, new strokes laid on ----
+  const LINE_LAG = 0.08, tail = (p) => (p === 2 ? LINE_LAG : 0); // the city's outlines outlast its fills
   function planeImage(p, td) {
     const P_ = planes[p];
     if (td < P_.minA - 0.03) return P_.old;
-    if (td >= P_.maxA + 0.17 && td >= tmax - 1e-4) return P_.nw;
+    if (td >= P_.maxA + 0.17 + tail(p) && td >= tmax - 1e-4) return P_.nw;
     const key = td.toFixed(4) + '|' + cursor + '|' + tmax.toFixed(4);
     if (P_.key === key) return P_.cur;
     P_.key = key;
-    const F = fields[p], E = maskD[0].data, Rg = maskD[1].data, N = maskD[2].data;
+    const F = fields[p], E = maskD[0].data, Rg = maskD[1].data, N = maskD[2].data, D = maskD[3].data;
     const masked = td < tmax - 1e-4;
     for (let i = 0, k = 0; i < F.length; i++, k += 4) {
       const A = F[i], e = C.reveal(td, A, 0.1), x = (td - A - 0.03) / 0.06;
-      E[k + 3] = e * 255;
-      Rg[k] = 34; Rg[k + 1] = 31; Rg[k + 2] = 28; Rg[k + 3] = Math.abs(x) < 5 ? 100 * Math.exp(-x * x) + 30 * Math.exp(-x * x / 5) : 0; // sharp wet edge plus a wide seep halo
+      E[k + 3] = e * 255; if (p === 2) D[k + 3] = C.reveal(td, A + LINE_LAG, 0.1) * 255;
+      Rg[k] = 34; Rg[k + 1] = 31; Rg[k + 2] = 28; Rg[k + 3] = Math.abs(x) < 5 ? 105 * Math.exp(-x * x) + 34 * Math.exp(-x * x / 5) : 0; // sharp wet edge plus a wide seep halo
       if (masked) N[k + 3] = C.reveal(td, A + C.NEW_LAG * 0.9, 0.1) * 255;
     }
     for (let j = 0; j < (masked ? 3 : 2); j++) maskC[j].getContext('2d').putImageData(maskD[j], 0, 0);
     const c = P_.cur.getContext('2d');
     c.setTransform(1, 0, 0, 1, 0, 0); c.globalCompositeOperation = 'source-over'; c.clearRect(0, 0, SW, SHT);
-    c.drawImage(P_.old, 0, 0);
-    c.globalCompositeOperation = 'destination-out'; c.drawImage(maskC[0], 0, 0, SW, SHT);
+    if (p === 2) { // fills first, then the outline: roofs and wall lose their body, the line is the last to go
+      maskC[3].getContext('2d').putImageData(maskD[3], 0, 0);
+      c.drawImage(P_.oldF, 0, 0); c.globalCompositeOperation = 'destination-out'; c.drawImage(maskC[0], 0, 0, SW, SHT);
+      const t = tmp.getContext('2d'); t.globalCompositeOperation = 'source-over'; t.clearRect(0, 0, SW, SHT); t.drawImage(P_.oldL, 0, 0);
+      t.globalCompositeOperation = 'destination-out'; t.drawImage(maskC[3], 0, 0, SW, SHT);
+      c.globalCompositeOperation = 'source-over'; c.drawImage(tmp, 0, 0);
+      c.globalCompositeOperation = 'destination-out';
+    } else { c.drawImage(P_.old, 0, 0); c.globalCompositeOperation = 'destination-out'; c.drawImage(maskC[0], 0, 0, SW, SHT); }
     c.globalCompositeOperation = 'source-over'; c.drawImage(maskC[1], 0, 0, SW, SHT);
     if (masked) {
       const t = tmp.getContext('2d');
@@ -113,7 +124,7 @@
     } else c.drawImage(P_.nw, 0, 0);
     return P_.cur;
   }
-  const planeMode = (p, td) => (td < planes[p].minA - 0.03 ? 'old' : td >= planes[p].maxA + 0.17 && td >= tmax - 1e-4 ? 'new' : 'mix');
+  const planeMode = (p, td) => (td < planes[p].minA - 0.03 ? 'old' : td >= planes[p].maxA + 0.17 + tail(p) && td >= tmax - 1e-4 ? 'new' : 'mix');
 
   // ---- the struck line on the slip: brush stamps along a zig-zag across the old column ----
   let strikeStamps = [], strikeDrawn = 0;
@@ -162,7 +173,7 @@
   let rto = 0; addEventListener('resize', () => { clearTimeout(rto); rto = setTimeout(build, 200); });
 
   function setStatus() {
-    const s = { OLD: 'The city stands. Hold Space to strike the line.', WRITING: 'Keep holding. The brush is on the page.', REWRITING: 'The ink is spreading outward from the line.', UNDOING: 'Undoing: the old city comes back.', NEW: m.haunt > 0.95 ? 'The city was never founded. Someone still remembers.' : 'The city was never founded. The river runs where it ran.', SCRUB: 'Between the two paintings.' }[m.state];
+    const s = { OLD: 'The city stands. Hold Space to strike the line.', WRITING: 'Keep holding. The brush is on the page.', REWRITING: 'The ink is spreading outward from the line.', UNDOING: 'Undoing: the old city comes back.', NEW: m.haunt > 0.95 && C.hauntState(m.haunt).margin ? 'The gate that stood here was struck from the record. Someone still walks its road.' : 'The city was never founded. The river runs where it ran.', SCRUB: 'Between the two paintings.' }[m.state];
     $('status').textContent = m.compare ? 'Comparing: this is the city before the rewrite.' : s;
     $('compareBtn').setAttribute('aria-pressed', String(m.compare));
     $('reduceBtn').setAttribute('aria-pressed', String(m.reduced));
@@ -173,6 +184,8 @@
   // ---- frame ----
   let last = performance.now(), clock = 0, dirty = true, lastSig = '', ghostA = 0, bx = 0, by = 0, bang = 40, bz = 0, lastTd = -1, lastHaunt = -1, offs = [0, 0, 0, 0, 0], mistA = [0, 0, 0, 0], hv = C.hauntState(0), hvis = 0;
   const FX = { x: 0, y: 0 };
+  let lastEcho = false;
+  let mistHeld = false; // test hook: pin the mist drift so fingerprints taken at different times compare the paintings, not the mist phase
 
   function frame(now) {
     const dt = Math.min(100, now - last); last = now;
@@ -217,14 +230,16 @@
       if (planes[p].base) drawPlane(planes[p].base, offs[p]);
       drawPlane(planeImage(p, td), offs[p]);
       if (p < 4) { // drifting mist between planes, thickest while the old city dissolves
-        const sp = [14, 22, 34, 50][p], mx = reduced ? 0 : (clock / 1000 * sp * (0.4 + 0.6 * C.smooth(td * 3))) % W.w, cy = [430, 560, 690, 800][p];
+        const sp = [14, 22, 34, 50][p], mx = reduced || mistHeld ? 0 : (clock / 1000 * sp * (0.4 + 0.6 * C.smooth(td * 3))) % W.w, cy = [430, 560, 690, 800][p];
         sctx.globalAlpha = mistA[p];
         for (const x0 of [-mx, W.w - mx]) { sctx.setTransform(cover, 0, 0, cover, offX + (offs[p] + x0) * cover, offY + (cy - 180) * cover); sctx.drawImage(mist[p], 0, 0, W.w, 360); }
         sctx.globalAlpha = 1;
       }
     }
     // the lone absence and the seal on the wrong place
-    const fa = hv.figure * hvis;
+    const fa = hv.figure * hvis, pa = hv.path * hvis;
+    if (pa > 0.01 || fa > 0.01) sctx.setTransform(cover, 0, 0, cover, offX + offs[FIGURE_PLANE] * cover, offY + offs[FIGURE_PLANE] * 0.4 * cover);
+    if (pa > 0.01) P.cutPath(sctx, paper, pa, Math.max(fa, 0.6)); // the old gate's own shapes, cut back to paper along its road
     if (fa > 0.01) {
       sctx.setTransform(cover, 0, 0, cover, offX + offs[FIGURE_PLANE] * cover, offY + offs[FIGURE_PLANE] * 0.4 * cover); // the dark bank under the figure is painted on plane 3, so the figure rides plane 3
       const fp = C.figureAt(m.haunt);
@@ -237,8 +252,11 @@
       sctx.rotate(-0.15); sctx.globalCompositeOperation = 'multiply'; sctx.globalAlpha = 0.93 * sa; sctx.drawImage(sealImg, -s / 2, -s / 2, s, s);
       sctx.globalCompositeOperation = 'source-over'; sctx.globalAlpha = 1;
     }
+    // 起笔: the brush tip lands beside the slip as a blunt dark start that drags and tapers, then retreats into the wash as the rewrite takes over
+    const nib = (1 - C.smooth(td / 0.22)) * (1 - C.smooth(m.c)), nibN = Math.floor(penStamps.length * C.smooth(C.clamp(v.w * 1.5)));
+    if (nib > 0.01 && nibN > 0) { sctx.setTransform(cover, 0, 0, cover, offX, offY); P.drawStamps(sctx, penStamps, 0, nibN, nib); }
     // the ink drop at the pen point while the brush is down
-    const bloom = v.w * (1 - C.smooth(td / 0.18));
+    const bloom = v.w * (1 - C.smooth(td / 0.18)) * (1 - C.smooth(m.c)); // compare shows the old city as it was, without the brush-down drop
     if (bloom > 0.01) {
       const sp = P.makeSprites()[0], r = C.rng(4);
       sctx.setTransform(cover, 0, 0, cover, offX, offY);
@@ -255,6 +273,7 @@
     slip.style.setProperty('--old', (1 - 0.82 * struck * C.smooth(0.2 + 0.8 * v.w)).toFixed(3));
     slip.style.setProperty('--r', C.smooth((v.td - 0.04) / 0.3).toFixed(3));
     const echo = hv.margin * hvis > 0.5;
+    if (echo !== lastEcho) { lastEcho = echo; setStatus(); }
     slip.dataset.echo = dock.dataset.echo = String(echo);
     drawStrike(m.state === 'WRITING' || m.state === 'OLD' ? v.w : (v.w > 0 ? 1 : 0));
     if (ghostA > 0) { ghostA = Math.max(0, ghostA - dt / 650); ghost.style.setProperty('--ga', ghostA.toFixed(3)); if (ghostA === 0) ghost.classList.remove('on'); }
@@ -274,6 +293,10 @@
   }
 
   // ---- public hooks for tests and screenshots ----
+  function foldFlags() { // the folded-leaf furniture is in the DOM and not hidden
+    const on = (sel) => { const e = document.querySelector(sel); return !!e && getComputedStyle(e).display !== 'none' && e.getBoundingClientRect().height > 0; };
+    return { frame: on('#folio .frame'), crease: on('#folio .crease'), foreEdge: on('.roller.right'), fishTail: on('#folio .tail.t') && on('#folio .tail.b'), margin: on('#folio .margin') };
+  }
   function fingerprint() { // 8x4 grid of mean luminance of what is on screen
     const w = 8, h = 4, c = P.mk(w, h), x = c.getContext('2d'); x.drawImage(scene, 0, 0, w, h);
     const d = x.getImageData(0, 0, w, h).data, out = [];
@@ -282,12 +305,15 @@
   }
   window.__slice = {
     setProgress(v) { m.scrub(v); dirty = true; setStatus(); },
+    holdMist(b) { mistHeld = !!b; dirty = true; },
     getState() {
       const v = m.view();
       return {
         state: m.state, settled: m.settled, t: m.t, td: v.td, w: m.w, c: m.c, haunt: m.haunt, reduced: m.reduced,
         figurePlane: FIGURE_PLANE, heroHeading: hv.heading, figurePos: C.figureAt(m.haunt), vanished: { x: C.VANISHED.x, y: C.VANISHED.y }, seal: hv.seal * hvis, figure: hv.figure * hvis, margin: hv.margin,
         painted: cursor, totalStamps: NEW.length, tmax, planes: planes.map((_, p) => planeMode(p, v.td)), offsets: offs.slice(), mist: mistA.slice(),
+        pathCut: hv.path * hvis, cutShapes: Object.assign({}, P.cutLog), fibre: { seed: 91, dirAt: C.fibreDir(800, 450) },
+        foldVisible: foldFlags(),
         brush: { x: bx, y: by }, strikeDrawn, strikeTotal: strikeStamps.length,
       };
     },

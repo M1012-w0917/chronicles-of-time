@@ -9,6 +9,21 @@ canvas#ghost.on { opacity: var(--ga, 1); }
   background: radial-gradient(ellipse at 50% 46%, transparent 55%, rgba(40,28,14,.28) 100%),
               linear-gradient(90deg, rgba(40,28,14,.35), transparent 7%, transparent 93%, rgba(40,28,14,.35)); }
 
+/* the folded leaf: the painting sits inside a printed frame (版框) on the page margin (边纸). The crease (书口) runs down the middle with fish-tails (鱼尾);
+   it is multiplied over the ink, so ink dims and pools in the fold. Geometry is shared through custom properties. */
+:root { --fl: 56px; --fr: 58px; --ft: 16px; --fb: 88px; --margin-paper: #e3d8ba; }
+#folio { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
+#folio i { position: absolute; display: block; }
+#folio .margin { left: var(--fl); right: var(--fr); top: var(--ft); bottom: var(--fb); box-shadow: inset 0 0 26px rgba(60,40,20,.30), 0 0 0 100vmax var(--margin-paper); }
+#folio .frame { left: calc(var(--fl) - 5px); right: calc(var(--fr) - 5px); top: calc(var(--ft) - 5px); bottom: calc(var(--fb) - 5px); border: 1px solid rgba(34,31,28,.55); }
+#folio .frame::before { content: ""; position: absolute; inset: 3px; border: 2.5px solid rgba(34,31,28,.82); }
+#folio .crease { left: 50%; top: 0; bottom: 0; width: 46px; transform: translateX(-50%); mix-blend-mode: multiply;
+  background: linear-gradient(90deg, transparent 0, rgba(110,80,44,.10) 18%, rgba(80,54,28,.40) 42%, rgba(46,30,14,.66) 50%, rgba(80,54,28,.34) 58%, rgba(110,80,44,.08) 80%, transparent 100%); }
+#folio .crease::before { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: rgba(30,20,10,.55); box-shadow: -1px 0 0 rgba(30,20,10,.18), 12px 0 0 rgba(255,250,235,.22), -13px 0 0 rgba(255,250,235,.18); }
+#folio .tail { left: 50%; width: 22px; height: 20px; margin-left: -11px; background: rgba(34,31,28,.86); clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 58%, 0 100%); }
+#folio .tail.t { top: calc(var(--ft) - 2px); }
+#folio .tail.b { bottom: calc(var(--fb) - 2px); transform: scaleY(-1); }
+
 /* the volume edge: a bound spine with stitched thread on the left, a folded page edge with paper thickness lines on the right */
 .roller { position: fixed; top: 0; bottom: 0; pointer-events: none; z-index: 3; }
 .roller i { display: none; }
@@ -18,9 +33,9 @@ canvas#ghost.on { opacity: var(--ga, 1); }
 .roller.left::before { content: ""; position: absolute; left: 30px; top: 0; bottom: 0; width: 3px;
   background: repeating-linear-gradient(180deg, rgba(120,36,26,.92) 0 16px, transparent 16px 40px); border-radius: 2px; box-shadow: 0 0 2px rgba(40,10,6,.5); }
 .roller.left::after { content: ""; position: absolute; left: 31px; top: 0; bottom: 0; width: 1px; background: rgba(120,36,26,.55); }
-.roller.right { right: 0; width: 38px;
-  background: repeating-linear-gradient(90deg, rgba(60,44,26,.34) 0 1px, transparent 1px 4px),
-              linear-gradient(270deg, #cfc4a6 0, #e3d9bd 7px, #b8aa86 12px, rgba(120,100,66,.45) 16px, rgba(60,44,26,.18) 26px, transparent 38px);
+.roller.right { right: 0; width: 46px;
+  background: repeating-linear-gradient(90deg, rgba(60,44,26,.42) 0 1px, transparent 1px 3px, rgba(255,250,235,.25) 3px 4px, transparent 4px 6px),
+              linear-gradient(270deg, #cfc4a6 0, #e3d9bd 7px, #b8aa86 12px, rgba(120,100,66,.45) 16px, rgba(60,44,26,.18) 30px, transparent 46px);
   box-shadow: -4px 0 16px rgba(30,20,10,.3); }
 .roller.right::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 22px;
   background: linear-gradient(90deg, transparent, rgba(255,250,235,.28) 55%, rgba(80,58,30,.3) 100%); transform: skewY(0deg); }
@@ -57,14 +72,15 @@ canvas#ghost.on { opacity: var(--ga, 1); }
 #brush .shaft { bottom: 66px; width: 10px; height: 204px; background: linear-gradient(90deg, #2c241c, #6b5a42 45%, #2c241c); border-radius: 5px 5px 2px 2px; }
 
 /* dock */
-#dock { position: fixed; z-index: 5; left: 50%; bottom: 14px; transform: translateX(-50%); display: flex; gap: 8px; align-items: center; padding: 6px 12px;
+#dock { position: fixed; z-index: 5; left: 50%; bottom: 10px; transform: translateX(-50%); display: flex; gap: 8px; align-items: center; padding: 6px 12px;
   background: rgba(233,224,200,.82); border: 1px solid rgba(34,31,28,.35); border-radius: 3px; font: 12px/1.2 Georgia, serif; backdrop-filter: blur(2px); }
 #dock button { font: inherit; color: var(--ink); background: transparent; border: 1px solid rgba(34,31,28,.5); border-radius: 2px; padding: 5px 9px; cursor: pointer; }
 #dock button:hover, #dock button:focus-visible, #dock button[aria-pressed="true"] { background: rgba(34,31,28,.88); color: var(--paper); outline: none; }
 #dock kbd { font: 10px/1 monospace; opacity: .6; margin-left: 4px; }
 #dock .scrub { display: flex; gap: 6px; align-items: center; }
 #dock input[type=range] { width: 120px; accent-color: #221f1c; }
-#status { min-width: 240px; font-style: italic; opacity: .85; }
+#status { min-width: 240px; max-width: 330px; font-style: italic; opacity: .85; }
+#dock[data-echo="true"] #status { opacity: 1; font-weight: 600; color: #7a1d14; }
 
-@media (max-width: 900px) { #status { display: none; } #dock { flex-wrap: wrap; justify-content: center; width: 92vw; } #slip .en { font-size: 11px; } }
+@media (max-width: 900px) { :root { --fl: 50px; --fr: 52px; --fb: 70px; } #status { display: none; } #dock { flex-wrap: wrap; justify-content: center; width: 92vw; } #slip .en { font-size: 11px; } }
 @media (prefers-reduced-motion: reduce) { #zhNote, #enNote { transition: none; } }

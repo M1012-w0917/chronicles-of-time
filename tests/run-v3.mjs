@@ -1,6 +1,6 @@
 // Unit tests for rewrite-v3/core.js plus a syntax check of every V3 script. Usage: node tests/run-v3.mjs
 import { createRequire } from 'node:module'; import { execSync } from 'node:child_process';
-import assert from 'node:assert/strict';
+import assert from 'node:assert/strict'; import { readFileSync } from 'node:fs';
 const require = createRequire(import.meta.url);
 const C = require('../rewrite-v3/core.js');
 let n = 0; const t = (name, fn) => { fn(); n++; console.log('ok -', name); };
@@ -69,6 +69,26 @@ t('haunting is caused by the rewrite and reversed by undo', () => {
 t('the figure stands where the old gate was and stays on the old street', () => {
   for (const h of [0, 0.12, 0.5, 1]) { const p = C.figureAt(h); assert.ok(Math.hypot(p.x - C.VANISHED.x, p.y - C.VANISHED.y) <= 40, 'h=' + h); }
   assert.deepEqual(C.figureAt(0), { x: C.VANISHED.x, y: C.VANISHED.y });
+});
+t('fibre direction field is deterministic, coherent and drives bleed paths along the grain', () => {
+  assert.equal(C.fibreDir(300, 200), C.fibreDir(300, 200)); assert.deepEqual(C.fibrePath(10, 20, 30, 1), C.fibrePath(10, 20, 30, 1));
+  let near = 0, far = 0; for (let i = 0; i < 200; i++) { const x = i * 7.3, y = i * 3.1; near += Math.abs(C.fibreDir(x, y) - C.fibreDir(x + 4, y + 4)); far += Math.abs(C.fibreDir(x, y) - C.fibreDir(x + 900, y + 700)); }
+  assert.ok(near < far * 0.5, 'neighbouring points share a direction');
+  const p = C.fibrePath(100, 100, 40, 1), q = C.fibrePath(100, 100, 40, -1); assert.ok(p[4][0] !== q[4][0]); assert.ok(Math.hypot(p[4][0] - 100, p[4][1] - 100) > 30, 'creeps outward along the field');
+  for (let i = 0; i < 300; i++) assert.ok(Math.abs(C.seep(i * 5.7, i * 2.3)) <= 0.5);
+});
+t('ink types: light wash is soft, dry is hard bristles, wet is tagged for fibre creep', () => {
+  const pts = [[0, 0], [150, 0], [300, 0]], light = C.stroke(pts, { w: 16, a: 0.5, light: 1 }, C.rng(3)), wet = C.stroke(pts, { w: 16, a: 0.9, wet: 1 }, C.rng(3)), dry = C.stroke(pts, { w: 16, a: 0.9, dry: 0.5 }, C.rng(3));
+  assert.ok(light.every((s) => s.k === 0) && light.some((s) => s.a < 0.1), 'light: soft sprites with a faint wide halo'); assert.ok(wet.every((s) => s.k === 1 && s.wt === 1), 'wet'); assert.ok(dry.every((s) => s.k === 1 && s.r < 2.5 && !s.wt), 'dry');
+  const blunt = C.stroke(pts, { w: 20, a: 1, blunt: 1, ta: 0, tb: 0.85 }, C.rng(4)); assert.ok(blunt[0].r > blunt[Math.floor(blunt.length / 2)].r * 0.95 && blunt[blunt.length - 1].r < blunt[0].r * 0.4, '起笔 lands full width and tapers');
+});
+t('the epilogue path shares the old gate geometry with the city (one definition, two uses)', () => {
+  assert.equal(C.CITY.gate.x, C.VANISHED.x); assert.equal(C.CITY.gate.base, C.VANISHED.y);
+  const src = readFileSync(new URL('../rewrite-v3/paint.js', import.meta.url), 'utf8');
+  const body = (name) => src.slice(src.indexOf('function ' + name + '('), src.indexOf('function ', src.indexOf('function ' + name + '(') + 10));
+  for (const fn of ['paintCity', 'cutPath']) for (const h of ['roofPath', 'archPath', 'crenelXs']) assert.ok(new RegExp(h).test(fn === 'paintCity' ? src.slice(src.indexOf('function roof('), src.indexOf('function cutPath')) : body(fn)), fn + ' uses ' + h);
+  assert.ok(/C\.CITY/.test(body('cutPath')));
+  assert.equal(C.hauntState(0).path, 0); assert.equal(C.hauntState(1).path, 1);
 });
 t('reduced motion holds keyframes only', () => {
   const m = C.createMachine({ reduced: true }); m.press(); run(m, 1700); const seen = new Set(); let g = 0;

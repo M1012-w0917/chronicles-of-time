@@ -25,31 +25,34 @@
     sprites = [soft, hard];
     return sprites;
   }
-  function drawStamps(ctx, list, from, to) {
+  function drawStamps(ctx, list, from, to, mul) {
     const sp = makeSprites();
     for (let i = from || 0, n = to == null ? list.length : to; i < n; i++) {
       const s = list[i];
       if (s.r < 0.45) continue;
-      ctx.globalAlpha = s.a;
+      ctx.globalAlpha = mul == null ? s.a : s.a * mul;
       ctx.drawImage(sp[s.k], s.x - s.r, s.y - s.r, s.r * 2, s.r * 2);
       if (s.k === 1 && s.r > 2.4 && s.a > 0.25) bleed(ctx, s);
     }
     ctx.globalAlpha = 1;
   }
-  // capillary fibres creeping out of a firm stamp into the paper. Deterministic: seeded from the stamp's own position.
+  // Capillary fibres creeping out of a firm stamp into the paper. They follow the seeded fibre-direction field (C.fibrePath), not the radius.
+  // Wet ink (s.wt) creeps further and more often; dry-brush stamps are too small to reach here, so they keep a hard edge.
   function bleed(ctx, s) {
     let h = (Math.imul(Math.round(s.x * 7) | 0, 73856093) ^ Math.imul(Math.round(s.y * 7) | 0, 19349663)) >>> 0;
     const rnd = () => { h = (Math.imul(h ^ (h >>> 15), 2246822507) + 374761393) >>> 0; return h / 4294967296; };
-    if (rnd() > 0.55) return;
-    const n = 1 + (rnd() * 2.4 | 0);
-    ctx.lineCap = 'round';
+    const wet = s.wt ? 1 : 0;
+    if (rnd() > (wet ? 0.9 : 0.5)) return;
+    const n = 1 + (rnd() * (wet ? 3.2 : 2.2) | 0), a0 = C.fibreDir(s.x, s.y);
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     for (let i = 0; i < n; i++) {
-      const a = rnd() * 6.283, r0 = s.r * (0.8 + rnd() * 0.2), len = s.r * (0.5 + rnd() * 0.9) + 3, bend = (rnd() - 0.5) * 0.9;
-      const x0 = s.x + Math.cos(a) * r0, y0 = s.y + Math.sin(a) * r0;
-      ctx.strokeStyle = 'rgba(' + INK + ',' + (0.1 + rnd() * 0.16) * Math.min(1, s.a + 0.3) + ')';
+      const sign = rnd() < 0.5 ? -1 : 1, side = (rnd() - 0.5) * s.r * 0.9, rr = s.r * (0.75 + rnd() * 0.25);
+      const x0 = s.x + Math.cos(a0) * rr * sign - Math.sin(a0) * side, y0 = s.y + Math.sin(a0) * rr * sign + Math.cos(a0) * side;
+      const pts = C.fibrePath(x0, y0, (s.r * (0.6 + rnd() * 1.1) + 3) * (wet ? 1.7 : 1), sign);
+      ctx.strokeStyle = 'rgba(' + INK + ',' + (0.1 + rnd() * 0.16 + wet * 0.06) * Math.min(1, s.a + 0.3) + ')';
       ctx.lineWidth = 0.5 + rnd() * 0.7;
-      ctx.beginPath(); ctx.moveTo(x0, y0);
-      ctx.quadraticCurveTo(x0 + Math.cos(a + bend) * len * 0.55, y0 + Math.sin(a + bend) * len * 0.55, x0 + Math.cos(a + bend * 1.8) * len, y0 + Math.sin(a + bend * 1.8) * len);
+      ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
+      for (let k = 1; k < pts.length; k++) ctx.lineTo(pts[k][0], pts[k][1]);
       ctx.stroke();
     }
   }
@@ -116,47 +119,80 @@
   }
 
   // ---- the old walled river city (plane 2) and its river life (plane 3) ----
-  const fillPoly = (ctx, pts, a) => { ctx.fillStyle = 'rgba(' + INK + ',' + a + ')'; ctx.beginPath(); pts.forEach((p, i) => (i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]))); ctx.closePath(); ctx.fill(); };
+  const ink = (a) => 'rgba(' + INK + ',' + a + ')';
+  const fillPoly = (ctx, pts, a) => { ctx.fillStyle = ink(a); ctx.beginPath(); pts.forEach((p, i) => (i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]))); ctx.closePath(); ctx.fill(); };
+  // Shared brush shapes. paintCity paints them in ink, cutPath cuts the very same paths back to paper for the epilogue.
   // a hip roof with up-swept eaves, centre x, eave y, half width, height
-  function roof(ctx, r, cx, y, hw, h, a) {
+  function roofPath(ctx, cx, y, hw, h) {
     const L = cx - hw, R = cx + hw;
-    ctx.fillStyle = 'rgba(' + INK + ',' + a + ')';
-    ctx.beginPath(); ctx.moveTo(L - hw * 0.12, y - h * 0.15); ctx.quadraticCurveTo(L + hw * 0.3, y + h * 0.05, cx - hw * 0.35, y - h); ctx.lineTo(cx + hw * 0.35, y - h);
-    ctx.quadraticCurveTo(R - hw * 0.3, y + h * 0.05, R + hw * 0.12, y - h * 0.15); ctx.quadraticCurveTo(cx, y + h * 0.28, L - hw * 0.12, y - h * 0.15); ctx.fill();
-    line(ctx, [[L - hw * 0.14, y - h * 0.18], [cx, y + h * 0.16], [R + hw * 0.14, y - h * 0.18]], { w: 3, a: 0.75, ta: 0.05, tb: 0.1, jit: 0.05 }, r);
+    ctx.moveTo(L - hw * 0.12, y - h * 0.15); ctx.quadraticCurveTo(L + hw * 0.3, y + h * 0.05, cx - hw * 0.35, y - h); ctx.lineTo(cx + hw * 0.35, y - h);
+    ctx.quadraticCurveTo(R - hw * 0.3, y + h * 0.05, R + hw * 0.12, y - h * 0.15); ctx.quadraticCurveTo(cx, y + h * 0.28, L - hw * 0.12, y - h * 0.15); ctx.closePath();
   }
-  function paintCity(ctx) {
-    const r = C.rng(41);
+  const eavePts = (cx, y, hw, h) => [[cx - hw * 1.14, y - h * 0.18], [cx, y + h * 0.16], [cx + hw * 1.14, y - h * 0.18]];
+  function archPath(ctx, G) { ctx.moveTo(G.x - G.rad, G.base); ctx.lineTo(G.x - G.rad, G.base - 36); ctx.arc(G.x, G.base - 36, G.rad, Math.PI, 0); ctx.lineTo(G.x + G.rad, G.base); ctx.closePath(); }
+  const crenelXs = (x0, x1) => { const W_ = C.CITY.wall, out = []; for (let x = W_.x0 + Math.max(0, Math.ceil((x0 - W_.x0) / W_.step)) * W_.step; x < x1; x += W_.step) out.push(x); return out; };
+  // kind: 'wet' dark core with a feathered edge, 'light' pale wash with a wide faint halo, 'dry' hard edge. F gets fills, L gets lines (they erode in stages).
+  function roof(F, L, r, cx, y, hw, h, a, kind) {
+    F.save();
+    if (kind !== 'dry') { F.shadowColor = ink(a * (kind === 'light' ? 0.5 : 0.55)); F.shadowBlur = kind === 'light' ? 4 : 5; }
+    F.fillStyle = ink(a); F.beginPath(); roofPath(F, cx, y, hw, h); F.fill(); F.restore();
+    line(L, eavePts(cx, y, hw, h), kind === 'light' ? { w: 2.2, a: a * 0.55, ta: 0.05, tb: 0.1, jit: 0.05, light: 1 } : { w: 3, a: 0.78, ta: 0.05, tb: 0.1, jit: 0.05, wet: kind === 'wet' }, r);
+  }
+  function paintCity(F, L) {
+    L = L || F;
+    const r = C.rng(41), K = C.CITY, G = K.gate, WL = K.wall, PG = K.pagoda;
     const house = (x, base, w, h, a) => {
-      ctx.fillStyle = 'rgba(' + INK + ',' + (a * 0.18) + ')'; ctx.fillRect(x, base - h * 0.55, w, h * 0.55);
-      roof(ctx, r, x + w / 2, base - h * 0.5, w * 0.62, h * 0.55, a);
-      for (let k = 1; k < 4; k++) line(ctx, [[x + w * k / 4, base - h * 0.45], [x + w * k / 4, base]], { w: 1.4, a: 0.3, ta: 0.1, tb: 0.1 }, r);
+      F.fillStyle = ink(a * 0.2); F.fillRect(x, base - h * 0.55, w, h * 0.55);
+      roof(F, L, r, x + w / 2, base - h * 0.5, w * 0.62, h * 0.55, a, 'light');
+      for (let k = 1; k < 4; k++) line(L, [[x + w * k / 4, base - h * 0.45], [x + w * k / 4, base]], { w: 1.2, a: 0.16, ta: 0.1, tb: 0.1, light: 1 }, r);
     };
-    // distant rows of houses, then nearer ones
-    [[540, 24, 52, 0.4], [570, 30, 60, 0.5], [600, 38, 74, 0.62]].forEach(([base, w0, h0, a], row) => {
+    // distant house rows are pale, sparse and washy; the paper shows through. Nothing competes with the gate and the pagoda.
+    [[540, 24, 52, 0.1], [570, 30, 60, 0.14], [600, 38, 74, 0.2]].forEach(([base, w0, h0, a], row) => {
       for (let x = 240 + (row * 17) % 40; x < 1140; x += w0 + 10 + r() * 14) {
-        const w = w0 + r() * 22; if (x > 830 && x < 1030 && row < 2) continue; // room for the pagoda
+        const w = w0 + r() * 22, skip = r() < 0.62 - row * 0.1;
+        if (skip || (x > 830 && x < 1030 && row < 2) || (x > 470 && x < 680 && row < 2)) continue; // room for the pagoda and the gate
         house(x, base + r() * 8, w, h0 + r() * 20, a);
-        if (r() < 0.35) drawStamps(ctx, [{ x: x + w * 0.5, y: base - h0 - 18, r: 7 + r() * 8, a: 0.35, k: 1 }, { x: x + w * 0.2, y: base - h0 - 10, r: 12, a: 0.22, k: 0 }]);
       }
     });
-    // pagoda
-    for (let i = 0; i < 5; i++) { const w = 62 - i * 7, y = 585 - i * 52; ctx.fillStyle = 'rgba(' + INK + ',0.2)'; ctx.fillRect(930 - w * 0.55, y - 38, w * 1.1, 38); roof(ctx, r, 930, y - 30, w, 34, 0.82); }
-    line(ctx, [[930, 330], [930, 296]], { w: 3.4, a: 0.8 }, r); drawStamps(ctx, [{ x: 930, y: 292, r: 5, a: 0.8, k: 1 }]);
-    // wall
-    ctx.fillStyle = 'rgba(' + INK + ',0.2)'; ctx.fillRect(200, 600, 990, 56);
-    for (let x = 200; x < 1190; x += 15) { ctx.fillStyle = 'rgba(' + INK + ',0.6)'; ctx.fillRect(x, 591, 9, 9); }
-    for (let x = 206; x < 1190; x += 22 + r() * 14) line(ctx, [[x, 604], [x + (r() - 0.5) * 4, 654]], { w: 1.6, a: 0.28, ta: 0.1, tb: 0.1 }, r);
-    line(ctx, [[196, 600], [700, 599], [1194, 600]], { w: 6, a: 0.7, dry: 0.15, ta: 0.02, tb: 0.04 }, r);
-    line(ctx, [[196, 657], [700, 658], [1194, 656]], { w: 9, a: 0.55, dry: 0.3, ta: 0.02, tb: 0.04 }, r);
-    // gate tower
-    ctx.fillStyle = 'rgba(' + INK + ',0.5)'; ctx.fillRect(510, 548, 140, 108);
-    ctx.fillStyle = 'rgba(' + INK + ',0.9)'; ctx.beginPath(); ctx.moveTo(550, 656); ctx.lineTo(550, 620); ctx.arc(580, 620, 30, Math.PI, 0); ctx.lineTo(610, 656); ctx.fill();
-    roof(ctx, r, 580, 552, 105, 52, 0.85); roof(ctx, r, 580, 492, 70, 44, 0.88);
-    // trees along the wall
-    for (let i = 0; i < 14; i++) { const x = 230 + r() * 950; for (let k = 0; k < 7; k++) drawStamps(ctx, [{ x: x + (r() - 0.5) * 36, y: 595 - r() * 26, r: 5 + r() * 9, a: 0.3 + r() * 0.2, k: 1 }]); }
-    // smoke
-    [[360, 520], [760, 508], [1090, 522]].forEach(([x, y]) => { for (let i = 0; i < 9; i++) drawStamps(ctx, [{ x: x + i * 5 + Math.sin(i) * 6, y: y - i * 24, r: 14 + i * 5, a: 0.12, k: 0 }]); });
+    // pagoda: the one landmark, dark wet ink
+    for (let i = 0; i < PG.tiers; i++) { const w = 62 - i * 7, y = PG.base - i * 52; F.fillStyle = ink(0.34); F.fillRect(PG.x - w * 0.55, y - 38, w * 1.1, 38); roof(F, L, r, PG.x, y - 30, w, 34, 0.92, 'wet'); line(L, [[PG.x - w * 0.55, y - 38], [PG.x - w * 0.55, y]], { w: 1.8, a: 0.55, ta: 0.05, tb: 0.05, wet: 1 }, r); }
+    line(L, [[PG.x, 330], [PG.x, 292]], { w: 4, a: 0.9, wet: 1 }, r); drawStamps(F, [{ x: PG.x, y: 288, r: 6, a: 0.9, k: 1, wt: 1 }]);
+    // wall: pale body, crisp crenellation rhythm, dry-brush top and foot
+    F.fillStyle = ink(0.14); F.fillRect(WL.x0, WL.top + 9, WL.x1 - WL.x0, 656 - WL.top - 9);
+    for (const x of crenelXs(WL.x0, WL.x1)) { F.fillStyle = ink(0.5); F.fillRect(x, WL.top, WL.w, WL.h); }
+    for (let x = 206; x < 1190; x += 28 + r() * 18) line(L, [[x, 604], [x + (r() - 0.5) * 4, 654]], { w: 1.3, a: 0.18, ta: 0.1, tb: 0.1, light: 1 }, r);
+    line(L, [[196, 600], [700, 599], [1194, 600]], { w: 6, a: 0.7, dry: 0.15, ta: 0.02, tb: 0.04 }, r);
+    line(L, [[196, 657], [700, 658], [1194, 656]], { w: 9, a: 0.55, dry: 0.3, ta: 0.02, tb: 0.04 }, r);
+    // gate tower: the focal point. Wet ink, darker, more detail (lintel, studded door, threshold steps).
+    F.fillStyle = ink(0.58); F.fillRect(G.body.x, G.body.y, G.body.w, G.body.h);
+    F.save(); F.shadowColor = ink(0.5); F.shadowBlur = 5; F.fillStyle = ink(0.95); F.beginPath(); archPath(F, G); F.fill(); F.restore();
+    F.save(); F.globalCompositeOperation = 'destination-out'; // door studs and the seam between the leaves, left as paper
+    for (let j = 0; j < 3; j++) for (let i = 0; i < 4; i++) { F.fillStyle = 'rgba(0,0,0,0.55)'; F.beginPath(); F.arc(G.x + (i < 2 ? -18 + i * 9 : 9 + (i - 2) * 9), G.base - 9 - j * 11, 1.7, 0, 6.283); F.fill(); }
+    F.fillStyle = 'rgba(0,0,0,0.35)'; F.fillRect(G.x - 0.7, G.base - 62, 1.4, 62); F.restore();
+    G.roofs.forEach((q, i) => roof(F, L, r, G.x, q.y, q.hw, q.h, i ? 0.9 : 0.88, 'wet'));
+    line(L, [[G.x - 62, G.base - 74], [G.x, G.base - 71], [G.x + 62, G.base - 74]], { w: 7, a: 0.9, wet: 1, ta: 0.03, tb: 0.05 }, r); // lintel
+    line(L, [[G.body.x, G.body.y], [G.body.x, G.base]], { w: 3, a: 0.7, wet: 1, ta: 0.02, tb: 0.02 }, r); line(L, [[G.body.x + G.body.w, G.body.y], [G.body.x + G.body.w, G.base]], { w: 3, a: 0.7, wet: 1, ta: 0.02, tb: 0.02 }, r);
+    [[548, 64, 0.55], [542, 76, 0.42], [536, 88, 0.3]].forEach(([x, w, a], i) => { F.fillStyle = ink(a); F.fillRect(x, G.base + i * 4, w, 4); }); // threshold steps
+    // a few trees by the gate only
+    for (let i = 0; i < 3; i++) { const x = G.x + (i - 1) * 190 + (r() - 0.5) * 30; for (let k = 0; k < 7; k++) drawStamps(F, [{ x: x + (r() - 0.5) * 30, y: 592 - r() * 24, r: 5 + r() * 8, a: 0.22 + r() * 0.15, k: 1 }]); }
+  }
+  // The epilogue: the gate's own shapes cut back to paper along its old road. p 0..1 is hauntState.path, in step with the figure's walk.
+  // Roofs use roofPath, the doorway uses archPath, the street run uses the wall's crenellation grid. Drawn in plane 3 space, like the figure.
+  const cutLog = { roofs: 0, arch: 0, crenels: 0 };
+  function cutPath(ctx, paper, p, alpha) {
+    if (p <= 0.005 || alpha <= 0.01) return;
+    const K = C.CITY, G = K.gate, WL = K.wall, e = C.smooth(p);
+    const clipPaper = (build, a) => { ctx.save(); ctx.beginPath(); build(); const T = ctx.getTransform(); ctx.clip('nonzero'); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = a; ctx.drawImage(paper, 0, 0); ctx.restore(); ctx.setTransform(T); };
+    const outline = (build, a) => { ctx.beginPath(); build(); ctx.lineWidth = 1.5; ctx.strokeStyle = ink(0.26 * a); ctx.stroke(); };
+    cutLog.arch = cutLog.crenels = 0;
+    const roofs = () => G.roofs.forEach((q) => { roofPath(ctx, G.x, q.y, q.hw, q.h); });
+    cutLog.roofs = G.roofs.length;
+    clipPaper(roofs, 0.8 * alpha * C.smooth(e / 0.6)); outline(roofs, alpha * C.smooth(e / 0.6));
+    const body = () => { ctx.rect(G.body.x, G.body.y, G.body.w, G.body.h); archPath(ctx, G); cutLog.arch++; };
+    outline(body, alpha * C.smooth((e - 0.1) / 0.5) * 0.7);
+    const xs = crenelXs(G.body.x + G.body.w + 8, G.body.x + G.body.w + 8 + 430 * e); cutLog.crenels = xs.length;
+    const run = () => xs.forEach((x) => ctx.rect(x, G.base - 14, WL.w, WL.h));
+    clipPaper(run, 0.95 * alpha); outline(run, alpha);
   }
   function paintRiver(ctx) {
     const r = C.rng(52);
@@ -242,5 +278,5 @@
     ctx.restore();
   }
 
-  root.V3Paint = { mk, makeSprites, drawStamps, line, paintPaper, paintSky, paintForeground, paintCity, paintRiver, paintMist, paintSeal, cutFigure, INK, PAPER };
+  root.V3Paint = { cutLog, roofPath, archPath, cutPath, fillPoly, mk, makeSprites, drawStamps, line, paintPaper, paintSky, paintForeground, paintCity, paintRiver, paintMist, paintSeal, cutFigure, INK, PAPER };
 })(typeof self !== 'undefined' ? self : this);
