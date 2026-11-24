@@ -1,0 +1,7 @@
+date: 2026-11-24T00:13:51Z  node: v22.23.4  code commit: 408708f654bd5e10ffd8a79dd99e2963a492ca54  cmd: node tests/evidence-v2.mjs after
+
+01-before-rewrite
+02-pen-down
+03-mid-rewrite
+04-new-world
+05-haunt

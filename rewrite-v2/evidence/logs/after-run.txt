@@ -1,8 +1,4 @@
-# after-run
-date: 2026-11-23T15:21:49Z
-node: v22.23.4
-commit: b0766eb
-command: node tests/run-v2.mjs
+date: 2026-11-24T00:14:30Z  node: v22.23.4  code commit: 408708f654bd5e10ffd8a79dd99e2963a492ca54  cmd: node tests/run-v2.mjs
 
 ok - node --check rewrite-v2/core.js
 ok - node --check rewrite-v2/app.js
@@ -16,6 +12,7 @@ ok - buildings stay on the city grid and off the text zone
 ok - old city at t=0, new world at t=1 (same items)
 ok - transition is monotonic and spreads outward from the printed line
 ok - paper terrain and creases start before the last buildings sink (visible together at t=0.45)
+ok - buildings press in row by row: nearer rows start sinking before farther rows
 ok - the hero never folds
 ok - hold to write, early release cancels
 ok - full hold rewrites over several seconds and persists as NEW
@@ -24,4 +21,4 @@ ok - compare shows the old world without changing the stored one
 ok - haunting is caused by the rewrite: only after NEW, reversed by undo
 ok - reduced motion uses held keyframes only
 ok - text copy is complete
-20 passed
+21 passed

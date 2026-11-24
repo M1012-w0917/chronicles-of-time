@@ -1,0 +1,7 @@
+date: 2026-11-24T00:14:12Z  node: v22.23.4  code commit: 408708f654bd5e10ffd8a79dd99e2963a492ca54  cmd: node tests/compare-v2.mjs
+
+01-before-rewrite.jpg
+02-pen-down.jpg
+03-mid-rewrite.jpg
+04-new-world.jpg
+05-haunt.jpg
