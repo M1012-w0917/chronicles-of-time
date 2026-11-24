@@ -1,6 +1,6 @@
 # V3: the ink-wash scroll (candidate for issue #4)
 
-The page is one xuan-paper painting of a walled river city. The only chrome is two scroll rollers, a hanging slip carrying the fact, and a brush. Rewriting the fact makes the ink bleed outward from the slip across the painting, dissolves the city into wash and mist, and repaints mountains and reeds stroke by stroke. The finished painting then has depth you can look around in.
+The page is one xuan-paper painting of a walled river city on a folded book leaf (printed frame, crease, fish-tails, fore-edge, margin strip). The only other chrome is a hanging slip carrying the fact, a dock in the margin, and a brush. Rewriting the fact makes the ink bleed outward from the slip across the painting, dissolves the city into wash and mist, and repaints mountains and reeds stroke by stroke. The finished painting then has depth you can look around in.
 
 ## Run
 
@@ -46,6 +46,31 @@ Review follow-up (2026-11-23):
 Unverified: Chinese glyphs are not visible in sandbox renders (no CJK fonts; only checked through DOM text and box geometry), only headless Chromium on software rendering was tested, no real GPU or other browsers, no touch device.
 
 Asset sources: all procedural, no external images, fonts or network.
+
+## Round 5: ink on a folded page (PR #7, issue #24)
+
+Design
+* **Folded leaf.** The painting sits inside a printed frame (版框: thick outer rule, thin inner rule) on a paper margin strip (边纸). A crease (书口) runs down the middle and is multiplied over the ink, so ink dims and pools in the fold. Fish-tails (鱼尾) mark the crease at the top and bottom of the frame, the right edge shows stacked leaf edges (fore-edge), the left keeps the stitched spine. The dock lives in the bottom margin strip. Markup is `#folio` in `index.html`, styles in `style.css`.
+* **Ink types.** 淡墨 light wash: soft sprites, low alpha, wide faint halo (far houses, `stroke(..., {light})`). 干笔 dry brush: bristle dropout, hard edge, paper tooth (wall foot and top, ridges). 湿墨 wet ink: dark core, feathered shadow edge and long fibre creep (gate, pagoda, `stroke(..., {wet})`, stamp tag `wt`). Creep follows a seeded fibre-direction field (`C.fibreDir`, `C.fibrePath`), not the radius.
+* **Hierarchy.** Gate tower is the focus (lintel, studded door, threshold steps), the pagoda is the one landmark; far houses are pale and sparse, smoke and tree clutter removed, the far distance and sky are left as paper.
+* **Rewrite as brush work.** On press a blunt dark 起笔 stroke lands beside the slip and tapers (`stroke(..., {blunt})`), then retreats into the wash. The erosion front is offset by `C.seep`, streaks elongated along the fibre field (the wet rim therefore fingers along the grain). The city plane is split into a fill layer and a line layer: roofs and wall lose their body first, outlines go `LINE_LAG` (0.08) later. Arrival fields, timing constants, cancel, undo, compare, scrub, keyboard and reduced motion are unchanged.
+* **Epilogue link.** `cutPath` (paint.js) cuts the old gate's two roofs, the doorway outline and a run of the wall's crenellation rhythm back to paper along the old road, in step with the figure (`hauntState.path`). It uses the same `roofPath`, `archPath`, `crenelXs` and `C.CITY` geometry as `paintCity`. The status line then reads "The gate that stood here was struck from the record. Someone still walks its road." The slip still carries the Chinese margin note and "He remembers year 42."
+* `getState()` adds `pathCut`, `cutShapes`, `fibre`, `foldVisible`.
+
+Run entry: serve the repo root (`python3 -m http.server 8000`) and open `/rewrite-v3/index.html`. Tests: `node tests/run-v3.mjs`, then with the server `node tests/flow-v3.mjs`, `node tests/shoot-v3.mjs`, `node tests/record-v3.mjs`.
+
+Evidence (all 1920x1080, one viewport, produced from the committed code; logs carry the HEAD they ran on):
+* Five stages: `docs/screenshots/v3e-01-before.jpg` (before), `v3e-02-pen-down.jpg` (brush down), `v3e-03-rebuild.jpg` (continuous rebuild), `v3e-04-new-dwell.jpg` (new world), `v3e-05-haunt.jpg` (causal anomaly); plus `v3e-06-compare.jpg`, `v3e-07-undo.jpg`.
+* Same composition before and after: `docs/screenshots/v3e-before-after.jpg`.
+* Previous round vs this round: `docs/screenshots/v3e-old-vs-new-first.jpg`, `v3e-old-vs-new-end.jpg` (left: frame from `docs/video/v3-deep-flow.webm`, `old-v3-deep-*.jpg`; right: this round).
+* Recording: `docs/video/v3-round5-flow.webm`, 1920x1080, one session driven by real keyboard and pointer input: early release cancel, full hold, rewrite, dwell, haunt, hold C compare, Z undo, a second rewrite after undo, and a held ending on the haunt state. Reduced motion is covered by `flow-v3` and `?reduced=1`, not toggled in the video.
+* Raw logs: `docs/test-logs/run-v3-round5.log`, `flow-v3-round5.log`, `shoot-v3-round5.log`, `record-v3-round5.log`, `perf-fibres.log` (round 5 rows at the end).
+
+Unverified / limits
+* No CJK font exists in the sandbox, so Chinese glyphs (the fact sentence, the slip note, the "史书 卷一" label) are blank in every screenshot and in the video. The DOM text is asserted by tests, and the English captions and status line carry the same meaning and are fully visible. On a machine with a Chinese font the vertical Chinese slip will show; it was not seen here. Alternative if you need the Chinese visible in a recording: record on a machine with Noto Serif CJK or Songti.
+* Headless Chromium with software rendering only. No GPU, no Firefox/Safari, no touch device. Frame cost in the rewrite phase: mean about 48 ms and p95 about 92 ms here (before this round about 43 to 49 and 84), expect much less on a GPU.
+* The screenshot and video encoder is the ffmpeg bundled with Playwright (VP8 only). Video quality was judged from extracted frames, not in other players.
+* Asset sources: all procedural. No images, fonts or network resources; only the mulberry32 RNG idea is shared with other candidates.
 
 ## Art source
 

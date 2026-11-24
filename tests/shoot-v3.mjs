@@ -1,45 +1,49 @@
-// V3 screenshots. Server on :8000 first. Writes docs/screenshots/v3-*.jpg (deterministic, old set) and
-// v3d-*.jpg (real keyboard session, stages in order) plus v3d-before-after.jpg (same composition side by side).
-import { createRequire } from 'node:module'; import { execSync } from 'node:child_process';
+// V3 round 5 screenshots at 1920x1080 (one viewport for every frame). Server on :8000 first.
+// Writes docs/screenshots/v3e-01-before .. v3e-07-undo (real keyboard session), v3e-before-after (same composition, old | new),
+// v3e-old-vs-new-first / -end (previous round recording frame | this round). Older v3-* and v3d-* images are kept untouched.
+import { createRequire } from 'node:module'; import { execSync } from 'node:child_process'; import { readFileSync, writeFileSync } from 'node:fs';
 const root = execSync('npm root -g').toString().trim(); const require = createRequire(root + '/');
 const { chromium } = require(root + '/@playwright/mcp/node_modules/playwright-core');
 const exe = process.env.CHROME || execSync('ls -d /inner_container/opt/playwright/chromium_headless_shell-*/*/chrome-headless-shell').toString().trim();
 const BASE = process.env.BASE || 'http://localhost:8000/rewrite-v3/index.html';
-const OPT = { type: 'jpeg', quality: 78 };
+const OPT = { type: 'jpeg', quality: 86 };
 const b = await chromium.launch({ executablePath: exe, args: ['--no-sandbox'] });
-const ctx = await b.newContext({ viewport: { width: 1600, height: 900 } });
+const ctx = await b.newContext({ viewport: { width: 1920, height: 1080 } });
 const pg = await ctx.newPage();
-const S = () => pg.evaluate(() => window.__slice.getState());
-const shot = async (n) => { await pg.screenshot({ path: `docs/screenshots/${n}.jpg`, ...OPT }); console.log('shot', n, JSON.stringify(await pg.evaluate(() => { const s = window.__slice.getState(); return { state: s.state, t: +s.t.toFixed(2), w: +s.w.toFixed(2), c: s.c, haunt: +s.haunt.toFixed(2), figurePos: s.figurePos, vanished: s.vanished }; }))); };
 const until = (fn, ms = 90000) => pg.waitForFunction(fn, null, { timeout: ms });
+const shot = async (n) => { await pg.screenshot({ path: `docs/screenshots/${n}.jpg`, ...OPT }); console.log('shot', n, JSON.stringify(await pg.evaluate(() => { const s = window.__slice.getState(); return { state: s.state, t: +s.t.toFixed(2), w: +s.w.toFixed(2), c: s.c, haunt: +s.haunt.toFixed(2), pathCut: +s.pathCut.toFixed(2), vp: [innerWidth, innerHeight] }; }))); };
+const join = async (files, out, w, h) => { // side by side, each scaled to w x h
+  const data = files.map((f) => readFileSync(f).toString('base64'));
+  const j = await pg.evaluate(async ([d, w, h]) => {
+    const load = (s) => new Promise((r) => { const i = new Image(); i.onload = () => r(i); i.src = 'data:image/jpeg;base64,' + s; });
+    const im = await Promise.all(d.map(load)); const cv = document.createElement('canvas'); cv.width = w * im.length + 4 * (im.length - 1); cv.height = h; const x = cv.getContext('2d');
+    im.forEach((i, k) => x.drawImage(i, k * (w + 4), 0, w, h)); x.fillStyle = '#fff'; for (let k = 1; k < im.length; k++) x.fillRect(k * (w + 4) - 4, 0, 4, h);
+    return cv.toDataURL('image/jpeg', 0.88).split(',')[1];
+  }, [data, w, h]);
+  writeFileSync(out, Buffer.from(j, 'base64')); console.log(out);
+};
 
-// Old deterministic set (kept)
-const shots = { 'v3-01-initial': '?t=0', 'v3-02-penDown': '?w=0.6', 'v3-03-mid': '?t=0.42', 'v3-04-new': '?state=new', 'v3-05-haunt': '?state=new&haunt=1', 'v3-06-reduced': '?reduced=1&state=new&haunt=1' };
-for (const [n, qs] of Object.entries(shots)) { await pg.goto(BASE + qs); await pg.waitForTimeout(1500); await pg.screenshot({ path: `docs/screenshots/${n}.jpg`, ...OPT }); console.log(n); }
+// same composition, no pointer: parallax at rest
+await pg.goto(BASE + '?t=0'); await pg.waitForTimeout(1800); await pg.screenshot({ path: 'docs/screenshots/.tmp-old.jpg', ...OPT });
+await pg.goto(BASE + '?state=new'); await pg.waitForTimeout(1800); await pg.screenshot({ path: 'docs/screenshots/.tmp-new.jpg', ...OPT });
+await join(['docs/screenshots/.tmp-old.jpg', 'docs/screenshots/.tmp-new.jpg'], 'docs/screenshots/v3e-before-after.jpg', 1920, 1080);
 
-// Same-composition before/after (identical viewport, same frame, no pointer so parallax is at rest)
-await pg.goto(BASE + '?t=0'); await pg.waitForTimeout(1500); const before = (await pg.screenshot(OPT)).toString('base64');
-await pg.goto(BASE + '?state=new'); await pg.waitForTimeout(1500); const after = (await pg.screenshot(OPT)).toString('base64');
-const joined = await pg.evaluate(async ([a, c]) => {
-  const load = (s) => new Promise((r) => { const i = new Image(); i.onload = () => r(i); i.src = 'data:image/jpeg;base64,' + s; });
-  const [ia, ic] = await Promise.all([load(a), load(c)]);
-  const cv = document.createElement('canvas'); cv.width = 3200; cv.height = 900; const x = cv.getContext('2d');
-  x.drawImage(ia, 0, 0); x.drawImage(ic, 1600, 0); x.fillStyle = '#fff'; x.fillRect(1598, 0, 4, 900);
-  return cv.toDataURL('image/jpeg', 0.8).split(',')[1];
-}, [before, after]);
-(await import('node:fs')).writeFileSync('docs/screenshots/v3d-before-after.jpg', Buffer.from(joined, 'base64')); console.log('v3d-before-after');
-
-// Real session: fresh storage, keyboard only
+// real session, keyboard only, fresh storage
 await pg.goto(BASE + '?fresh=1'); await pg.evaluate(() => localStorage.clear()); await pg.reload();
-await pg.waitForFunction(() => window.__slice && window.__slice.getState().totalStamps > 0); await pg.waitForTimeout(1500);
-await shot('v3d-01-before');
-await pg.keyboard.down('Space'); await pg.waitForTimeout(500); await shot('v3d-02-hold');
-await pg.keyboard.up('Space'); await pg.waitForTimeout(300);
+await pg.waitForFunction(() => window.__slice && window.__slice.getState().totalStamps > 0); await pg.waitForTimeout(1800);
+await shot('v3e-01-before');
+await pg.keyboard.down('Space'); await pg.waitForTimeout(900); await shot('v3e-02-pen-down');
+await pg.keyboard.up('Space'); await pg.waitForTimeout(500);
 await pg.keyboard.down('Space'); await until(() => window.__slice.getState().state === 'REWRITING'); await pg.keyboard.up('Space');
-await until(() => window.__slice.getState().t > 0.45); await shot('v3d-03-rebuild');
-await until(() => window.__slice.getState().state === 'NEW'); await pg.mouse.move(800, 450); await pg.waitForTimeout(2500); await shot('v3d-04-new-dwell');
-await until(() => window.__slice.getState().haunt > 0.97); await pg.waitForTimeout(800); await shot('v3d-05-haunt');
-await pg.keyboard.down('c'); await until(() => window.__slice.getState().c === 1); await pg.waitForTimeout(500); await shot('v3d-06-compare'); await pg.keyboard.up('c');
+await until(() => window.__slice.getState().t > 0.42); await shot('v3e-03-rebuild');
+await until(() => window.__slice.getState().state === 'NEW'); await pg.mouse.move(960, 540); await pg.waitForTimeout(2500); await shot('v3e-04-new-dwell');
+await until(() => window.__slice.getState().haunt > 0.97); await pg.waitForTimeout(800); await shot('v3e-05-haunt');
+await pg.keyboard.down('c'); await until(() => window.__slice.getState().c === 1); await pg.waitForTimeout(500); await shot('v3e-06-compare'); await pg.keyboard.up('c');
 await until(() => window.__slice.getState().c === 0);
-await pg.keyboard.press('z'); await until(() => window.__slice.getState().state === 'OLD'); await pg.waitForTimeout(800); await shot('v3d-07-undo');
+await pg.keyboard.press('z'); await until(() => window.__slice.getState().state === 'OLD'); await pg.waitForTimeout(800); await shot('v3e-07-undo');
+
+// old recording frame | this round, first screen and ending
+await join(['docs/screenshots/old-v3-deep-first.jpg', 'docs/screenshots/v3e-01-before.jpg'], 'docs/screenshots/v3e-old-vs-new-first.jpg', 1280, 720);
+await join(['docs/screenshots/old-v3-deep-end.jpg', 'docs/screenshots/v3e-05-haunt.jpg'], 'docs/screenshots/v3e-old-vs-new-end.jpg', 1280, 720);
 await b.close();
+(await import('node:fs')).rmSync('docs/screenshots/.tmp-old.jpg'); (await import('node:fs')).rmSync('docs/screenshots/.tmp-new.jpg');
