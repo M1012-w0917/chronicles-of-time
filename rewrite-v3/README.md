@@ -1,0 +1,98 @@
+# V3: the ink-wash scroll (candidate for issue #4)
+
+The page is one xuan-paper painting of a walled river city on a folded book leaf (printed frame, crease, fish-tails, fore-edge, margin strip). The only other chrome is a hanging slip carrying the fact, a dock in the margin, and a brush. Rewriting the fact makes the ink bleed outward from the slip across the painting, dissolves the city into wash and mist, and repaints mountains and reeds stroke by stroke. The finished painting then has depth you can look around in.
+
+## Run
+
+No build, no network. Open `rewrite-v3/index.html` directly (file://) or serve the repo root (`python3 -m http.server 8000`) and open `/rewrite-v3/`.
+
+| Control | Action |
+|---|---|
+| Hold `Space` (or hold the slip / "Hold to rewrite") | strike the line; keep holding about 1.5 s. Releasing early cancels |
+| Hold `C` or "Hold to compare" | show the old city without losing the new one |
+| `Z` or "Undo" | the old city comes back, the haunting is reversed |
+| Slider | scrub between the two paintings |
+| Pointer | parallax (strong in the new world, nearly flat in the old) |
+| "Reduced motion" button, or the OS setting | held keyframes 0 / 0.5 / 1 with a short crossfade, no drift or parallax |
+
+Debug query params: `?t=0..1`, `?state=new`, `?w=0.6` (pen down), `?haunt=0..1`, `?reduced=1|0`, `?autoplay=1`. Params `t/w/state/haunt` freeze time so screenshots are deterministic. `window.__slice` exposes `setProgress(v)`, `getState()`, `fingerprint()`.
+
+The fact is "City of Ashmere founded in year 42" becoming "City of Ashmere was never founded" (灰堡市建于永昌四十二年。 / 灰堡市从未建立。). The sandbox has no CJK fonts, so every Chinese string has an English caption below it.
+
+## How it works
+
+* `core.js`: pure logic. Seeded RNG, value noise, the brush stroke simulation (Catmull-Rom path, taper, wobble, dry-brush bristle dropout, wet halo), ridge lines, the arrival field (when the rewrite reaches each point of each plane), the state machine, `hauntState`. Unit tested in node.
+* `paint.js`: canvas 2D. Brush sprites, paper (mottling plus fibre layer drawn over the ink), the old city, river, foreground pine, mist strips, the seal, the figure.
+* `app.js`: five planes (far mountains, mid mountains, city, river, foreground), each with an *old* layer, a *new* layer and a composite. Per frame during a rewrite the old layer is eroded by a low-resolution arrival mask, a darker ink ring marks the front (the bleed, softened by bilinear upscaling), and new strokes are stamped onto the new layer in time order from a pre-generated list (about 38k stamps). The brush on screen follows the most recently laid stamp. Parallax offsets planes by depth; the amount rises as the painting becomes the new world.
+* The old city, the river and the pine are drawn once at load and never swapped for a picture. The new world is never pre-rendered: it is laid down live from the stroke list.
+
+## Haunting (caused by the rewrite)
+
+Only after the world is NEW (and never during compare or after undo): a figure appears as a paper-white absence cut out of a dark wooded bank (it is the unpainted paper, not a drawn shape), slowly turns from back to front and two dark slits open in the hat; a vermilion seal lands where the city gate used to be; a margin note "He remembers year 42." appears on the slip. The seal is the only red on the page.
+
+## Book-page deepening (PR #7 / issue #4, same PR)
+
+The scroll is now framed as a history book page: rollers and a binding edge with a red stitched spine on the left, a folded page edge on the right, a "史书 卷一" label, and ink-bleed fibres drawn over the ink. The figure rides parallax plane 3, the same plane as the bank it stands on, so it does not slide off its ground. The new world is still painted by the same stroke engine (erase, bleed, repaint). The haunting figure is cut out at the former city gate (`C.VANISHED`), matching the rewritten sentence. See `git diff` of `rewrite-v3/` for details.
+
+Run entry: `python3 -m http.server 8000` then open `/rewrite-v3/index.html`; `file://` also works.
+
+Evidence: `docs/screenshots/v3d-01-before.jpg` to `v3d-07-undo.jpg` (before, hold, rebuild, new dwell, haunt, compare, undo; real keyboard session, 1600x900), `v3d-before-after.jpg` (same composition side by side), `docs/video/v3-deep-flow.webm` (real session: early release cancel, full hold, rewrite, dwell, haunt, C compare, Z undo, reduced motion toggle and a second rewrite), raw logs in `docs/test-logs/`. The old `v3-0*.jpg` and `v3-flow.webm` are kept.
+
+Review follow-up (2026-11-23):
+- Flow flake: `flow-v3.mjs` failed about 1 run in 3 at "compare looks like the old city". Cause: in `core.js` `m.step`, once `m.c` reached the target 1, `tgt > m.c` was false, so it stepped down by `dt / compareMs` and then back up, so a held C hovered just below 1 (0.926 to 1). The test waited for `c === 1` and then took a fingerprint one frame later at `c` < 1. Fixed: `c` now moves toward the target and stops there. Regression unit test "held compare settles at 1 and stays there". Raw failing output from before the fix: `docs/test-logs/flake-before-fix/`. Repeated runs after the fix: `docs/test-logs/flow-v3-repeat.log`.
+- Fibre cost: time inside the app frame callback during a real rewrite, headless software rendering, two runs each: with fibres mean 42.8 / 49.2 ms, p95 84.8 / 84.4 ms; with the `bleed()` call disabled mean 43.3 / 42.6 ms, p95 84.1 / 83.7 ms. The difference is within run-to-run noise. Raw numbers: `docs/test-logs/perf-fibres.log`, script `tests/perf-v3.mjs`. Not measured on a GPU.
+- Label geometry with the fallback font: the "史书 卷一" span box is 22x107 px inside the 28 px strip (x 8 to 36, y 74 to 207) and does not overlap the slip or the dock at 1600x900 or 800x700. Real CJK glyphs are still not rendered here.
+
+Unverified: Chinese glyphs are not visible in sandbox renders (no CJK fonts; only checked through DOM text and box geometry), only headless Chromium on software rendering was tested, no real GPU or other browsers, no touch device.
+
+Asset sources: all procedural, no external images, fonts or network.
+
+## Round 5: ink on a folded page (PR #7, issue #24)
+
+Design
+* **Folded leaf.** The painting sits inside a printed frame (版框: thick outer rule, thin inner rule) on a paper margin strip (边纸). A crease (书口) runs down the middle and is multiplied over the ink, so ink dims and pools in the fold. Fish-tails (鱼尾) mark the crease at the top and bottom of the frame, the right edge shows stacked leaf edges (fore-edge), the left keeps the stitched spine. The dock lives in the bottom margin strip. Markup is `#folio` in `index.html`, styles in `style.css`.
+* **Ink types.** 淡墨 light wash: soft sprites, low alpha, wide faint halo (far houses, `stroke(..., {light})`). 干笔 dry brush: bristle dropout, hard edge, paper tooth (wall foot and top, ridges). 湿墨 wet ink: dark core, feathered shadow edge and long fibre creep (gate, pagoda, `stroke(..., {wet})`, stamp tag `wt`). Creep follows a seeded fibre-direction field (`C.fibreDir`, `C.fibrePath`), not the radius.
+* **Hierarchy.** Gate tower is the focus (lintel, studded door, threshold steps), the pagoda is the one landmark; far houses are pale and sparse, smoke and tree clutter removed, the far distance and sky are left as paper.
+* **Rewrite as brush work.** On press a blunt dark 起笔 stroke lands beside the slip and tapers (`stroke(..., {blunt})`), then retreats into the wash. The erosion front is offset by `C.seep`, streaks elongated along the fibre field (the wet rim therefore fingers along the grain). The city plane is split into a fill layer and a line layer: roofs and wall lose their body first, outlines go `LINE_LAG` (0.08) later. Arrival fields, timing constants, cancel, undo, compare, scrub, keyboard and reduced motion are unchanged.
+* **Epilogue link.** `cutPath` (paint.js) cuts the old gate's two roofs, the doorway outline and a run of the wall's crenels back to paper at the wall-top height (`WL.top`, y 591), in step with the figure (`hauntState.path`). It uses the same `roofPath`, `archPath`, `crenelXs` and `C.CITY` geometry as `paintCity`, and the crenel rects are the old ones (same x grid, same y, same size), but only the stretch east of the gate, not the whole wall. `cutPath` is drawn in plane 3 space like the figure, while the old gate lived on plane 2, so under pointer parallax the cut shapes drift relative to where the gate stood; they coincide only at zero offset. That is accepted: the old gate no longer exists in the new world, so there is nothing to misalign with. Tests: `flow-v3` counts shapes where they are appended to the clip path and compares pixels of the roof and crenel regions with the same frame before the epilogue (a control patch must not change). The status line then reads "The gate that stood here was struck from the record. Someone still walks its road." The slip still carries the Chinese margin note and "He remembers year 42."
+* `getState()` adds `pathCut`, `cutShapes`, `fibre`, `foldVisible`.
+
+Run entry: serve the repo root (`python3 -m http.server 8000`) and open `/rewrite-v3/index.html`. Tests: `node tests/run-v3.mjs`, then with the server `node tests/flow-v3.mjs`, `node tests/shoot-v3.mjs`, `node tests/record-v3.mjs`.
+
+Evidence (all 1920x1080, one viewport, the round 5 logs, screenshots and video were regenerated after the last code commit; each log header names the exact HEAD it ran on, which is the commit just before the evidence commit, and `git diff <that HEAD> HEAD` touches only `docs/` and this README):
+* Five stages: `docs/screenshots/v3e-01-before.jpg` (before), `v3e-02-pen-down.jpg` (brush down), `v3e-03-rebuild.jpg` (continuous rebuild), `v3e-04-new-dwell.jpg` (new world), `v3e-05-haunt.jpg` (causal anomaly); plus `v3e-06-compare.jpg`, `v3e-07-undo.jpg`.
+* Same composition before and after: `docs/screenshots/v3e-before-after.jpg`.
+* Previous round vs this round: `docs/screenshots/v3e-old-vs-new-first.jpg`, `v3e-old-vs-new-end.jpg` (left: frame from `docs/video/v3-deep-flow.webm`, `old-v3-deep-*.jpg`; right: this round).
+* Recording: `docs/video/v3-round5-flow.webm`, 1920x1080, one session driven by real keyboard and pointer input: early release cancel, full hold, rewrite, dwell, haunt, hold C compare, Z undo, a second rewrite after undo, and a held ending on the haunt state. Reduced motion is covered by `flow-v3` and `?reduced=1`, not toggled in the video.
+* Raw logs: `docs/test-logs/run-v3-round5.log`, `flow-v3-round5.log`, `shoot-v3-round5.log`, `record-v3-round5.log`, `perf-fibres.log` (round 5 rows at the end).
+
+Unverified / limits
+* No CJK font exists in the sandbox, so Chinese glyphs (the fact sentence, the slip note, the "史书 卷一" label) are blank in every screenshot and in the video. The DOM text is asserted by tests, and the English captions and status line carry the same meaning and are fully visible. On a machine with a Chinese font the vertical Chinese slip will show; it was not seen here. Alternative if you need the Chinese visible in a recording: record on a machine with Noto Serif CJK or Songti.
+* Headless Chromium with software rendering only. No GPU, no Firefox/Safari, no touch device. Frame cost in the rewrite phase: mean about 48 ms and p95 about 92 ms here (before this round about 43 to 49 and 84), expect much less on a GPU.
+* The screenshot and video encoder is the ffmpeg bundled with Playwright (VP8 only). Video quality was judged from extracted frames, not in other players.
+* Asset sources: all procedural. No images, fonts or network resources; only the mulberry32 RNG idea is shared with other candidates.
+
+## Art source
+
+All procedural. No images, fonts or network. Only the idea of a small seeded RNG (mulberry32) is shared with other candidates; no code was copied from `rewrite/` (V1).
+
+## Done / not done
+
+Done: full flow (hold, cancel, rewrite, persist across reload, compare, undo, scrub), haunting, reduced motion, tests and a recorded flow video (`docs/video/v3-flow.webm`).
+Not done / trade-offs: no audio; mountains are laid by position, so only reeds and ridges read as discrete strokes; the figure is a simple silhouette; the Chinese text is DOM text and cannot be seen in this sandbox's screenshots; rebuild on resize re-renders all layers (about 1 s in software rendering); old-city art is dense rather than refined.
+
+## Tests
+
+`node tests/run-v3.mjs` (unit and syntax), then with a server on :8000 `node tests/flow-v3.mjs`; screenshots `node tests/shoot-v3.mjs` into `docs/screenshots/v3-*.jpg`; video `node tests/record-v3.mjs`.
+
+## Fundamental differences from the other candidates
+
+| | Rendering | World model | What "rewrite" does | Interaction with the world |
+|---|---|---|---|---|
+| V1 `rewrite/` | canvas 2D, flat coloured dusk city inside a book | one model driven by t | buildings change colour and shape in a book page | book UI |
+| V2 `rewrite-v2/` | CSS 3D DOM tabletop diorama | DOM boxes folded into the page | buildings sink, stones and tufts rise | orbit camera |
+| **V3 ink** | canvas 2D stroke engine, monochrome ink on paper, no book | old ink layers and a live stroke list per depth plane | ink front erases old paint, new world is painted in front of you by a brush | pointer parallax; painting gains depth |
+| V4 CCTV archive desk | (separate candidate, DOM/video-desk) | records | records are edited | desk |
+| V5 paper-cut shadow theatre | (separate candidate) | layered cut paper and light | cut-outs swap | lamp |
+
+V4 and V5 rows describe their stated concepts; see their own READMEs for details.

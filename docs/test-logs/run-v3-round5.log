@@ -1,0 +1,29 @@
+date: 2026-11-24T00:34:58Z
+HEAD at run time: 1ed18ab08d4b3b8b2a2f6ef8828948787a9c50ee (clean tree except the files this run regenerates under docs/)
+ok - node --check rewrite-v3/core.js
+ok - node --check rewrite-v3/paint.js
+ok - node --check rewrite-v3/app.js
+ok - node --check tests/run-v3.mjs
+ok - node --check tests/flow-v3.mjs
+ok - node --check tests/record-v3.mjs
+ok - node --check tests/shoot-v3.mjs
+ok - seeded rng is deterministic
+ok - brush stroke tapers at both ends and is deterministic
+ok - dry brush drops bristles: fewer, smaller stamps than wet
+ok - ridge stays inside its bounds
+ok - old and new mountains differ (repainted, not recoloured)
+ok - arrival spreads outward from the pen and city dissolves first
+ok - new strokes: sorted by time, in range, outward and on every plane
+ok - hold to write, early release cancels
+ok - full hold rewrites over several seconds and persists as NEW
+ok - undo returns to the old world
+ok - compare shows old without changing the stored world
+ok - held compare settles at 1 and stays there (no step past the target)
+ok - haunting is caused by the rewrite and reversed by undo
+ok - the figure stands where the old gate was and stays on the old street
+ok - fibre direction field is deterministic, coherent and drives bleed paths along the grain
+ok - ink types: light wash is soft, dry is hard bristles, wet is tagged for fibre creep
+ok - the epilogue path shares the old gate geometry with the city (one definition, two uses)
+ok - reduced motion holds keyframes only
+ok - text copy is complete
+26 passed

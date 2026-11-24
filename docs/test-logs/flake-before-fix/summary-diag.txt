@@ -1,0 +1,4 @@
+code: 4756b06 plus a diagnostic message on the compare assertion (before the compare fix); exit code per run; loop cut after 3 runs
+run1 0
+run2 1
+run3 0

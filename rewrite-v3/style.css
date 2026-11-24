@@ -1,0 +1,86 @@
+/* V3: the painting is the whole page. Only chrome: a bound spine and a folded page edge, a hanging slip with the written fact, a brush. */
+:root { --ink: #221f1c; --paper: #e9e0c8; --seal: #b3271d; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: #1c1916; color: var(--ink); touch-action: none; user-select: none; -webkit-user-select: none; }
+canvas#scene, canvas#ghost { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+canvas#ghost { pointer-events: none; opacity: 0; }
+canvas#ghost.on { opacity: var(--ga, 1); }
+#vignette { position: fixed; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 46%, transparent 55%, rgba(40,28,14,.28) 100%),
+              linear-gradient(90deg, rgba(40,28,14,.35), transparent 7%, transparent 93%, rgba(40,28,14,.35)); }
+
+/* the folded leaf: the painting sits inside a printed frame (版框) on the page margin (边纸). The crease (书口) runs down the middle with fish-tails (鱼尾);
+   it is multiplied over the ink, so ink dims and pools in the fold. Geometry is shared through custom properties. */
+:root { --fl: 56px; --fr: 58px; --ft: 16px; --fb: 88px; --margin-paper: #e3d8ba; }
+#folio { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
+#folio i { position: absolute; display: block; }
+#folio .margin { left: var(--fl); right: var(--fr); top: var(--ft); bottom: var(--fb); box-shadow: inset 0 0 26px rgba(60,40,20,.30), 0 0 0 100vmax var(--margin-paper); }
+#folio .frame { left: calc(var(--fl) - 5px); right: calc(var(--fr) - 5px); top: calc(var(--ft) - 5px); bottom: calc(var(--fb) - 5px); border: 1px solid rgba(34,31,28,.55); }
+#folio .frame::before { content: ""; position: absolute; inset: 3px; border: 2.5px solid rgba(34,31,28,.82); }
+#folio .crease { left: 50%; top: 0; bottom: 0; width: 46px; transform: translateX(-50%); mix-blend-mode: multiply;
+  background: linear-gradient(90deg, transparent 0, rgba(110,80,44,.10) 18%, rgba(80,54,28,.40) 42%, rgba(46,30,14,.66) 50%, rgba(80,54,28,.34) 58%, rgba(110,80,44,.08) 80%, transparent 100%); }
+#folio .crease::before { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: rgba(30,20,10,.55); box-shadow: -1px 0 0 rgba(30,20,10,.18), 12px 0 0 rgba(255,250,235,.22), -13px 0 0 rgba(255,250,235,.18); }
+#folio .tail { left: 50%; width: 22px; height: 20px; margin-left: -11px; background: rgba(34,31,28,.86); clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 58%, 0 100%); }
+#folio .tail.t { top: calc(var(--ft) - 2px); }
+#folio .tail.b { bottom: calc(var(--fb) - 2px); transform: scaleY(-1); }
+
+/* the volume edge: a bound spine with stitched thread on the left, a folded page edge with paper thickness lines on the right */
+.roller { position: fixed; top: 0; bottom: 0; pointer-events: none; z-index: 3; }
+.roller i { display: none; }
+.roller.left { left: 0; width: 46px;
+  background: linear-gradient(90deg, #1b130c 0, #3b2a1b 9px, #5a4128 14px, #2a1d12 20px, rgba(40,28,14,.55) 24px, rgba(40,28,14,.22) 34px, transparent 46px);
+  box-shadow: 4px 0 18px rgba(30,20,10,.38); }
+.roller.left::before { content: ""; position: absolute; left: 30px; top: 0; bottom: 0; width: 3px;
+  background: repeating-linear-gradient(180deg, rgba(120,36,26,.92) 0 16px, transparent 16px 40px); border-radius: 2px; box-shadow: 0 0 2px rgba(40,10,6,.5); }
+.roller.left::after { content: ""; position: absolute; left: 31px; top: 0; bottom: 0; width: 1px; background: rgba(120,36,26,.55); }
+.roller.right { right: 0; width: 46px;
+  background: repeating-linear-gradient(90deg, rgba(60,44,26,.42) 0 1px, transparent 1px 3px, rgba(255,250,235,.25) 3px 4px, transparent 4px 6px),
+              linear-gradient(270deg, #cfc4a6 0, #e3d9bd 7px, #b8aa86 12px, rgba(120,100,66,.45) 16px, rgba(60,44,26,.18) 30px, transparent 46px);
+  box-shadow: -4px 0 16px rgba(30,20,10,.3); }
+.roller.right::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 22px;
+  background: linear-gradient(90deg, transparent, rgba(255,250,235,.28) 55%, rgba(80,58,30,.3) 100%); transform: skewY(0deg); }
+.roller.right::after { content: ""; position: absolute; right: 16px; top: 0; bottom: 0; width: 1px; background: rgba(60,44,26,.4); box-shadow: 3px 0 0 rgba(255,250,235,.35); }
+/* title label strip on the spine */
+#bookLabel { position: fixed; left: 8px; top: 74px; z-index: 3; width: 28px; padding: 12px 0; pointer-events: none; text-align: center;
+  background: linear-gradient(#e8dcbc, #d9cba6); border: 1px solid rgba(34,31,28,.55); box-shadow: 1px 2px 4px rgba(20,12,6,.45), inset 0 0 6px rgba(120,90,50,.25); }
+#bookLabel span { writing-mode: vertical-rl; display: block; margin: 0 auto; font-family: "Songti SC", "Noto Serif CJK SC", "Source Han Serif SC", "STSong", "SimSun", serif; font-size: 16px; letter-spacing: .18em; color: var(--ink); }
+
+/* the written fact */
+#slip { position: fixed; z-index: 2; width: 220px; transform: translate(-50%, 0); pointer-events: auto; --w: 0; --r: 0; --c: 0; --old: 1; }
+#slip .cord { position: absolute; left: 50%; top: -80px; width: 1px; height: 80px; background: rgba(34,31,28,.5); }
+#slip .card { position: relative; width: 130px; height: 346px; margin: 0 auto; padding: 14px 12px;
+  background: linear-gradient(rgba(240,232,208,.9), rgba(232,222,196,.9)); border: 1px solid rgba(34,31,28,.4); box-shadow: 0 6px 18px rgba(30,20,10,.32), inset 0 0 14px rgba(120,90,50,.18); cursor: pointer; }
+#slip .zh { margin: 0; height: 100%; writing-mode: vertical-rl; font-family: "Songti SC", "Noto Serif CJK SC", "Source Han Serif SC", "STSong", "SimSun", serif; font-size: 25px; line-height: 1.32; letter-spacing: .06em; color: var(--ink); }
+#slip .zh span { display: block; }
+#zhOld { opacity: var(--old); filter: blur(calc(var(--w) * .6px)); }
+#zhNew { opacity: var(--r); clip-path: inset(0 0 calc((1 - var(--r)) * 100%) 0); }
+#zhNote { opacity: 0; transition: opacity 1.8s; color: rgba(34,31,28,.62); }
+#slip[data-echo="true"] #zhNote { opacity: 1; }
+#strike { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; opacity: var(--sa, 0); }
+#slip .en { margin-top: 10px; text-align: center; font: italic 13px/1.35 Georgia, "Times New Roman", serif; color: rgba(34,31,28,.88); text-shadow: 0 0 6px rgba(236,228,204,.9), 0 0 2px rgba(236,228,204,.9); }
+#slip .en p { margin: 0 0 3px; }
+#enOld { opacity: var(--old); text-decoration: line-through; text-decoration-color: rgba(34,31,28, calc(var(--sa, 0) * .8)); }
+#enNew { opacity: var(--r); }
+#enNote { opacity: 0; transition: opacity 1.8s; }
+#slip[data-echo="true"] #enNote { opacity: .75; }
+
+/* the brush: a real object that moves, painted from the same elements as nothing else on the page */
+#brush { position: fixed; left: 0; top: 0; width: 16px; height: 270px; z-index: 4; pointer-events: none; transform-origin: 0 0; will-change: transform; filter: drop-shadow(3px 5px 4px rgba(30,20,10,.35)); }
+#brush i { position: absolute; left: 50%; transform: translateX(-50%); display: block; }
+#brush .hair { bottom: 0; width: 16px; height: 52px; background: linear-gradient(90deg, #0d0b0a, #3a342e 50%, #0d0b0a); clip-path: polygon(50% 100%, 6% 58%, 20% 0, 80% 0, 94% 58%); }
+#brush .ferrule { bottom: 50px; width: 13px; height: 18px; background: linear-gradient(90deg, #8a8478, #d8d2c0 45%, #6c675c); }
+#brush .shaft { bottom: 66px; width: 10px; height: 204px; background: linear-gradient(90deg, #2c241c, #6b5a42 45%, #2c241c); border-radius: 5px 5px 2px 2px; }
+
+/* dock */
+#dock { position: fixed; z-index: 5; left: 50%; bottom: 10px; transform: translateX(-50%); display: flex; gap: 8px; align-items: center; padding: 6px 12px;
+  background: rgba(233,224,200,.82); border: 1px solid rgba(34,31,28,.35); border-radius: 3px; font: 12px/1.2 Georgia, serif; backdrop-filter: blur(2px); }
+#dock button { font: inherit; color: var(--ink); background: transparent; border: 1px solid rgba(34,31,28,.5); border-radius: 2px; padding: 5px 9px; cursor: pointer; }
+#dock button:hover, #dock button:focus-visible, #dock button[aria-pressed="true"] { background: rgba(34,31,28,.88); color: var(--paper); outline: none; }
+#dock kbd { font: 10px/1 monospace; opacity: .6; margin-left: 4px; }
+#dock .scrub { display: flex; gap: 6px; align-items: center; }
+#dock input[type=range] { width: 120px; accent-color: #221f1c; }
+#status { min-width: 240px; max-width: 330px; font-style: italic; opacity: .85; }
+#dock[data-echo="true"] #status { opacity: 1; font-weight: 600; color: #7a1d14; }
+
+@media (max-width: 900px) { :root { --fl: 50px; --fr: 52px; --fb: 70px; } #status { display: none; } #dock { flex-wrap: wrap; justify-content: center; width: 92vw; } #slip .en { font-size: 11px; } }
+@media (prefers-reduced-motion: reduce) { #zhNote, #enNote { transition: none; } }
