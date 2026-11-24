@@ -1,4 +1,5 @@
-# run-v3 | 2026-11-24T00:20:10Z | HEAD 727eb0e445ebc16413da4d7b87ea0860d1e9bbb7 | status: 16 entries (0 changed code/test files)
+date: 2026-11-24T00:34:58Z
+HEAD at run time: 1ed18ab08d4b3b8b2a2f6ef8828948787a9c50ee (clean tree except the files this run regenerates under docs/)
 ok - node --check rewrite-v3/core.js
 ok - node --check rewrite-v3/paint.js
 ok - node --check rewrite-v3/app.js
