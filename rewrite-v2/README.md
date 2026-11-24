@@ -112,3 +112,12 @@ Only differences in medium, technique, camera or interaction are listed. Palette
 | Light | Painted sky gradient | One warm lamp, per-face shading, contact shadows, tilt-shift blur | Paper and ink | Screen glow | A single light behind the screen |
 
 The V3 to V5 columns describe the planned candidates on their own branches, not this code.
+
+## Round 3: book depth, material, candle, row-by-row press, anomaly
+
+- **Thickness**: each page block is six stacked paper layers per side, each outset by a different amount (ragged fore-edge, head and foot), with alternating tones and a lit page edge line. Leather corners carry scuff marks and worn brass. The spine has deep grooves with highlights. Dark contact shadows sit where the page block meets the board (left, right, head, foot) and in the gutter.
+- **Material and scale**: building walls share one dusty plaster tone (low saturation, lightness varies slightly). Roofs are one clay tone except every seventh building and the hall, which keep a colour as eye guides. Blocks farther from the candle are baked a little darker.
+- **Candle**: a warm pool lies on the pen and text area (`.pool`, flicker) and a low-alpha `.shade` plate darkens the rest of the page without hiding its texture.
+- **Press**: buildings now sink row by row (row nearest the printed line first, `core.js` delay), each leaving an outlined footprint whose diagonal folds deepen as the building sinks, so the impression turns into the folded-paper terrain (ridges, creases).
+- **Anomaly**: one red-ink silhouette, ring and tally strokes (`.anom`) at the hero's original position. It is faint once the world is new and sharpens when the haunt starts. It is the same colour as the hero's hat, so it reads as the erased person's mark.
+- Unchanged: rewrite rules, cancel, compare, undo, keyboard, reduced motion.

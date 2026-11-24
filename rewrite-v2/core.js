@@ -81,7 +81,7 @@
         const roof = roofs[Math.floor(r() * roofs.length)];
         add({ kind: 'building', hall, x, y, w, d, h,
           wall: [hue, 30 + r() * 16, 62 + r() * 14], roof, win: r() < 0.7 ? 'lit' : 'dim',
-          delay: 0.12 + 0.4 * distN(cxm, cym) + r() * 0.06, dur: 0.26 });
+          delay: 0.1 + 0.4 * ((ROWS.length - 1 - ri) / (ROWS.length - 1)) + 0.1 * distN(cxm, cym) + r() * 0.04, dur: 0.24 }); // pressed in row by row, nearest the printed line first
       }
     }));
 

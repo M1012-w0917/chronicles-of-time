@@ -1,6 +1,6 @@
 // Records the full V2 interaction (same scenario as tests/interaction-v2.mjs) to rewrite-v2/evidence/video/v2-interaction.webm.
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= "/inner_container/opt/playwright";
-// Server on :8000 first. Env: CHROME, BASE. Viewport 1280x720.
+// Server on :8000 first. Env: CHROME, BASE. Viewport 1920x1080 (set in scenario-v2.mjs).
 import { createRequire } from 'node:module'; import { execSync } from 'node:child_process';
 import { renameSync, mkdirSync, rmSync, statSync } from 'node:fs';
 import { runScenario } from './scenario-v2.mjs';

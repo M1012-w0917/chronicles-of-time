@@ -21,29 +21,47 @@
     if (o.win) st.setProperty('--win', o.win);
     return b;
   }
-  const wallColors = (w, roof) => ({
-    t: hsl(roof[0], roof[1], roof[2]), s: hsl(w[0], w[1], w[2] - 2), n: hsl(w[0], w[1], w[2] - 12),
-    w: hsl(w[0], w[1] + 2, w[2] + 7), e: hsl(w[0], w[1], w[2] - 20),
-  });
+  // one material: dusty plaster walls and clay roofs, lit by the candle at CANDLE (far blocks fall into shade).
+  // Only every seventh roof (and the hall) keeps a colour so the eye has a few places to land.
+  const CANDLE = { x: -300, y: 262 };
+  const wallColors = (it) => {
+    const w = it.wall, far = Math.min(1, Math.hypot(it.x - CANDLE.x, it.y - CANDLE.y) / 820), lit = 1 - 0.2 * far;
+    const sat = 9 + (w[1] - 30) * 0.28, L = (60 + (w[2] - 62) * 0.35) * lit;
+    const accent = it.hall || it.id % 7 === 0;
+    const r = it.hall ? [42, 54, 52] : accent ? [it.roof[0], it.roof[1] * 0.72, it.roof[2] - 2] : [18 + (it.roof[0] % 9), 16, 50 + (it.roof[2] - 40) * 0.3];
+    const roofL = r[2] * (1 - 0.14 * far);
+    return {
+      t: hsl(r[0], r[1], roofL), s: hsl(w[0], sat, L - 2), n: hsl(w[0], sat, L - 13),
+      w: hsl(w[0], sat + 1, L + 6), e: hsl(w[0], sat, L - 21),
+    };
+  };
 
   // ---------- static scene: table, lamp-lit book ----------
   el('div', 'tbl', world);
   el('div', 'tblshadow', world);
-  // thick book: back board, leather lip, stacked page block with a stepped (fanned) fore-edge, raised spine
+  // thick book: back board, leather lip, page block built from six staggered paper layers per side (each a little off its neighbour), raised spine
   box(world, { cls: 'cover', x: -550, y: -350, z: -40, w: 1100, d: 700, h: 14 });
   box(world, { cls: 'lip', x: -538, y: -338, z: -26, w: 1076, d: 676, h: 5 });
   box(world, { cls: 'spine', x: -572, y: -350, z: -40, w: 30, d: 700, h: 30 });
+  el('div', 'cshad csL', world); el('div', 'cshad csR', world); el('div', 'cshad csT', world); el('div', 'cshad csB', world);
+  // [outset left, right, top, bottom, height]: ragged on purpose so the fore-edge reads as stacked sheets
+  const LAYERS = [[0, 0, 0, 0, 21], [3, 5, 4, 6, 18], [9, 7, 8, 5, 15], [6, 12, 13, 11, 12], [14, 10, 12, 17, 9], [11, 16, 17, 15, 6]];
   [[-503, 500], [3, 500]].forEach((p, i) => {
-    const side = i ? 'pgR' : 'pgL', lo = i ? 0 : -8; // fan: two lower, wider steps toward the outer edge
-    box(world, { cls: 'pg ' + side, x: p[0], y: -320, z: -21, w: p[1], d: 640, h: 21 });
-    box(world, { cls: 'pg step ' + side, x: p[0] + lo, y: -326, z: -21, w: p[1] + 8, d: 652, h: 15 });
-    box(world, { cls: 'pg step ' + side, x: p[0] + (i ? 0 : -16), y: -332, z: -21, w: p[1] + 16, d: 664, h: 9 });
+    const side = i ? 'pgR' : 'pgL';
+    LAYERS.forEach((l, n) => {
+      // the gutter side stays flush; the outer side and the head/foot fan out
+      const ox = i ? 0 : l[0], ow = i ? l[1] : 0;
+      box(world, { cls: 'pg ' + (n ? 'step l' + n + ' ' : '') + side, x: p[0] - ox, y: -320 - l[2], z: -21, w: p[1] + ox + ow, d: 640 + l[2] + l[3], h: l[4] });
+    });
   });
-  [[-550, -350], [504, -350], [-550, 304], [504, 304]].forEach((p) => box(world, { cls: 'brass', x: p[0], y: p[1], z: -40, w: 46, d: 46, h: 20 }));
+  [[-550, -350], [504, -350], [-550, 304], [504, 304]].forEach((p) => box(world, { cls: 'brass worn', x: p[0], y: p[1], z: -40, w: 46, d: 46, h: 20 }));
+  [[-538, -338], [468, -338], [-538, 268], [468, 268]].forEach((p, i) => { const e = el('div', 'scuff s' + i, world); e.style.transform = 'translate3d(' + p[0] + 'px,' + p[1] + 'px,-20.4px)'; });
+  el('div', 'edgeline', world);
   // page surface: curvature to the gutter, foxing, blots, smudges, fingerprints, pressed plate marks
   el('div', 'pfx pfxL', world); el('div', 'pfx pfxR', world);
   el('div', 'dent dentL', world); el('div', 'dent dentR', world); el('div', 'dent dentT', world);
   el('div', 'pool', world);
+  el('div', 'shade', world);
   const meadow = el('div', 'meadow', world); meadow.style.setProperty('--o', 0);
   el('div', 'gut', world);
   el('div', 'rib', world);
@@ -59,7 +77,7 @@
     } else if (it.kind === 'building') {
       const lit = it.win === 'lit';
       it.el = box(world, { cls: 'b' + (it.hall ? ' hall' : ''), x: it.x, y: it.y, w: it.w, d: it.d, h: it.h, shadow: true,
-        c: wallColors(it.wall, it.hall ? [42, 70, 58] : it.roof), win: lit ? 'hsl(42 95% 72%)' : 'hsl(30 28% 36%)' });
+        c: wallColors(it), win: lit ? 'hsl(40 62% 66% / .8)' : 'hsl(30 18% 34%)' });
     } else if (it.kind === 'stone') {
       it.el = box(world, { cls: 'stone', x: it.x, y: it.y, w: it.w, d: it.d, h: it.h, k: 0, shadow: true,
         c: { t: hsl(120, 6, 60), s: hsl(110, 7, 48), n: hsl(110, 7, 40), w: hsl(115, 7, 56), e: hsl(110, 8, 33) } });
@@ -91,6 +109,11 @@
       }
       it.el = t; it.vis = true;
     } else if (it.kind === 'person') {
+      if (it.hero) { // the one mark that stays where the erased person stood: a red-inked silhouette, a ring and four tally strokes
+        const an = el('div', 'anom', world, '<i class="sil"></i><i class="tally"></i>');
+        an.style.transform = 'translate3d(' + it.x + 'px,' + it.y + 'px,2.5px) rotateZ(-18deg)';
+        it.anom = an;
+      }
       if (!it.hero) { // the folded-paper impression this person leaves when they fold flat
         const imp = el('div', 'imp', world);
         imp.style.transform = 'translate3d(' + (it.x - 10) + 'px,' + (it.y - 18) + 'px,2px) rotateZ(' + Math.round(it.face * 90) + 'deg)';
@@ -203,7 +226,12 @@
         const heading = it.hero ? hs.heading : it.face * 40;
         const s = it.hero ? hs.scale : 1;
         it.el.style.transform = 'translate3d(' + it.x + 'px,' + it.y + 'px,0) rotateZ(' + (-yaw + heading).toFixed(2) + 'deg) scale(' + s.toFixed(3) + ')';
-        if (it.hero) { const ring = it.el.querySelector('.ring'); setV(ring, '--o', hs.ring.toFixed(3)); }
+        if (it.hero) {
+          const ring = it.el.querySelector('.ring'); setV(ring, '--o', hs.ring.toFixed(3));
+          // the mark is faint once the world is new and sharpens as the haunt rises
+          const ao = C.smooth(C.progress(td, 0.8, 0.2)) * (0.34 + 0.66 * hs.ring);
+          setV(it.anom, '--o', ao.toFixed(3)); it.anom.style.display = ao < 0.01 ? 'none' : '';
+        }
       }
     });
     setV(meadow, '--o', C.meadow(td).toFixed(3));

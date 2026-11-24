@@ -7,7 +7,7 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; background: #120b06; color: var(--cream); font-family: var(--serif); overflow: hidden; }
 
-#frame { position: fixed; inset: 0; filter: saturate(1.18) contrast(1.06); overflow: hidden; background: #1a0f07; }
+#frame { position: fixed; inset: 0; filter: saturate(1.0) contrast(1.08); overflow: hidden; background: #1a0f07; }
 #stage { position: absolute; inset: 0; perspective: 1500px; perspective-origin: 50% 38%; cursor: grab; touch-action: none; }
 #stage.drag { cursor: grabbing; }
 #cam { position: absolute; left: 50%; top: 41%; width: 0; height: 0; transform-style: preserve-3d; }
@@ -15,7 +15,7 @@ html, body { margin: 0; height: 100%; background: #120b06; color: var(--cream); 
 .ghost { pointer-events: none; }
 
 /* leaves take their opacity from variables so that 3D context is never flattened by an opacity on a container */
-.f, .ink, .txt, .note, .base, .fc, .bl, .meadow, .ring, .tbl, .sh, .rib, .gut, .imp, .crease, .pfx, .dent {
+.f, .anom, .scuff, .cshad, .shade, .edgeline, .ink, .txt, .note, .base, .fc, .bl, .meadow, .ring, .tbl, .sh, .rib, .gut, .imp, .crease, .pfx, .dent {
   opacity: calc(var(--fade, 1) * var(--o, 1));
 }
 
@@ -31,9 +31,9 @@ html, body { margin: 0; height: 100%; background: #120b06; color: var(--cream); 
   background: #000; box-shadow: 0 0 46px 28px #000; opacity: calc(.7 * var(--fade, 1)); }
 
 .lamp { position: absolute; inset: 0; pointer-events: none;
-  background: radial-gradient(ellipse 30% 30% at 27% 66%, rgba(255, 200, 120, .10), transparent 72%); mix-blend-mode: screen; }
+  background: radial-gradient(ellipse 26% 26% at 26% 68%, rgba(255, 196, 120, .16), transparent 74%); mix-blend-mode: screen; }
 .vig { position: absolute; inset: 0; pointer-events: none;
-  background: radial-gradient(ellipse 62% 66% at 36% 56%, transparent 18%, rgba(10, 4, 0, .5) 62%, rgba(4, 1, 0, .93)); }
+  background: radial-gradient(ellipse 60% 64% at 30% 62%, transparent 14%, rgba(10, 4, 0, .3) 58%, rgba(4, 1, 0, .82)); }
 .tilt { position: absolute; left: 0; right: 0; pointer-events: none; }
 .tilt.top { top: 0; height: 38%; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
   -webkit-mask-image: linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, .55) 50%, transparent 100%); mask-image: linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, .55) 50%, transparent 100%); }
@@ -57,17 +57,20 @@ html, body { margin: 0; height: 100%; background: #120b06; color: var(--cream); 
   background: rgba(20, 8, 0, .5);
   box-shadow: calc(var(--h) * var(--k) * .42px) calc(var(--h) * var(--k) * .34px) calc(var(--h) * var(--k) * .3px + 2px) rgba(25, 10, 0, .5); }
 /* a building sinks into the page: its shadow turns into a pressed footprint that deepens as k falls */
-.bx.b .sh { background: rgba(24, 10, 0, calc(.42 + .3 * (1 - var(--k))));
-  box-shadow: inset 2px 2px 5px rgba(10, 3, 0, calc(.75 * (1 - var(--k)))), inset -1px -1px 0 rgba(255, 238, 195, calc(.55 * (1 - var(--k)))),
+.bx.b .sh { --pr: calc(1 - var(--k)); background-color: rgba(24, 10, 0, calc(.34 + .3 * var(--pr)));
+  background-image:
+    linear-gradient(135deg, transparent 47%, rgba(255, 244, 214, calc(.7 * var(--pr))) 48.5%, rgba(60, 34, 10, calc(.5 * var(--pr))) 51%, transparent 53%),
+    linear-gradient(45deg, transparent 47%, rgba(255, 244, 214, calc(.45 * var(--pr))) 48.5%, rgba(60, 34, 10, calc(.35 * var(--pr))) 51%, transparent 53%);
+  border: 1px solid rgba(255, 240, 205, calc(.55 * var(--pr)));
+  box-shadow: inset 3px 3px 6px rgba(10, 3, 0, calc(.8 * var(--pr))), inset -2px -2px 0 rgba(255, 238, 195, calc(.6 * var(--pr))), 0 0 0 2px rgba(40, 20, 5, calc(.45 * var(--pr))),
     calc(var(--h) * var(--k) * .42px) calc(var(--h) * var(--k) * .34px) calc(var(--h) * var(--k) * .3px + 2px) rgba(25, 10, 0, .5); }
-.bx.b.gone .sh { background: rgba(40, 20, 4, .5); }
 /* windows: horizontal lit bands cut by vertical mullions, anchored to the roof so they sink with it */
 .bx.b .s, .bx.b .n, .bx.b .w, .bx.b .e {
   background-image:
     repeating-linear-gradient(90deg, var(--fc) 0 5px, transparent 5px 12px),
     repeating-linear-gradient(0deg, transparent 0 6px, var(--win) 6px 11px, transparent 11px 17px);
 }
-.bx.b .t { box-shadow: inset 0 0 0 2px rgba(0, 0, 0, .12), inset 3px 3px 0 rgba(255, 255, 255, .10); }
+.bx.b .t { box-shadow: inset 0 0 0 2px rgba(0, 0, 0, .14), inset 3px 3px 0 rgba(255, 255, 255, .08); background-image: repeating-linear-gradient(90deg, rgba(0, 0, 0, .05) 0 2px, transparent 2px 7px); }
 .bx.stone .t { background-image: radial-gradient(circle at 30% 30%, rgba(255,255,255,.18), transparent 60%); }
 .bx.stone .s, .bx.stone .n, .bx.stone .w, .bx.stone .e { background-image: linear-gradient(0deg, rgba(40,50,30,.35), transparent 40%), repeating-linear-gradient(83deg, rgba(0,0,0,.08) 0 1px, transparent 1px 6px); }
 
@@ -77,15 +80,20 @@ html, body { margin: 0; height: 100%; background: #120b06; color: var(--cream); 
 .bx.lip .t { background: linear-gradient(135deg, #6b3d22, #3d2010 70%); box-shadow: inset 0 0 0 3px #2a1409, inset 0 0 0 5px rgba(210, 165, 80, .5), inset 0 0 0 11px rgba(0, 0, 0, .12); }
 .bx.lip .s, .bx.lip .n, .bx.lip .w, .bx.lip .e { background: linear-gradient(0deg, #1f0e05, #5a3220); }
 .bx.spine .t { background:
-    repeating-linear-gradient(0deg, transparent 0 96px, rgba(0, 0, 0, .5) 96px 98px, rgba(214, 170, 90, .85) 98px 101px, rgba(0, 0, 0, .5) 101px 103px, transparent 103px 116px),
-    linear-gradient(90deg, #2a1409, #6b3d22 45%, #3a1d0e); }
+    repeating-linear-gradient(0deg, transparent 0 94px, rgba(0, 0, 0, .85) 94px 99px, rgba(240, 200, 120, .55) 99px 100px, rgba(214, 170, 90, .9) 100px 103px, rgba(0, 0, 0, .8) 103px 108px, rgba(255, 220, 150, .22) 108px 109px, transparent 109px 116px),
+    linear-gradient(90deg, #1a0b04, #7a4626 40%, #3a1d0e 80%, #1a0b04); }
 .bx.spine .s, .bx.spine .n, .bx.spine .w, .bx.spine .e { background: linear-gradient(0deg, #1f0e05, #5a3220); }
 .bx.pg .s, .bx.pg .n, .bx.pg .w, .bx.pg .e { background: repeating-linear-gradient(0deg, #e3d4ac 0 1px, #a8946a 1px 2px); }
 .bx.pg .s { background: repeating-linear-gradient(0deg, #e3d4ac 0 1px, #a8946a 1px 2px), linear-gradient(90deg, rgba(0,0,0,.25), transparent 25%, transparent 75%, rgba(0,0,0,.2)); background-blend-mode: multiply; }
 .bx.pgL .t { background: linear-gradient(90deg, #c4b184 0%, #d3c194 40%, #cdb98a 80%, #6f5a34 100%); }
 .bx.pgR .t { background: linear-gradient(270deg, #c4b184 0%, #d3c194 40%, #cdb98a 80%, #6f5a34 100%); }
 .bx.pg .t { box-shadow: inset 0 0 70px rgba(90, 60, 25, .35); }
-.bx.pg.step .t { background: #b8a478; }
+.bx.pg.step .t { background: #b8a478; box-shadow: inset 0 0 0 1px rgba(60, 40, 15, .35); }
+.bx.pg.step.l1 .t { background: #bfab7c; } .bx.pg.step.l2 .t { background: #b09c6f; } .bx.pg.step.l3 .t { background: #bba878; } .bx.pg.step.l4 .t { background: #a89468; } .bx.pg.step.l5 .t { background: #b3a073; }
+.bx.pg.step .s { filter: brightness(.9); }
+.bx.pg.step.l2 .s, .bx.pg.step.l4 .s { filter: brightness(.8); }
+.bx.brass.worn .t { background: radial-gradient(circle at 25% 25%, #e6c878, #b8903f 45%, #7a5a22 80%), repeating-linear-gradient(60deg, rgba(0, 0, 0, .18) 0 1px, transparent 1px 4px); background-blend-mode: multiply; }
+.bx.brass.worn .s, .bx.brass.worn .n, .bx.brass.worn .w, .bx.brass.worn .e { background: linear-gradient(0deg, #4a3414, #a07e38 60%, #6a5020); }
 .bx.brass .t { background: linear-gradient(135deg, #f0d584, #b8903f 55%, #8a6a28); }
 .bx.brass .s, .bx.brass .n, .bx.brass .w, .bx.brass .e { background: linear-gradient(0deg, #7d5e22, #d4aa55); }
 /* layer budget: faces that face away from the default camera are not drawn */
@@ -108,8 +116,8 @@ html, body { margin: 0; height: 100%; background: #120b06; color: var(--cream); 
 .dentL { left: -480px; top: -312px; width: 460px; height: 528px; }
 .dentR { left: 20px; top: -312px; width: 460px; height: 528px; }
 .dentT { left: -480px; top: 226px; width: 440px; height: 68px; }
-.pool { position: absolute; left: -640px; top: -170px; width: 860px; height: 700px; transform: translateZ(2px); pointer-events: none;
-  background: radial-gradient(ellipse 46% 44% at 50% 56%, rgba(255, 214, 140, .55), rgba(255, 190, 110, .22) 45%, transparent 75%);
+.pool { position: absolute; left: -640px; top: -10px; width: 680px; height: 520px; transform: translateZ(2px); pointer-events: none;
+  background: radial-gradient(ellipse 46% 44% at 50% 56%, rgba(255, 220, 150, .6), rgba(255, 190, 110, .24) 45%, transparent 75%);
   opacity: var(--fade, 1); animation: flick 3.1s ease-in-out infinite; }
 /* candle flicker animates plain opacity on a leaf so it stays on the compositor (a custom-property animation repaints every frame) */
 @keyframes flick { 0%, 100% { opacity: .94; } 22% { opacity: 1; } 41% { opacity: .9; } 63% { opacity: .99; } 80% { opacity: .92; } }
@@ -199,3 +207,23 @@ kbd { font: 10px monospace; background: rgba(0, 0, 0, .18); border-radius: 3px; 
 @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } .pool { animation: none; } }
 body.reduced .pool { animation: none; }
 @media (max-width: 760px) { #dock { grid-template-columns: 1fr; } .ctl { justify-content: flex-start; } }
+
+/* worn leather corners, contact shadows where the page block meets the board and spine, a lit page edge */
+.scuff { position: absolute; left: 0; top: 0; width: 76px; height: 76px; pointer-events: none;
+  background: radial-gradient(ellipse 60% 55% at 50% 50%, rgba(214, 170, 110, .62), rgba(170, 120, 70, .3) 55%, transparent 80%), repeating-linear-gradient(35deg, rgba(0, 0, 0, .2) 0 1px, transparent 1px 5px); }
+.cshad { position: absolute; transform: translateZ(-20.5px); pointer-events: none; }
+.csL { left: -545px; top: -340px; width: 52px; height: 680px; background: linear-gradient(90deg, transparent, rgba(0, 0, 0, .35) 40%, rgba(0, 0, 0, .85)); }
+.csR { left: 512px; top: -340px; width: 28px; height: 680px; background: linear-gradient(270deg, transparent, rgba(0, 0, 0, .8)); }
+.csT { left: -540px; top: -345px; width: 1080px; height: 30px; background: linear-gradient(0deg, rgba(0, 0, 0, .85), rgba(0, 0, 0, .3) 50%, transparent); }
+.csB { left: -540px; top: 322px; width: 1080px; height: 24px; background: linear-gradient(180deg, rgba(0, 0, 0, .8), rgba(0, 0, 0, .25) 55%, transparent); }
+.edgeline { position: absolute; left: -503px; top: -320px; width: 1006px; height: 640px; transform: translateZ(1.2px); pointer-events: none; box-shadow: inset 0 0 0 1px rgba(255, 244, 214, .45), inset 0 0 0 3px rgba(80, 52, 20, .2); }
+/* candle: a warm pool where the pen lands, and a gentle darkening away from it (texture survives, alpha stays low) */
+.shade { position: absolute; left: -500px; top: -320px; width: 1000px; height: 640px; transform: translateZ(5.5px); pointer-events: none;
+  background: radial-gradient(ellipse 380px 250px at 200px 580px, transparent 0, transparent 30%, rgba(14, 6, 0, .14) 62%, rgba(10, 4, 0, .3) 100%); }
+/* the anomaly: the erased person's red-ink silhouette pressed at the hero's position, with tally strokes for the missing years */
+.anom { position: absolute; left: 0; top: 0; width: 0; height: 0; pointer-events: none; }
+.anom .sil { position: absolute; left: -17px; top: -6px; width: 34px; height: 62px; background: linear-gradient(100deg, rgba(150, 28, 24, .85), rgba(110, 18, 16, .6));
+  clip-path: polygon(50% 0, 72% 6%, 72% 20%, 92% 30%, 82% 64%, 66% 54%, 70% 100%, 30% 100%, 34% 54%, 18% 64%, 8% 30%, 28% 20%, 28% 6%); }
+.anom::before { content: ""; position: absolute; left: -40px; top: -34px; width: 80px; height: 80px; border-radius: 50%; border: 2px solid rgba(150, 28, 24, .8); box-shadow: 0 0 10px rgba(150, 28, 24, .45), inset 0 0 8px rgba(150, 28, 24, .3); }
+.anom .tally { position: absolute; left: 44px; top: -2px; width: 30px; height: 30px;
+  background: repeating-linear-gradient(90deg, rgba(120, 20, 18, .9) 0 2px, transparent 2px 5px), linear-gradient(160deg, transparent 44%, rgba(120, 20, 18, .9) 46% 54%, transparent 56%); background-repeat: no-repeat, no-repeat; background-size: 24px 30px, 100% 100%; }

@@ -29,9 +29,12 @@ assert.equal(await pg.evaluate(() => getComputedStyle(document.querySelector('#w
 const parts = await pg.evaluate(() => ({ spine: document.querySelectorAll('.bx.spine').length, lip: document.querySelectorAll('.bx.lip').length,
   pages: document.querySelectorAll('.bx.pg').length, steps: document.querySelectorAll('.bx.pg.step').length, pfx: document.querySelectorAll('.pfx').length,
   dent: document.querySelectorAll('.dent').length, pool: document.querySelectorAll('.pool').length, rib: document.querySelectorAll('.rib').length, gut: document.querySelectorAll('.gut').length,
-  imps: document.querySelectorAll('.imp').length, layers: document.querySelectorAll('.bx.cover, .bx.lip, .bx.spine, .bx.pg').length }));
-assert.ok(parts.spine === 1 && parts.lip === 1 && parts.pages === 6 && parts.steps === 4 && parts.pfx === 2 && parts.dent >= 3 && parts.pool === 1 && parts.rib === 1 && parts.gut === 1, JSON.stringify(parts));
+  imps: document.querySelectorAll('.imp').length, scuffs: document.querySelectorAll('.scuff').length, shade: document.querySelectorAll('.shade').length, cshad: document.querySelectorAll('.cshad').length, anom: document.querySelectorAll('.anom').length, layers: document.querySelectorAll('.bx.cover, .bx.lip, .bx.spine, .bx.pg').length }));
+assert.ok(parts.spine === 1 && parts.lip === 1 && parts.pages === 12 && parts.steps === 10 && parts.scuffs === 4 && parts.shade === 1 && parts.cshad === 4 && parts.anom === 1 && parts.pfx === 2 && parts.dent >= 3 && parts.pool === 1 && parts.rib === 1 && parts.gut === 1, JSON.stringify(parts));
 assert.ok(parts.imps >= 25, 'fold impressions exist'); ok('book parts present: spine, lip, page stack, fore-edge steps, stains, plate marks, candle pool, gutter, ribbon');
+// muted palette: few saturated roofs, walls share one material
+const sats = await pg.evaluate(() => [...document.querySelectorAll('.bx.b')].map((b) => { const m = b.style.getPropertyValue('--ct').match(/hsl\(([\d.]+) ([\d.]+)%/); return +m[2]; }));
+assert.ok(sats.filter((x) => x > 30).length <= sats.length * 0.2 && sats.filter((x) => x > 30).length >= 3, 'roof accents: ' + sats.filter((x) => x > 30).length + '/' + sats.length); ok('muted roofs with a few accents');
 const old0 = await S(pg); assert.ok(old0.counts.buildings > 40 && old0.counts.people > 25 && old0.counts.stones === 0);
 
 await pg.keyboard.down('Space'); await pg.waitForTimeout(500); assert.equal((await S(pg)).state, 'WRITING');

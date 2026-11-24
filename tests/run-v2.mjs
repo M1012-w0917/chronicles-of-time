@@ -45,6 +45,13 @@ t('paper terrain and creases start before the last buildings sink (visible toget
   assert.ok(at('building').some((v) => v < 0.1) && at('building').some((v) => v > 0.9), 'buildings mixed');
   assert.ok(W.items.filter((i) => i.kind === 'person' && !i.hero).every((p) => C.itemValue(p, 1) === 1), 'every non-hero person fully folds');
 });
+t('buildings press in row by row: nearer rows start sinking before farther rows', () => {
+  const bs = C.buildWorld().items.filter((i) => i.kind === 'building' && !i.hall);
+  const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+  const rowOf = (b) => (b.y < -190 ? 0 : b.y < -60 ? 1 : b.y < 80 ? 2 : 3);
+  const m = [0, 1, 2, 3].map((r) => mean(bs.filter((b) => rowOf(b) === r).map((b) => b.delay)));
+  assert.ok(m[3] < m[2] && m[2] < m[1] && m[1] < m[0], m.join());
+});
 t('the hero never folds', () => { const h = C.buildWorld().items.find((i) => i.hero); for (let x = 0; x <= 1; x += 0.1) assert.equal(C.itemValue(h, x), 0); });
 t('hold to write, early release cancels', () => {
   const m = C.createMachine(); m.press(); m.step(500); assert.equal(m.state, 'WRITING'); assert.ok(m.w > 0.2 && m.w < 0.6);
