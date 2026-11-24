@@ -317,6 +317,14 @@
         brush: { x: bx, y: by }, strikeDrawn, strikeTotal: strikeStamps.length,
       };
     },
+    // luminance grid (cols x rows) of a world rectangle on the figure plane, read back from the composed scene, for pixel assertions
+    regionLum(x, y, w, h, cols, rows) {
+      const c = P.mk(cols, rows), cx = c.getContext('2d'), k = cover;
+      cx.drawImage(scene, offX + (x + offs[FIGURE_PLANE]) * k, offY + (y + offs[FIGURE_PLANE] * 0.4) * k, w * k, h * k, 0, 0, cols, rows);
+      const d = cx.getImageData(0, 0, cols, rows).data, out = [];
+      for (let i = 0; i < cols * rows; i++) out.push(d[i * 4] * 0.3 + d[i * 4 + 1] * 0.59 + d[i * 4 + 2] * 0.11);
+      return out;
+    },
     fingerprint, machine: m,
   };
 

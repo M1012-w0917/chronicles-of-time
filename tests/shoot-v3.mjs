@@ -37,7 +37,7 @@ await pg.keyboard.up('Space'); await pg.waitForTimeout(500);
 await pg.keyboard.down('Space'); await until(() => window.__slice.getState().state === 'REWRITING'); await pg.keyboard.up('Space');
 await until(() => window.__slice.getState().t > 0.42); await shot('v3e-03-rebuild');
 await until(() => window.__slice.getState().state === 'NEW'); await pg.mouse.move(960, 540); await pg.waitForTimeout(2500); await shot('v3e-04-new-dwell');
-await until(() => window.__slice.getState().haunt > 0.97); await pg.waitForTimeout(800); await shot('v3e-05-haunt');
+await until(() => window.__slice.getState().haunt > 0.97); await pg.mouse.move(960, 300); await pg.waitForTimeout(1400); await shot('v3e-05-haunt'); // pointer and brush kept clear of the margin note
 await pg.keyboard.down('c'); await until(() => window.__slice.getState().c === 1); await pg.waitForTimeout(500); await shot('v3e-06-compare'); await pg.keyboard.up('c');
 await until(() => window.__slice.getState().c === 0);
 await pg.keyboard.press('z'); await until(() => window.__slice.getState().state === 'OLD'); await pg.waitForTimeout(800); await shot('v3e-07-undo');

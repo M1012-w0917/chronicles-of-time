@@ -85,6 +85,7 @@ t('ink types: light wash is soft, dry is hard bristles, wet is tagged for fibre 
 t('the epilogue path shares the old gate geometry with the city (one definition, two uses)', () => {
   assert.equal(C.CITY.gate.x, C.VANISHED.x); assert.equal(C.CITY.gate.base, C.VANISHED.y);
   const src = readFileSync(new URL('../rewrite-v3/paint.js', import.meta.url), 'utf8');
+  assert.ok(/ctx\.rect\(x, WL\.top, WL\.w, WL\.h\)/.test(src.slice(src.indexOf('function cutPath'))) && /fillRect\(x, WL\.top, WL\.w, WL\.h\)/.test(src), 'cut crenels sit at the wall top like the old ones');
   const body = (name) => src.slice(src.indexOf('function ' + name + '('), src.indexOf('function ', src.indexOf('function ' + name + '(') + 10));
   for (const fn of ['paintCity', 'cutPath']) for (const h of ['roofPath', 'archPath', 'crenelXs']) assert.ok(new RegExp(h).test(fn === 'paintCity' ? src.slice(src.indexOf('function roof('), src.indexOf('function cutPath')) : body(fn)), fn + ' uses ' + h);
   assert.ok(/C\.CITY/.test(body('cutPath')));

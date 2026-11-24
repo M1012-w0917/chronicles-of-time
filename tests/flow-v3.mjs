@@ -62,11 +62,19 @@ assert.ok(Math.abs(oa.offsets[4] - oc.offsets[4]) < Math.abs(a.offsets[4] - c.of
 // haunting follows the rewrite
 await pg.evaluate(() => window.__slice.setProgress(0)); await pg.waitForTimeout(500); assert.equal((await S(pg)).figure, 0);
 await pg.evaluate(() => window.__slice.setProgress(1)); await pg.waitForTimeout(300);
+// pixels: the roofs and the crenel run on screen differ from the same frame with the epilogue absent (haunt 0), a control patch does not
+const REG = { roofs: [425, 440, 310, 120, 62, 24], crenels: [690, 586, 380, 20, 76, 4], control: [100, 60, 300, 100, 60, 20] };
+const lum = (hh) => pg.evaluate((r) => Object.fromEntries(Object.entries(r).map(([k, v]) => [k, window.__slice.regionLum(...v)])), REG);
+const dist = (a, b) => a.reduce((s2, v, i) => s2 + Math.abs(v - b[i]), 0) / a.length;
+await pg.evaluate(() => window.__slice.holdMist(true)); await pg.waitForTimeout(400); const before = await lum(); assert.equal((await S(pg)).pathCut, 0);
 assert.equal((await S(pg)).heroHeading, 180); assert.equal(await pg.evaluate(() => document.getElementById('dock').dataset.echo), 'false');
 await until(pg, () => window.__slice.getState().haunt > 0.97);
 const h = await S(pg); assert.ok(h.heroHeading < 8 && h.seal > 0.9 && h.figure > 0.9, JSON.stringify(h));
 assert.ok(Math.hypot(h.figurePos.x - h.vanished.x, h.figurePos.y - h.vanished.y) <= 40, JSON.stringify(h)); assert.equal(h.figurePlane, 3); ok('figure stands at the vanished gate, on the same parallax plane as its bank');
 assert.ok(h.pathCut > 0.9 && h.cutShapes.roofs === 2 && h.cutShapes.arch === 1 && h.cutShapes.crenels > 12, JSON.stringify([h.pathCut, h.cutShapes])); ok('the old gate roofs, doorway and wall rhythm are cut back to paper along the road');
+await pg.evaluate(() => window.__slice.holdMist(true)); await pg.waitForTimeout(400); const after = await lum(); await pg.evaluate(() => window.__slice.holdMist(false));
+const dR = dist(after.roofs, before.roofs), dC = dist(after.crenels, before.crenels), dK = dist(after.control, before.control);
+assert.ok(dR > 3 && dC > 3 && dR > dK * 3 && dC > dK * 3, JSON.stringify({ dR, dC, dK })); ok('pixel check: the cut roofs and crenel run at the wall top change the screen, the control patch does not');
 assert.match(await pg.textContent('#status'), /gate that stood here was struck from the record/); ok('status line ties the figure to the rewritten gate');
 assert.equal(await pg.evaluate(() => document.getElementById('dock').dataset.echo), 'true'); ok('figure turns to face you, seal lands, margin note appears only after the rewrite');
 

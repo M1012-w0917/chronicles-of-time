@@ -184,15 +184,14 @@
     const K = C.CITY, G = K.gate, WL = K.wall, e = C.smooth(p);
     const clipPaper = (build, a) => { ctx.save(); ctx.beginPath(); build(); const T = ctx.getTransform(); ctx.clip('nonzero'); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = a; ctx.drawImage(paper, 0, 0); ctx.restore(); ctx.setTransform(T); };
     const outline = (build, a) => { ctx.beginPath(); build(); ctx.lineWidth = 1.5; ctx.strokeStyle = ink(0.26 * a); ctx.stroke(); };
-    cutLog.arch = cutLog.crenels = 0;
-    const roofs = () => G.roofs.forEach((q) => { roofPath(ctx, G.x, q.y, q.hw, q.h); });
-    cutLog.roofs = G.roofs.length;
-    clipPaper(roofs, 0.8 * alpha * C.smooth(e / 0.6)); outline(roofs, alpha * C.smooth(e / 0.6));
-    const body = () => { ctx.rect(G.body.x, G.body.y, G.body.w, G.body.h); archPath(ctx, G); cutLog.arch++; };
-    outline(body, alpha * C.smooth((e - 0.1) / 0.5) * 0.7);
-    const xs = crenelXs(G.body.x + G.body.w + 8, G.body.x + G.body.w + 8 + 430 * e); cutLog.crenels = xs.length;
-    const run = () => xs.forEach((x) => ctx.rect(x, G.base - 14, WL.w, WL.h));
-    clipPaper(run, 0.95 * alpha); outline(run, alpha);
+    cutLog.roofs = cutLog.arch = cutLog.crenels = 0; // counted where each shape is appended to the path, once per shape actually built for the clip
+    const roofs = (count) => G.roofs.forEach((q) => { roofPath(ctx, G.x, q.y, q.hw, q.h); if (count) cutLog.roofs++; });
+    clipPaper(() => roofs(true), 0.8 * alpha * C.smooth(e / 0.6)); outline(roofs, alpha * C.smooth(e / 0.6));
+    const body = () => { ctx.rect(G.body.x, G.body.y, G.body.w, G.body.h); archPath(ctx, G); };
+    outline(() => { body(); cutLog.arch++; }, alpha * C.smooth((e - 0.1) / 0.5) * 0.7);
+    const xs = crenelXs(G.body.x + G.body.w + 8, G.body.x + G.body.w + 8 + 430 * e);
+    const run = (count) => xs.forEach((x) => { ctx.rect(x, WL.top, WL.w, WL.h); if (count) cutLog.crenels++; }); // at the wall top, where the old crenels stood
+    clipPaper(() => run(true), 0.95 * alpha); outline(run, alpha);
   }
   function paintRiver(ctx) {
     const r = C.rng(52);
