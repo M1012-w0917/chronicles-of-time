@@ -1,0 +1,18 @@
+date: 2026-11-24T00:16:36Z node: v22.23.4 code commit: 408708f654bd5e10ffd8a79dd99e2963a492ca54 cmd: node tests/record-v2.mjs
+
+ok - 1 before rewrite: DOM zh="灰堡市建于永昌四十二年。", old city, 58 buildings
+ok - 2 pen down, early release cancels, world unchanged
+ok - 3 hold full: mid-rewrite, 29 buildings left, 13 footprints
+ok - 4 undo mid-rewrite returns to the old city
+ok - 5 chained rewrite #2 started with Enter
+ok - 6 new world reached: 58 footprints, 32 folds
+ok - 7 dwell then haunt: hero turned to camera, margin note shown
+ok - 8 compare shows old, release returns to new
+ok - 9 undo from new world returns to old
+ok - 9b mouse drag orbits the camera
+ok - 10 chained rewrite #3 completes by mouse hold
+ok - 11 Tab reaches pen, undo, compare, scrub, reduce controls: undoBtn > compareBtn > scrub > reduceBtn >  > penBtn > undoBtn
+ok - 12 reduced motion: only keyframes 0/0.5/1, same new world
+ok - 13 no console errors
+ok - 14 DOM text at the ending: fact="灰堡市从未建立。" echo="他记得永昌四十二年。" echo shown=true
+rewrite-v2/evidence/video/v2-interaction.webm 11.62 MB

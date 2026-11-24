@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rewrite Reality V2 · Ashmere diorama</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="frame">
+  <div id="stage">
+    <div id="cam"><div id="world"></div></div>
+  </div>
+  <div class="lamp" aria-hidden="true"></div>
+  <div class="tilt top" aria-hidden="true"></div>
+  <div class="tilt bot" aria-hidden="true"></div>
+  <div class="vig" aria-hidden="true"></div>
+</div>
+
+<header id="head">
+  <b>Ashmere, on the table</b>
+  <span>Drag to orbit · wheel to zoom</span>
+</header>
+
+<section id="dock" data-state="OLD" data-echo="false">
+  <div class="fact" aria-live="polite">
+    <p class="zh" id="factZh" lang="zh">灰堡市建于永昌四十二年。</p>
+    <p class="en" id="factEn">City of Ashmere founded in year 42.</p>
+  </div>
+  <div class="ctl">
+    <button id="penBtn" type="button">Hold to rewrite <kbd>Space</kbd></button>
+    <button id="undoBtn" type="button">Undo <kbd>Z</kbd></button>
+    <button id="compareBtn" type="button" aria-pressed="false">Compare (hold) <kbd>C</kbd></button>
+    <label class="scrubL">old <input id="scrub" type="range" min="0" max="1000" value="0" aria-label="old to new world"> new</label>
+    <button id="reduceBtn" type="button" aria-pressed="false">Reduced motion</button>
+  </div>
+  <div class="echo" id="echo" lang="zh">
+    <span class="zh">他记得永昌四十二年。</span>
+    <span class="en">Margin note: “He remembers year 42.” The one token the rewrite did not unwrite is the scribe who set the line down.</span>
+  </div>
+  <div class="status" id="status">The old city. Hold to write.</div>
+</section>
+
+<script src="core.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

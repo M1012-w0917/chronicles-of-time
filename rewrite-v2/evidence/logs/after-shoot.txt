@@ -1,0 +1,8 @@
+date: 2026-11-24T00:14:14Z  node: v22.23.4  code commit: 408708f654bd5e10ffd8a79dd99e2963a492ca54  cmd: node tests/shoot-v2.mjs
+
+v2-01-initial
+v2-02-penDown
+v2-03-mid
+v2-04-new
+v2-05-haunt
+v2-06-reduced

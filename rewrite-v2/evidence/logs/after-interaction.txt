@@ -1,0 +1,18 @@
+date: 2026-11-24T00:15:11Z  node: v22.23.4  code commit: 408708f654bd5e10ffd8a79dd99e2963a492ca54  cmd: node tests/interaction-v2.mjs (1920x1080)
+
+ok - 1 before rewrite: DOM zh="灰堡市建于永昌四十二年。", old city, 58 buildings (0.2s)
+ok - 2 pen down, early release cancels, world unchanged (1.4s)
+ok - 3 hold full: mid-rewrite, 44 buildings left, 10 footprints (6.4s)
+ok - 4 undo mid-rewrite returns to the old city (8.4s)
+ok - 5 chained rewrite #2 started with Enter (9.9s)
+ok - 6 new world reached: 58 footprints, 32 folds (19.1s)
+ok - 7 dwell then haunt: hero turned to camera, margin note shown (27.9s)
+ok - 8 compare shows old, release returns to new (29.0s)
+ok - 9 undo from new world returns to old (33.7s)
+ok - 9b mouse drag orbits the camera (46.3s)
+ok - 10 chained rewrite #3 completes by mouse hold (63.8s)
+ok - 11 Tab reaches pen, undo, compare, scrub, reduce controls: undoBtn > compareBtn > scrub > reduceBtn >  > penBtn > undoBtn (63.8s)
+ok - 12 reduced motion: only keyframes 0/0.5/1, same new world (72.9s)
+ok - 13 no console errors (72.9s)
+ok - 14 DOM text at the ending: fact="灰堡市从未建立。" echo="他记得永昌四十二年。" echo shown=true (77.1s)
+15 passed

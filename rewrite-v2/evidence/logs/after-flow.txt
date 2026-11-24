@@ -1,0 +1,22 @@
+date: 2026-11-24T00:14:30Z  node: v22.23.4  code commit: 408708f654bd5e10ffd8a79dd99e2963a492ca54  cmd: node tests/flow-v2.mjs (BASE default http + file://)
+
+ok - Chinese copy and English captions present in DOM
+ok - CSS 3D DOM scene, no canvas
+ok - book parts present: spine, lip, page stack, fore-edge steps, stains, plate marks, candle pool, gutter, ribbon
+ok - muted roofs with a few accents
+ok - early release cancels
+ok - hold rewrites the same world progressively; sunk buildings leave pressed footprints; ridges and creases rise
+ok - Z undoes
+ok - new world: every folded person left an impression, hero still standing, footprints and creases remain
+ok - new world: buildings sunk, streets wiped, stones and tufts risen, one token left
+ok - new world persists across reload
+ok - old world persists after scrubbing back
+ok - lone token turns to the camera; margin note appears
+ok - hold C compares, release returns
+ok - drag orbits, wheel zooms
+ok - reduced motion: held keyframes 0 / 0.5 / 1 only, crossfaded
+ok - reduced motion reaches the same new world
+ok - reduced-motion toggle works
+ok - no console errors over http
+ok - works from file://
+19 passed
