@@ -39,7 +39,7 @@ button:disabled { opacity: .45; cursor: default; }
 @media (max-width: 700px) {
   #room { justify-content: flex-start; }
   #bookWrap { width: 100%; aspect-ratio: auto; display: flex; flex-direction: column; container-type: normal; }
-  #stage { position: relative; inset: auto; height: auto; aspect-ratio: 16 / 9; }
+  #stage { position: relative; inset: auto; height: auto; aspect-ratio: 4 / 3; object-fit: cover; object-position: 50% 50%; } /* crop the side margins (x 160-1120 stays) so the puppets are a third larger */
   #title, #meta { display: none; }
   #fact, #holdBar, #cap, #note, #anomNote { position: relative; left: auto; top: auto; width: auto; margin: 6px 12px 0; }
   #fact { height: auto; font-size: 14px; color: #efe3c4; padding: 4px 0; display: grid; }

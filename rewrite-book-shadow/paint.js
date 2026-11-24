@@ -5,7 +5,7 @@
   const C = BSCore, { smooth, span, hash, clamp } = C;
   const W = 1280, H = 720, GY = 450, SPINE = 640;
   const PAGE = { x0: 112, x1: 1168, y0: 52, y1: 620 };
-  const SHADE = { x: 350, y: 480 };
+  const SHADE = { x: 455, y: 480 }; // right of the left-page trees (x 200, 350) so the shade and its lean read against bare paper and hill
   const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
   const poly = (g, pts, fill, stroke) => {
     g.beginPath(); pts.forEach((p, i) => (i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1]))); g.closePath();
@@ -26,9 +26,9 @@
   // ---- static book: spine band, cover, thick fore-edge, gutter, paper, impression marks ----
   const book = mk(W, H);
   function dent(g, fn) { // a pressed (debossed) mark: dark lower-right lip, light upper-left lip
-    g.save(); g.translate(1, 1); g.globalAlpha = 0.32; fn('#3a2812'); g.restore();
-    g.save(); g.translate(-1, -1); g.globalAlpha = 0.55; fn('#fff6dc'); g.restore();
-    g.save(); g.globalAlpha = 0.16; fn('#5a4222'); g.restore();
+    g.save(); g.translate(1, 1); g.globalAlpha = 0.32; fn('#3a2812', g); g.restore();
+    g.save(); g.translate(-1, -1); g.globalAlpha = 0.55; fn('#fff6dc', g); g.restore();
+    g.save(); g.globalAlpha = 0.16; fn('#5a4222', g); g.restore();
   }
   (function () {
     const g = book.getContext('2d');
@@ -70,11 +70,16 @@
       g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.cos(a) * l, y + Math.sin(a) * l); g.stroke();
     }
     for (let i = 0; i < 40; i++) { const x = PAGE.x0 + hash(i, 36) * 1056, y = PAGE.y0 + hash(i, 37) * 568, r = 6 + hash(i, 38) * 26; gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, 'rgba(150,110,50,0.09)'); gr.addColorStop(1, 'rgba(150,110,50,0)'); g.fillStyle = gr; g.fillRect(x - r, y - r, 2 * r, 2 * r); }
+    // impression marks (pressed in, no ink) go on their own layer so they can fade out behind the puppet stage
+    const dc = mk(W, H), tg = dc.getContext('2d');
     // impression marks (pressed in, no ink): frame rules, ruled columns, a seal ring, ghost lines of earlier writing
-    dent(g, (c) => { g.strokeStyle = c; g.lineWidth = 1.6; g.strokeRect(150, 90, 460, 500); g.strokeRect(670, 90, 460, 500); });
-    dent(g, (c) => { g.strokeStyle = c; g.lineWidth = 1.2; for (let y = 150; y < 520; y += 38) { g.beginPath(); g.moveTo(670, y); g.lineTo(1130, y); g.stroke(); } });
-    dent(g, (c) => { g.strokeStyle = c; g.lineWidth = 2.2; g.beginPath(); g.arc(500, 500, 36, 0, 7); g.stroke(); g.strokeRect(484, 484, 32, 32); g.beginPath(); g.moveTo(484, 500); g.lineTo(516, 500); g.moveTo(500, 484); g.lineTo(500, 516); g.stroke(); });
-    dent(g, (c) => { g.fillStyle = c; for (let r = 0; r < 7; r++) for (let k = 0; k < 11; k++) if (hash(r * 20 + k, 40) > 0.28) g.fillRect(180 + k * 36 + hash(r, k) * 4, 176 + r * 38, 14 + hash(k, r) * 14, 3); });
+    dent(tg, (c, g) => { g.strokeStyle = c; g.lineWidth = 1.6; g.strokeRect(150, 90, 460, 500); g.strokeRect(670, 90, 460, 500); });
+    dent(tg, (c, g) => { g.strokeStyle = c; g.lineWidth = 1.2; for (let y = 150; y < 520; y += 38) { g.beginPath(); g.moveTo(670, y); g.lineTo(1130, y); g.stroke(); } });
+    dent(tg, (c, g) => { g.strokeStyle = c; g.lineWidth = 2.2; g.beginPath(); g.arc(500, 500, 36, 0, 7); g.stroke(); g.strokeRect(484, 484, 32, 32); g.beginPath(); g.moveTo(484, 500); g.lineTo(516, 500); g.moveTo(500, 484); g.lineTo(500, 516); g.stroke(); });
+    dent(tg, (c, g) => { g.fillStyle = c; for (let r = 0; r < 7; r++) for (let k = 0; k < 11; k++) if (hash(r * 20 + k, 40) > 0.28) g.fillRect(180 + k * 36 + hash(r, k) * 4, 176 + r * 38, 14 + hash(k, r) * 14, 3); });
+    tg.globalCompositeOperation = 'destination-out'; // the marks thin to 12% where the hand-cut puppets stand (y 130-490), feathered at top and bottom
+    gr = tg.createLinearGradient(0, 110, 0, 500); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(0.1, 'rgba(0,0,0,0.88)'); gr.addColorStop(0.9, 'rgba(0,0,0,0.88)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); tg.fillStyle = gr; tg.fillRect(PAGE.x0, 110, PAGE.x1 - PAGE.x0, 390);
+    g.drawImage(dc, 0, 0);
     // gutter: dark crease with stitched thread
     gr = g.createLinearGradient(SPINE - 70, 0, SPINE + 70, 0); gr.addColorStop(0, 'rgba(40,24,8,0)'); gr.addColorStop(0.42, 'rgba(40,24,8,0.28)'); gr.addColorStop(0.5, 'rgba(15,8,2,0.78)'); gr.addColorStop(0.58, 'rgba(40,24,8,0.28)'); gr.addColorStop(1, 'rgba(40,24,8,0)'); g.fillStyle = gr; g.fillRect(SPINE - 70, PAGE.y0, 140, PAGE.y1 - PAGE.y0);
     g.fillStyle = 'rgba(220,190,120,0.55)'; for (let y = 90; y < 600; y += 72) g.fillRect(SPINE - 2, y, 4, 22);
@@ -309,9 +314,9 @@
     }
     g.save(); g.globalCompositeOperation = 'multiply'; g.filter = 'blur(0.8px)'; g.drawImage(shadeL, 100, 150, 1080, 360, 100, 150, 1080, 360); g.restore(); g.filter = 'none'; g.globalAlpha = 1;
     if (ak > 0.02) { // pencilled cue: where the shade should have leaned (toward the candle)
-      g.save(); g.setLineDash([6, 6]); g.strokeStyle = 'rgba(138,58,26,' + (0.6 * ak).toFixed(2) + ')'; g.lineWidth = 2;
+      g.save(); g.setLineDash([6, 6]); g.strokeStyle = 'rgba(138,58,26,' + (0.85 * ak).toFixed(2) + ')'; g.lineWidth = 3.5;
       const y0 = SHADE.y - 70, x1 = SHADE.x + v.x * 110, y1 = y0 + v.y * 110;
-      g.beginPath(); g.moveTo(SHADE.x, y0); g.lineTo(x1, y1); g.stroke(); g.setLineDash([]); g.beginPath(); g.arc(x1, y1, 4, 0, 7); g.stroke(); g.restore();
+      g.beginPath(); g.moveTo(SHADE.x, y0); g.lineTo(x1, y1); g.stroke(); g.setLineDash([]); g.beginPath(); g.arc(x1, y1, 7, 0, 7); g.stroke(); g.restore();
     }
     return { x: SHADE.x, y: SHADE.y, toward: v, lean, arm, castX: v.x * f * d, castY: v.y * f * d * 0.2, anomK: ak, bounds: { x0: SHADE.x - KB.x1, x1: SHADE.x - KB.x0, y0: SHADE.y + KB.y0, y1: SHADE.y + KB.y1 }, echo };
   }

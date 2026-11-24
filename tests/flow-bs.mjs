@@ -198,6 +198,13 @@ await fresh('&state=new&haunt=1&reduced=1&lx=700&ly=330&anom=1'); s = await S();
 ok(s.anomaly === 1 && s.anomK === 1 && s.shade.lean === 0 && s.shade.castX < -5 && s.anomVisible, 'reduced motion: anomaly is one static reversed cast with the caption, no lean', { k: s.anomK, c: s.shade.castX, l: s.shade.lean });
 const ra = await FP(); await pg.waitForTimeout(400); ok(dist(ra, await FP()) < 0.01, 'reduced anomaly is frozen (no movement)');
 
+await fresh('&state=new&haunt=1&lx=1000&ly=300');
+await pg.keyboard.down('ArrowLeft'); for (let i = 0; i < 8; i++) await pg.keyboard.down('ArrowLeft'); await pg.keyboard.up('ArrowLeft'); await pg.waitForTimeout(300); s = await S();
+ok(s.light.x < 400 && s.anomaly === 0, 'a held arrow key (auto-repeat) moves the candle far but does not arm the anomaly', { x: s.light.x, an: s.anomaly });
+await pg.keyboard.press('ArrowRight'); await pg.waitForTimeout(100); ok((await S()).anomaly === 0, 'one deliberate key press (90 px, plus the first press) is below the threshold');
+await pg.keyboard.press('ArrowRight'); await pg.keyboard.press('ArrowRight'); await pg.waitForTimeout(300); s = await S();
+ok(s.anomaly === 1, 'three deliberate key presses reach the threshold and arm the anomaly', s.anomaly);
+
 console.log('--- 7 keyboard path');
 await fresh(); await pg.focus('#fact'); await pg.keyboard.down('Space'); await pg.waitForTimeout(400); await pg.keyboard.up('Space'); await pg.waitForTimeout(600);
 s = await S(); ok(s.state === 'OLD', 'keyboard Space early release cancels');

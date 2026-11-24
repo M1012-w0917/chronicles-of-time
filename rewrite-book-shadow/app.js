@@ -76,7 +76,8 @@
   }
 
   // ---- input ----
-  const setLight = (x, y) => { m.poke(); const nx = C.clamp(x, 150, 1130), ny = C.clamp(y, 100, 600); m.lightMoved(Math.hypot(nx - light.tx, ny - light.ty)); light.tx = nx; light.ty = ny; };
+  // key auto-repeat moves the candle but never arms the anomaly
+  const setLight = (x, y, auto) => { m.poke(); const nx = C.clamp(x, 150, 1130), ny = C.clamp(y, 100, 600); if (!auto) m.lightMoved(Math.hypot(nx - light.tx, ny - light.ty)); light.tx = nx; light.ty = ny; };
   window.addEventListener('keydown', (e) => {
     const onBtn = e.target && e.target.closest && e.target.closest('button');
     if (onBtn && (e.code === 'Space' || e.key === 'Enter')) return;
@@ -85,7 +86,7 @@
     else if (e.key === 'z' || e.key === 'Z') m.revert();
     else if (e.key === 'p' || e.key === 'P') m.turnPage();
     else if (e.key === 'h' || e.key === 'H') m.summon();
-    else if (e.key.indexOf('Arrow') === 0) { e.preventDefault(); const d = { ArrowLeft: [-90, 0], ArrowRight: [90, 0], ArrowUp: [0, -70], ArrowDown: [0, 70] }[e.key]; setLight(light.tx + d[0], light.ty + d[1]); }
+    else if (e.key.indexOf('Arrow') === 0) { e.preventDefault(); const d = { ArrowLeft: [-90, 0], ArrowRight: [90, 0], ArrowUp: [0, -70], ArrowDown: [0, 70] }[e.key]; setLight(light.tx + d[0], light.ty + d[1], e.repeat); }
     else if (e.key !== 'Tab' && e.key !== 'Shift') m.poke();
   });
   window.addEventListener('keyup', (e) => {
@@ -97,7 +98,10 @@
   const fact = $('fact');
   fact.addEventListener('pointerdown', (e) => { e.preventDefault(); try { fact.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ } m.press(); });
   ['pointerup', 'pointercancel', 'lostpointercapture'].forEach((nm) => fact.addEventListener(nm, () => m.release()));
-  wrap.addEventListener('pointermove', (e) => { const r = stage.getBoundingClientRect(); setLight((e.clientX - r.left) / r.width * P.W, (e.clientY - r.top) / r.height * P.H); });
+  wrap.addEventListener('pointermove', (e) => { // on narrow screens the canvas is cropped (object-fit: cover, centred), so map through the visible part
+    const r = stage.getBoundingClientRect(), vw = Math.min(P.W, P.H * r.width / r.height), vx = (P.W - vw) / 2;
+    setLight(vx + (e.clientX - r.left) / r.width * vw, (e.clientY - r.top) / r.height * P.H);
+  });
   $('compareBtn').addEventListener('click', () => m.setCompare(!m.compare));
   $('revertBtn').addEventListener('click', () => m.revert());
   $('turnBtn').addEventListener('click', () => m.turnPage());

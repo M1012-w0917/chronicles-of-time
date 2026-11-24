@@ -94,7 +94,7 @@ PASS 390x844: 19 CJK characters at 14.0px wrap inside the fact box
 PASS 390x844: fact font floor
 PASS 390x844: stacked, book canvas above, fact line below it, caption below the fact line
 PASS 390: hint and controls fully inside the viewport vertically
-MEASURE 390x844 {"fact":{"l":12,"t":225.375,"r":378,"b":258.96875},"factOldScrollW":366,"factNewScrollW":366,"factBoxW":366,"cap":{"l":12,"t":270.96875,"r":378,"b":304.5625},"hint":{"l":10,"t":374.953125,"r":380,"b":429.515625},"controls":{"l":10,"t":437.515625,"r":380,"b":569.515625},"docScrollWidth":390}
+MEASURE 390x844 {"fact":{"l":12,"t":298.5,"r":378,"b":332.09375},"factOldScrollW":366,"factNewScrollW":366,"factBoxW":366,"cap":{"l":12,"t":344.09375,"r":378,"b":377.6875},"hint":{"l":10,"t":448.078125,"r":380,"b":502.640625},"controls":{"l":10,"t":510.640625,"r":380,"b":642.640625},"docScrollWidth":390}
 PASS 390: holding the fact line writes
 --- 6d pierced holes, page-curl warp, gather trail, reduced anomaly
 PASS pierced hole passes more light than the leather body (pixel probe)
@@ -106,6 +106,9 @@ PASS gather trail fades by t=1
 PASS gathering shows as continuous change between t=0.3 and 0.6
 PASS reduced motion: anomaly is one static reversed cast with the caption, no lean
 PASS reduced anomaly is frozen (no movement)
+PASS a held arrow key (auto-repeat) moves the candle far but does not arm the anomaly
+PASS one deliberate key press (90 px, plus the first press) is below the threshold
+PASS three deliberate key presses reach the threshold and arm the anomaly
 --- 7 keyboard path
 PASS keyboard Space early release cancels
 PASS keyboard Enter hold writes
@@ -122,4 +125,4 @@ PASS reduced reconstruction completes quickly (crossfade)
 PASS average render time per frame under 40 ms
 PASS no console or page errors
 
-RESULT 110 passed, 0 failed
+RESULT 113 passed, 0 failed
